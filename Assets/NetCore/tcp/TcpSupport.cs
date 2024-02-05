@@ -1,24 +1,64 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
 
+/// <summary>
+/// TCP客户端支持
+/// </summary>
 public class TcpSupport
 {
+    /// <summary>
+    /// 最大接受消息数组长度
+    /// </summary>
+    private const int AcceptBufferMaxLength = 1024;
+    /// <summary>
+    /// TCP客户端对象
+    /// </summary>
     private TcpClient _client;
-    private byte[] _recvBuffer = new byte[1024];
+    /// <summary>
+    /// 接受数据数组
+    /// </summary>
+    private byte[] _acceptBuffer;
+    /// <summary>
+    /// TCP监听线程
+    /// </summary>
     private Thread _listenerThread;
+    /// <summary>
+    /// 数据流
+    /// </summary>
     private MemoryStream _memoryStream;
+    /// <summary>
+    /// 是否连接上服务器
+    /// </summary>
     public bool Connected => _client != null && _client.Connected;
+
+    /// <summary>
+    /// 服务器返回登录消息委托
+    /// </summary>
+    public Action<pb.S2C_LoginMsg> OnS2CLoginMsg;
+    /// <summary>
+    /// 服务器返回创建房间消息委托
+    /// </summary>
+    public Action<pb.S2C_CreateRoomMsg> OnS2CCreateRoomMsg;
+    /// <summary>
+    /// 服务器返回加入房间消息委托
+    /// </summary>
+    public Action<pb.S2C_JoinRoomMsg> OnS2CJoinRoomMsg;
 
     public TcpSupport()
     {
+        _acceptBuffer = new byte[AcceptBufferMaxLength];
         _client = new TcpClient();
         _memoryStream = new MemoryStream();
     }
 
+    /// <summary>
+    /// 连接服务器
+    /// </summary>
+    /// <param name="address">IP地址</param>
+    /// <param name="port">端口号</param>
     public void Connect(string address, int port)
     {
         if (_client != null && !_client.Connected)
@@ -27,6 +67,9 @@ public class TcpSupport
         }
     }
 
+    /// <summary>
+    /// 断开连接
+    /// </summary>
     public void Disconnect()
     {
         if (Connected) _client.Close();
@@ -34,6 +77,10 @@ public class TcpSupport
         _memoryStream = null;
     }
 
+    /// <summary>
+    /// 异步连接
+    /// </summary>
+    /// <param name="result">异步结果</param>
     private void OnConnectAsync(IAsyncResult result)
     {
         try
@@ -41,7 +88,7 @@ public class TcpSupport
             var tcpClient = (TcpClient)result.AsyncState;
             tcpClient.EndConnect(result);
             Logger.Log(LogLevel.Info, $"Connected Server Point:{tcpClient.Client.RemoteEndPoint} Start RectThread Listener!");
-            StartRecvListener();
+            StartAcceptListener();
         }
         catch (Exception ex)
         {
@@ -49,12 +96,18 @@ public class TcpSupport
         }
     }
 
-    private void StartRecvListener()
+    /// <summary>
+    /// 开启监听服务器消息
+    /// </summary>
+    private void StartAcceptListener()
     {
         _listenerThread = new Thread(new ThreadStart(HandleServerComm));
         _listenerThread.Start();
     }
 
+    /// <summary>
+    /// 服务器返回消息处理
+    /// </summary>
     private async void HandleServerComm()
     {
         while (true)
@@ -64,7 +117,7 @@ public class TcpSupport
             var bytesRead = 0;
             try
             {
-                bytesRead = await networkStream.ReadAsync(_recvBuffer, 0, _recvBuffer.Length);
+                bytesRead = await networkStream.ReadAsync(_acceptBuffer, 0, _acceptBuffer.Length);
             }
             catch (Exception ex)
             {
@@ -74,10 +127,15 @@ public class TcpSupport
             if (bytesRead == 0)
                 break;
 
-            OnTcpData(_recvBuffer, bytesRead);
+            OnTcpData(_acceptBuffer, bytesRead);
         }
     }
 
+    /// <summary>
+    /// 接受服务器返回消息处理
+    /// </summary>
+    /// <param name="buffer">数据</param>
+    /// <param name="bytesRead">已读</param>
     private void OnTcpData(byte[] buffer, int bytesRead)
     {
         var packet = new Packet();
@@ -117,6 +175,10 @@ public class TcpSupport
         }
     }
 
+    /// <summary>
+    /// 发送数据
+    /// </summary>
+    /// <param name="packet">数据包</param>
     public async void Send(Packet packet)
     {
         if (!Connected) return;
@@ -143,34 +205,6 @@ public class TcpSupport
         finally
         {
             BufferPool.ReleaseBuff(buffer);
-        }
-    }
-    
-    public void OnS2CLoginMsg(pb.S2C_LoginMsg s2CLoginMsg)
-    {
-        Logger.Log(LogLevel.Info,$"[S2C_LoginMsg] ErrorCode:{s2CLoginMsg.ErrorCode} PlayerId:{s2CLoginMsg.PlayerId}");
-        if (s2CLoginMsg.ErrorCode == pb.LogicErrorCode.LogicErrOk)
-        {
-            GameManager.Instance.PlayerId = s2CLoginMsg.PlayerId;
-        }
-    }
-
-    public void OnS2CCreateRoomMsg(pb.S2C_CreateRoomMsg s2CCreateRoomMsg)
-    {
-        Logger.Log(LogLevel.Info,$"[S2C_CreateRoomMsg] ErrorCode:{s2CCreateRoomMsg.ErrorCode} RoomId:{s2CCreateRoomMsg.RoomId}");
-        if (s2CCreateRoomMsg.ErrorCode == pb.LogicErrorCode.LogicErrOk && !GameManager.Instance.RoomIdList.Contains(s2CCreateRoomMsg.RoomId))
-        {
-            GameManager.Instance.RoomIdList.Add(s2CCreateRoomMsg.RoomId);
-        }
-    }
-
-    public void OnS2CJoinRoomMsg(pb.S2C_JoinRoomMsg s2CJoinRoomMsg)
-    {
-        Logger.Log(LogLevel.Info,$"[S2C_CreateRoomMsg] ErrorCode:{s2CJoinRoomMsg.ErrorCode} RoomId:{s2CJoinRoomMsg.RoomId} All:{s2CJoinRoomMsg.All}");
-        if (s2CJoinRoomMsg.ErrorCode == pb.LogicErrorCode.LogicErrOk)
-        {
-            GameManager.Instance.RoomId = s2CJoinRoomMsg.RoomId;
-            GameManager.Instance.RefreshRoomInfo(s2CJoinRoomMsg.RoomId, s2CJoinRoomMsg.All.ToList());
         }
     }
 }

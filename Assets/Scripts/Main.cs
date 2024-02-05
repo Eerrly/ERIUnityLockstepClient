@@ -41,8 +41,9 @@ public class Main : MonoBehaviour
         
         InitLogger();
         BufferPool.InitPool(2, 512, 5, 5);
-        NetworkManager.Instance.InitTcpClient();
-        NetworkManager.Instance.InitKcpClient();
+        
+        GameManager.Instance.Initialize();
+        NetworkManager.Instance.Initialize();
     }
 
     private void Start()
@@ -74,6 +75,9 @@ public class Main : MonoBehaviour
         button4.onClick.AddListener(() => { GameManager.Instance.SetFrame(4); });
     }
 
+    /// <summary>
+    /// 初始化Logger
+    /// </summary>
     void InitLogger()
     {
         var currentLoggerPath = Path.Combine(Application.persistentDataPath, "game.log");
@@ -152,5 +156,6 @@ public class Main : MonoBehaviour
     private void OnDestroy()
     {
         GameManager.Instance.OnRelease();
+        NetworkManager.Instance.OnRelease();
     }
 }
