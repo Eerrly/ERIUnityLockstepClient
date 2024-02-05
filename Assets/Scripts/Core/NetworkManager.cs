@@ -95,7 +95,7 @@ public class NetworkManager : AManager<NetworkManager>
         
         if(_tcpSupport != null) _tcpSupport.Disconnect();
         if(_kcpTickCancellationTokenSource != null) _kcpTickCancellationTokenSource.Cancel();
-        if(_kcpTickThread != null) _kcpTickThread.Dispose();
+        if(_kcpTickThread != null && _kcpTickThread.IsCompleted) _kcpTickThread.Dispose();
         if(_kcpClient != null) _kcpClient.Disconnect();
         if(_memoryStream != null) _memoryStream.Close();
         if(_serverStopwatch != null) _serverStopwatch.Stop();
