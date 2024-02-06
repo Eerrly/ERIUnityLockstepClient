@@ -138,16 +138,18 @@ public class Main : MonoBehaviour
             }
         }
 
-        if (!GameManager.Instance.IsBattleStart || GameManager.Instance.CurServerFrame == default) return;
+        if (!GameManager.Instance.IsBattleStart || GameManager.Instance.ServerAuthorityFrame == -1) return;
         
         stringBuilder.Clear();
-        if (GameManager.Instance.FrameInfoDic.TryGetValue(GameManager.Instance.CurServerFrame, out var datum))
+        if (GameManager.Instance.FrameInfoDic.TryGetValue(GameManager.Instance.ServerAuthorityFrame, out var datum))
         {
             foreach (var d in datum) stringBuilder.Append($"Data:{d}").Append(",");
         }
-        frameInfoTxt.text = $"ClientFrame:{GameManager.Instance.CurClientFrame} " +
-                            $"ServerFrame:{GameManager.Instance.CurServerFrame} " +
-                            $"Offset:{(int)GameManager.Instance.CurServerFrame - (int)GameManager.Instance.CurClientFrame} " +
+
+        var displayFrame = GameManager.Instance.BattleController.DisplayEntity.Frame;
+        frameInfoTxt.text = $"ClientFrame:{displayFrame} " +
+                            $"ServerFrame:{GameManager.Instance.ServerAuthorityFrame} " +
+                            $"Offset:{GameManager.Instance.ServerAuthorityFrame - displayFrame} " +
                             $"RealPing:{NetworkManager.Instance.RealPing}" +
                             $"MinPing:{NetworkManager.Instance.MinPing}" +
                             $"Datum:{stringBuilder}";

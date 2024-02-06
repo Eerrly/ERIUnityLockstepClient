@@ -276,8 +276,8 @@ public class NetworkManager : AManager<NetworkManager>
                     var s2CMsg = pb.S2C_FrameMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame ErrorCode:{s2CMsg.ErrorCode} Frame:{s2CMsg.Frame} Datum:{s2CMsg.Datum}");
 
-                    GameManager.Instance.FrameInfoDic[s2CMsg.Frame] = s2CMsg.Datum.ToList();
-                    GameManager.Instance.CurServerFrame = s2CMsg.Frame;
+                    GameManager.Instance.FrameInfoDic[(int)s2CMsg.Frame] = s2CMsg.Datum.ToList();
+                    GameManager.Instance.ServerAuthorityFrame = (int)s2CMsg.Frame;
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgHeartbeat:

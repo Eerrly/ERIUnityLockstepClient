@@ -31,13 +31,9 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     public uint RoomId { get; set; }
     /// <summary>
-    /// 当前客户端的帧号
-    /// </summary>
-    public uint CurClientFrame { get; set; }
-    /// <summary>
     /// 当前接受到的服务器最新的权威帧号
     /// </summary>
-    public uint CurServerFrame { get; set; }
+    public int ServerAuthorityFrame = -1;
 
     private LogicNetController _logicNetController;
     public LogicNetController LogicNetController => _logicNetController ?? (_logicNetController = new LogicNetController(Instance));
@@ -61,7 +57,7 @@ public class GameManager : AManager<GameManager>
     /// <summary>
     /// 服务器返回的全部玩家的帧数据
     /// </summary>
-    public Dictionary<uint, List<int>> FrameInfoDic;
+    public Dictionary<int, List<int>> FrameInfoDic;
     /// <summary>
     /// 客户端帧数据
     /// </summary>
@@ -75,7 +71,7 @@ public class GameManager : AManager<GameManager>
         RoomIdList = new List<uint>();
         RoomInfoDic = new Dictionary<uint, List<uint>>();
         Status = new List<uint>();
-        FrameInfoDic = new Dictionary<uint, List<int>>();
+        FrameInfoDic = new Dictionary<int, List<int>>();
         Input = new int[10000];
     }
 
@@ -90,6 +86,12 @@ public class GameManager : AManager<GameManager>
         RoomInfoDic.Clear();
         Status.Clear();
         FrameInfoDic.Clear();
+    }
+
+    public int GetRoomPos()
+    {
+        var playerIds = RoomInfoDic[RoomId];
+        return playerIds.IndexOf(PlayerId);
     }
 
     /// <summary>
@@ -157,8 +159,8 @@ public class GameManager : AManager<GameManager>
     /// <param name="data">帧数据</param>
     public void SetFrame(int data)
     {
-        Input[CurClientFrame] = data;
-        Logger.Log(LogLevel.Info, $"{PlayerId} SetFrame [{CurClientFrame}]->{data}");
+        Input[BattleController.PredictEntity.Frame + 1] = data;
+        Logger.Log(LogLevel.Info, $"{PlayerId} SetFrame [{BattleController.PredictEntity.Frame + 1}]->{data}");
     }
     
 }

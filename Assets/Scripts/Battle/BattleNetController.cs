@@ -61,6 +61,7 @@ public class BattleNetController
             Frame = frame,
             Data = data,
         };
+        Logger.Log(LogLevel.Info, $"SendFrameMsg frame:{frame} data:{data}");
         NetworkManager.Instance.SendKcpMsg(pb.BattleMsgID.BattleMsgFrame, c2SMsg);
     }
         
