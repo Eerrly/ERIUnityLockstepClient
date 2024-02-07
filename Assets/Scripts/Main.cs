@@ -64,7 +64,7 @@ public class Main : MonoBehaviour
         {
             playerReadyBtn[i].onClick.AddListener(() =>
             {
-                if (GameManager.Instance.Status.Contains(GameManager.Instance.PlayerId)) return;
+                if (GameManager.Instance.Status.Contains(GameManager.Instance.Player.PlayerId)) return;
                 GameManager.Instance.RoomReady();
             });
         }
@@ -92,14 +92,14 @@ public class Main : MonoBehaviour
     private void Update()
     {
         tcpConnectionStateTxt.text = NetworkManager.Instance.TcpConnected ? "Connected" : "Disconnected";
-        GameManager.Instance.Account = accountInputField.text;
-        GameManager.Instance.Password = passwordInputField.text;
+        GameManager.Instance.Player.Account = accountInputField.text;
+        GameManager.Instance.Player.Password = passwordInputField.text;
 
-        loginTxt.text = GameManager.Instance.PlayerId == default ? "Login" : "Logged";
-        if (GameManager.Instance.PlayerId != default)
+        loginTxt.text = GameManager.Instance.Player.PlayerId == default ? "Login" : "Logged";
+        if (GameManager.Instance.Player.PlayerId != default)
         {
             loginBtn.interactable = false;
-            playerIdTxt.text = GameManager.Instance.PlayerId.ToString();
+            playerIdTxt.text = GameManager.Instance.Player.PlayerId.ToString();
         }
 
         createRoomBtn.interactable = GameManager.Instance.RoomIdList.Count <= 0;
@@ -113,7 +113,7 @@ public class Main : MonoBehaviour
             {
                 foreach (var id in playerIds)
                 {
-                    if (id == GameManager.Instance.PlayerId) isJoined = true;
+                    if (id == GameManager.Instance.Player.PlayerId) isJoined = true;
                     stringBuilder.Append(id);
                     stringBuilder.Append(',');
                 }
@@ -127,13 +127,13 @@ public class Main : MonoBehaviour
         kcpConnectionStateTxt.text = $"KCP Connection State: {(NetworkManager.Instance.KcpConnected ? "Connected" : "Disconnected")}";
         if (NetworkManager.Instance.KcpConnected)
         {
-            kcpConnectionStateTxt.text = $"KCP Connection State: {(NetworkManager.Instance.KcpConnected ? "Connected" : "Disconnected")} RoomId:{GameManager.Instance.RoomId}";
-            for (int i = 0; i < GameManager.Instance.RoomInfoDic[GameManager.Instance.RoomId].Count; i++)
+            kcpConnectionStateTxt.text = $"KCP Connection State: {(NetworkManager.Instance.KcpConnected ? "Connected" : "Disconnected")} RoomId:{GameManager.Instance.Player.RoomId}";
+            for (int i = 0; i < GameManager.Instance.RoomInfoDic[GameManager.Instance.Player.RoomId].Count; i++)
             {
-                var playerId = GameManager.Instance.RoomInfoDic[GameManager.Instance.RoomId][i];
+                var playerId = GameManager.Instance.RoomInfoDic[GameManager.Instance.Player.RoomId][i];
                 var isReadied = GameManager.Instance.Status.Contains(playerId);
                 playerReadyInfoTxt[i].text = isReadied ? $"PlayerId:{playerId} Readied" : $"PlayerId:{playerId} Waiting...";
-                playerReadyBtn[i].gameObject.SetActive(GameManager.Instance.PlayerId == playerId);
+                playerReadyBtn[i].gameObject.SetActive(GameManager.Instance.Player.PlayerId == playerId);
                 playerReadyBtn[i].interactable = !isReadied;
             }
         }
@@ -146,7 +146,7 @@ public class Main : MonoBehaviour
             foreach (var d in datum) stringBuilder.Append($"Data:{d}").Append(",");
         }
 
-        var displayFrame = GameManager.Instance.BattleController.DisplayEntity.Frame;
+        var displayFrame = GameManager.Instance.GetDisplayEntity().Frame;
         frameInfoTxt.text = $"ClientFrame:{displayFrame} " +
                             $"ServerFrame:{GameManager.Instance.ServerAuthorityFrame} " +
                             $"Offset:{GameManager.Instance.ServerAuthorityFrame - displayFrame} " +

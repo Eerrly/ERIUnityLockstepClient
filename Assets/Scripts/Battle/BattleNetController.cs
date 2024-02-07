@@ -4,17 +4,12 @@
 public class BattleNetController
 {
     /// <summary>
-    /// 游戏管理器对象
-    /// </summary>
-    private readonly GameManager _gameManager;
-    /// <summary>
     /// 最后一次发送的客户端帧号
     /// </summary>
     private uint _frameDataCurrBeingSent;
 
-    public BattleNetController(GameManager gameManager)
+    public BattleNetController()
     {
-        _gameManager = gameManager;
     }
         
     /// <summary>
@@ -26,7 +21,7 @@ public class BattleNetController
         var c2SMsg = new pb.C2S_HeartbeatMsg()
         {
             PlayerId = playerId,
-            TimeStamp = (ulong)_gameManager.BattleController.GetClientStopwatchElapsedMilliseconds(),
+            TimeStamp = (ulong)GameManager.Instance.GetClientStopwatchElapsedMilliseconds(),
         };
         NetworkManager.Instance.SendKcpMsg(pb.BattleMsgID.BattleMsgHeartbeat, c2SMsg);
     }

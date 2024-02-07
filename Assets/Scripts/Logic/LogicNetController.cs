@@ -5,14 +5,8 @@
 /// </summary>
 public class LogicNetController
 {
-    /// <summary>
-    /// 游戏管理器对象
-    /// </summary>
-    private readonly GameManager _gameManager;
-
-    public LogicNetController(GameManager gameManager)
+    public LogicNetController()
     {
-        _gameManager = gameManager;
     }
 
     /// <summary>
@@ -22,8 +16,8 @@ public class LogicNetController
     {
         NetworkManager.Instance.SendTcpMsg(pb.LogicMsgID.LogicMsgLogin, new pb.C2S_LoginMsg
         {
-            Account = ByteString.CopyFromUtf8(_gameManager.Account),
-            Password = ByteString.CopyFromUtf8(_gameManager.Password)
+            Account = ByteString.CopyFromUtf8(GameManager.Instance.Player.Account),
+            Password = ByteString.CopyFromUtf8(GameManager.Instance.Player.Password)
         });
     }
 
@@ -34,7 +28,7 @@ public class LogicNetController
     {
         NetworkManager.Instance.SendTcpMsg(pb.LogicMsgID.LogicMsgCreateRoom, new pb.C2S_CreateRoomMsg
         {
-            PlayerId = _gameManager.PlayerId,
+            PlayerId = GameManager.Instance.Player.PlayerId,
         });
     }
 
@@ -46,7 +40,7 @@ public class LogicNetController
     {
         NetworkManager.Instance.SendTcpMsg(pb.LogicMsgID.LogicMsgJoinRoom, new pb.C2S_JoinRoomMsg
         {
-            PlayerId = _gameManager.PlayerId,
+            PlayerId = GameManager.Instance.Player.PlayerId,
             RoomId = roomId,
         });
     }

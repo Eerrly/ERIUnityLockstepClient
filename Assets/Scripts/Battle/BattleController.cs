@@ -33,13 +33,13 @@ public class BattleController
     /// </summary>
     private uint _willSentFrame;
     /// <summary>
+    /// 最近一次发送的帧数据
+    /// </summary>
+    private int _lastSentFrameData;
+    /// <summary>
     /// 客户端计时器
     /// </summary>
     private readonly Stopwatch _stopwatch;
-    /// <summary>
-    /// 游戏管理对象
-    /// </summary>
-    private readonly GameManager _gameManager;
     /// <summary>
     /// 预测实体队列
     /// </summary>
@@ -68,10 +68,9 @@ public class BattleController
     /// </summary>
     private EntityPool _entityPool;
     
-    public BattleController(GameManager gameManager)
+    public BattleController()
     {
         _stopwatch = new Stopwatch();
-        _gameManager = gameManager;
 
         _predictEntityQueue = new Queue<Entity>();
         _serverDataQueue = new Queue<int>();
@@ -100,21 +99,26 @@ public class BattleController
     }
 
     /// <summary>
-    /// 开启战斗线程任务
+    /// 战斗网络轮询
     /// </summary>
-    public void StartBattleThread()
+    /// <param name="cancellationToken">取消操作句柄</param>
+    /// <returns>异步句柄</returns>
+    public Task NetUpdate(CancellationToken cancellationToken)
     {
-        _cancellationTokenSource = new CancellationTokenSource();
-        var cancellationToken = _cancellationTokenSource.Token;
-
-        _battleTask = Task.Run(async () =>
+        var predictClientFrame = _predictEntity.Frame + 1;
+        var predictClientFrameData = GameManager.Instance.Input[predictClientFrame];
+        if (_willSentFrame != default && predictClientFrameData != default)
         {
-            while (_gameManager.IsBattleStart && !cancellationToken.IsCancellationRequested)
-            {
-                await ProcessBattle(cancellationToken);
-                await Task.Delay(30, cancellationToken);
-            }
-        }, cancellationToken);
+            GameManager.Instance.SendFrame(_willSentFrame, predictClientFrameData);
+        }
+
+        if (_stopwatch.ElapsedMilliseconds - _lastHeartbeatTime >= BattleSetting.HeartbeatTime)
+        {
+            _lastHeartbeatTime = _stopwatch.ElapsedMilliseconds;
+            GameManager.Instance.Heartbeat();
+        }
+        
+        return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
     }
     
     /// <summary>
@@ -122,20 +126,17 @@ public class BattleController
     /// </summary>
     /// <param name="cancellationToken">取消操作句柄</param>
     /// <returns>异步任务</returns>
-    private Task ProcessBattle(CancellationToken cancellationToken)
+    public Task LogicUpdate(CancellationToken cancellationToken)
     {
         PredictRollback();
         var predictClientFrame = _predictEntity.Frame + 1;
-        if (predictClientFrame - _gameManager.ServerAuthorityFrame < 4)
+        if (predictClientFrame - GameManager.Instance.ServerAuthorityFrame < 4)
         {
-            if (_willSentFrame != default)
-                _gameManager.BattleNetController.SendFrameMsg(_willSentFrame, _gameManager.Input[predictClientFrame]);
-
             var maybeServerTime = _stopwatch.ElapsedMilliseconds - _timeOffset + NetworkManager.Instance.MinPing * 0.5f;
-            var hasNewFrame = maybeServerTime + NetworkManager.Instance.RealPing * 0.5f >= predictClientFrame * BattleSetting.Interval;
-            var slowdown = _stopwatch.ElapsedMilliseconds - _lastProcessFrameTime >= BattleSetting.Interval * 2;
+            var hasNewFrame = maybeServerTime + NetworkManager.Instance.RealPing * 0.5f >= predictClientFrame * BattleSetting.BattleInterval;
+            var slowdown = _stopwatch.ElapsedMilliseconds - _lastProcessFrameTime >= BattleSetting.BattleInterval * 2;
             if (slowdown)
-                Logger.Log(LogLevel.Info, $"Slowdown! predictClientFrame:{predictClientFrame} CurServerFrame:{_gameManager.ServerAuthorityFrame}");
+                Logger.Log(LogLevel.Info, $"Slowdown! predictClientFrame:{predictClientFrame} CurServerFrame:{GameManager.Instance.ServerAuthorityFrame}");
             if (hasNewFrame || slowdown)
             {
                 _willSentFrame = (uint)predictClientFrame + 1;
@@ -143,8 +144,7 @@ public class BattleController
                 PredictiveExecute();
             }
         }
-        ClientHeartBeat();
-        return Task.CompletedTask;
+        return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
     }
     
     /// <summary>
@@ -152,9 +152,8 @@ public class BattleController
     /// </summary>
     private void PredictiveExecute()
     {
-        // var newEntity = _entityPool.Dequeue();
+        var newEntity = _entityPool.Dequeue();
         // 加入预测实体队列
-        var newEntity = new Entity();
         _predictEntity.Frame++;
         _predictEntity.CopyTo(newEntity);
         _predictEntityQueue.Enqueue(newEntity);
@@ -168,14 +167,14 @@ public class BattleController
     private void PredictRollback()
     {
         _serverDataQueue.Clear();
-        var pos = _gameManager.GetRoomPos();
+        var pos = GameManager.Instance.GetRoomPos();
         // 拿到服务器返回的帧数据到客户端确定帧的帧数据差集合
         for (var i = 0; i < 4; i++)
         {
             var frame = _confirmEntity.Frame + i + 1;
-            if (frame > _gameManager.ServerAuthorityFrame) 
+            if (frame > GameManager.Instance.ServerAuthorityFrame) 
                 break;
-            _serverDataQueue.Enqueue(_gameManager.FrameInfoDic[frame][pos]);
+            _serverDataQueue.Enqueue(GameManager.Instance.FrameInfoDic[frame][pos]);
         }
         
         Logger.Log(LogLevel.Info, $"RollbackConfirm _serverDataQueue.Count:{_serverDataQueue.Count} _predictEntityQueue.Count:{_predictEntityQueue.Count} _confirmEntity:{_confirmEntity}");
@@ -185,7 +184,7 @@ public class BattleController
         while (_serverDataQueue.Count > 0)
         {
             // 计算客户端与服务器的估算时间差
-            var timeOffsetShouldBe = _stopwatch.ElapsedMilliseconds - _gameManager.ServerAuthorityFrame * BattleSetting.Interval;
+            var timeOffsetShouldBe = _stopwatch.ElapsedMilliseconds - GameManager.Instance.ServerAuthorityFrame * BattleSetting.BattleInterval;
             if (timeOffsetShouldBe < _timeOffset) 
                 _timeOffset = timeOffsetShouldBe;
             
@@ -194,15 +193,16 @@ public class BattleController
             if (_predictEntityQueue.Count > 0)
             {
                 //如果帧数据相同，直接使用预测实体
-                _predictEntity = _predictEntityQueue.Dequeue();
-                if (lastServerData == _predictEntity.Data)
+                var tmpPredictEntity = _predictEntityQueue.Dequeue();
+                if (lastServerData == tmpPredictEntity.Data)
                 {
-                    confirmPredictEntity = _predictEntity;
+                    tmpPredictEntity.CopyTo(confirmPredictEntity);
                 }
                 else
                 {
                     flag = true;
                 }
+                _entityPool.Enqueue(tmpPredictEntity);
             }
 
             if (!flag) continue;
@@ -241,23 +241,4 @@ public class BattleController
         Logger.Log(LogLevel.Info, $"RollbackConfirm _predictEntityQueue.Count: {_predictEntityQueue.Count} _predictEntity:{_predictEntity}");
     }
 
-    /// <summary>
-    /// 取消战斗线程
-    /// </summary>
-    public void CancelBattleThread()
-    {
-        _cancellationTokenSource.Cancel();
-    }
-
-    /// <summary>
-    /// Ping
-    /// </summary>
-    private void ClientHeartBeat()
-    {
-        if (_stopwatch.ElapsedMilliseconds - _lastHeartbeatTime < BattleSetting.HeartbeatTime) return;
-        
-        _lastHeartbeatTime = _stopwatch.ElapsedMilliseconds;
-        _gameManager.BattleNetController.SendHeartBeatMsg(_gameManager.PlayerId);
-    }
-    
 }

@@ -1,12 +1,17 @@
 ﻿public class BattleSetting
 {
     /// <summary>
-    /// 1帧的毫秒数
+    /// 网络轮询间隔
     /// </summary>
-    public const int Interval = 30;
+    public const int NetInterval = 1;
+    
+    /// <summary>
+    /// 战斗逻辑轮询间隔
+    /// </summary>
+    public const int BattleInterval = 30;
 
     /// <summary>
-    /// Ping的间隔时间
+    /// Ping消息间隔
     /// </summary>
     public const int HeartbeatTime = 1000;
 }
