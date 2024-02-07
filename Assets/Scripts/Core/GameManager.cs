@@ -8,10 +8,6 @@ using UnityEngine;
 public class GameManager : AManager<GameManager>
 {
     /// <summary>
-    /// 房间最大人数
-    /// </summary>
-    private const int RoomMaxPlayerCount = 2;
-    /// <summary>
     /// 战斗是否连接
     /// </summary>
     public bool IsBattleConnected = false;
@@ -26,6 +22,10 @@ public class GameManager : AManager<GameManager>
     /// <summary>
     /// 逻辑网络控制器
     /// </summary>
+    private LogicController _logicController;
+    /// <summary>
+    /// 逻辑网络控制器
+    /// </summary>
     private LogicNetController _logicNetController;
     /// <summary>
     /// 战斗控制器
@@ -35,18 +35,6 @@ public class GameManager : AManager<GameManager>
     /// 战斗网络控制器
     /// </summary>
     private BattleNetController _battleNetController;
-    /// <summary>
-    /// 所有的房间ID集合
-    /// </summary>
-    public List<uint> RoomIdList;
-    /// <summary>
-    /// 所有房间的信息
-    /// </summary>
-    public Dictionary<uint, List<uint>> RoomInfoDic;
-    /// <summary>
-    /// 所有玩家的准备情况
-    /// </summary>
-    public List<uint> Status;
     /// <summary>
     /// 服务器返回的全部玩家的帧数据
     /// </summary>
@@ -59,23 +47,16 @@ public class GameManager : AManager<GameManager>
     /// 战斗逻辑与网络引擎
     /// </summary>
     private FrameEngine _frameEngine;
-    /// <summary>
-    /// 当前玩家实例
-    /// </summary>
-    public PlayerInfo Player;
 
     /// <summary>
     /// 初始化
     /// </summary>
     public override void Initialize()
     {
-        RoomIdList = new List<uint>();
-        RoomInfoDic = new Dictionary<uint, List<uint>>();
-        Status = new List<uint>();
         FrameInfoDic = new Dictionary<int, List<int>>();
-        Input = new int[10000];
-        Player = new PlayerInfo();
+        Input = new int[BattleSetting.MaxFrameCount];
 
+        _logicController = new LogicController();
         _logicNetController = new LogicNetController();
         _battleNetController = new BattleNetController();
         _battleController = new BattleController();
@@ -94,24 +75,24 @@ public class GameManager : AManager<GameManager>
         _frameEngine.UnRegisterNetUpdateListener();
         _frameEngine.StopEngine();
         
-        RoomIdList.Clear();
-        RoomInfoDic.Clear();
-        Status.Clear();
         FrameInfoDic.Clear();
     }
 
+    /// <summary>
+    /// 获取房间位置
+    /// </summary>
+    /// <returns></returns>
     public int GetRoomPos()
     {
-        var playerIds = RoomInfoDic[Player.RoomId];
-        return playerIds.IndexOf(Player.PlayerId);
+        return _logicController.GetRoomPos();
     }
 
     /// <summary>
     /// 登录
     /// </summary>
-    public void Login()
+    public void Login(string account, string password)
     {
-        _logicNetController.SendLoginMsg();
+        _logicNetController.SendLoginMsg(account, password);
     }
 
     /// <summary>
@@ -127,7 +108,7 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     public void JoinRoom()
     {
-        _logicNetController.SendJoinRoomMsg(RoomIdList.First());
+        _logicNetController.SendJoinRoomMsg(_logicController.Rooms.First().ID);
     }
 
     /// <summary>
@@ -135,12 +116,36 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     /// <param name="roomId"></param>
     /// <param name="players"></param>
-    public void RefreshRoomInfo(uint roomId, List<uint> players)
+    public void RefreshRoomInfo(uint roomId, List<uint> players = null)
     {
-        RoomInfoDic[roomId] = players;
-        if (RoomInfoDic[roomId].Count == RoomMaxPlayerCount) NetworkManager.Instance.KcpConnect();
+        _logicController.RefreshRoomInfo(roomId, players);
     }
 
+    public bool TryGetRoom(uint roomId, out RoomInfo room)
+    {
+        room = null;
+        var flag = false;
+        foreach (var r in _logicController.Rooms)
+        {
+            if (r.ID != roomId) continue;
+            room = r;
+            flag = true;
+        }
+        return flag;
+    }
+    
+    /// <summary>
+    /// 获取房间列表
+    /// </summary>
+    /// <returns></returns>
+    public List<RoomInfo> GetRoomIdList()
+    {
+        return _logicController.Rooms;
+    }
+
+    /// <summary>
+    /// 开启战斗
+    /// </summary>
     public void StartBattle()
     {
         _battleController.StartClientStopwatch();
@@ -153,7 +158,7 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     public void RoomReady()
     {
-        _battleNetController.SendReadyMsg(Player.PlayerId, Player.RoomId);
+        _battleNetController.SendReadyMsg(_logicController.Player.ID, _logicController.Player.RoomId);
     }
 
     /// <summary>
@@ -161,7 +166,7 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     public void Heartbeat()
     {
-        _battleNetController.SendHeartBeatMsg(Player.PlayerId);
+        _battleNetController.SendHeartBeatMsg(_logicController.Player.ID);
     }
 
     /// <summary>
@@ -193,13 +198,48 @@ public class GameManager : AManager<GameManager>
     }
 
     /// <summary>
+    /// 初始化玩家实体
+    /// </summary>
+    /// <param name="playerId"></param>
+    public void InitPlayer(uint playerId)
+    {
+        _logicController.Player = new PlayerInfo
+        {
+            ID = playerId
+        };
+    }
+
+    /// <summary>
+    /// 获取玩家实体
+    /// </summary>
+    /// <returns></returns>
+    public PlayerInfo GetPlayer()
+    {
+        return _logicController.Player;
+    }
+
+    /// <summary>
+    /// 设置房间玩家状态
+    /// </summary>
+    /// <param name="roomId"></param>
+    /// <param name="status"></param>
+    public void SetRoomStatus(uint roomId, List<uint> status)
+    {
+        foreach (var r in _logicController.Rooms)
+        {
+            if(r.ID != roomId ) continue;
+            r.Status = status;
+        }
+    }
+    
+    /// <summary>
     /// 设置帧数据
     /// </summary>
     /// <param name="data">帧数据</param>
     public void SetFrame(int data)
     {
         Input[_battleController.PredictEntity.Frame + 1] = data;
-        Logger.Log(LogLevel.Info, $"{Player.PlayerId} SetFrame [{_battleController.PredictEntity.Frame + 1}]->{data}");
+        Logger.Log(LogLevel.Info, $"{_logicController.Player.ID} SetFrame [{_battleController.PredictEntity.Frame + 1}]->{data}");
     }
     
 }

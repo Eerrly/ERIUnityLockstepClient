@@ -103,7 +103,7 @@ public class NetworkManager : AManager<NetworkManager>
         
         if(_tcpSupport != null) _tcpSupport.Disconnect();
         if(_kcpTickCancellationTokenSource != null) _kcpTickCancellationTokenSource.Cancel();
-        if(_kcpTickThread != null && _kcpTickThread.IsCompleted) _kcpTickThread.Dispose();
+        if(_kcpTickThread != null ) _kcpTickThread.Dispose();
         if(_kcpClient != null) _kcpClient.Disconnect();
         if(_memoryStream != null) _memoryStream.Close();
         if(_serverStopwatch != null) _serverStopwatch.Stop();
@@ -226,10 +226,11 @@ public class NetworkManager : AManager<NetworkManager>
     private void OnKcpConnected()
     {
         Logger.Log(LogLevel.Info, $"[KCP] OnClientConnected ");
+        var player = GameManager.Instance.GetPlayer();
         SendKcpMsg(pb.BattleMsgID.BattleMsgConnect, new pb.C2S_ConnectMsg()
         {
-            PlayerId = GameManager.Instance.Player.PlayerId,
-            SeasonId = GameManager.Instance.Player.RoomId
+            PlayerId = player.ID,
+            SeasonId = player.RoomId
         });
     }
 
@@ -265,8 +266,8 @@ public class NetworkManager : AManager<NetworkManager>
                 case (byte)pb.BattleMsgID.BattleMsgReady:
                 {
                     var s2CMsg = pb.S2C_ReadyMsg.Parser.ParseFrom(_memoryStream);
-                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgReady ErrorCode:{s2CMsg.ErrorCode} Status:{s2CMsg.Status}");
-                    GameManager.Instance.Status = s2CMsg.Status.ToList();
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgReady ErrorCode:{s2CMsg.ErrorCode} RoomId:{s2CMsg.RoomId} Status:{s2CMsg.Status}");
+                    GameManager.Instance.SetRoomStatus(s2CMsg.RoomId, s2CMsg.Status.ToList());
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgStart:
@@ -347,7 +348,7 @@ public class NetworkManager : AManager<NetworkManager>
         Logger.Log(LogLevel.Info,$"[S2C_LoginMsg] ErrorCode:{s2CLoginMsg.ErrorCode} PlayerId:{s2CLoginMsg.PlayerId}");
         if (s2CLoginMsg.ErrorCode == pb.LogicErrorCode.LogicErrOk)
         {
-            GameManager.Instance.Player.PlayerId = s2CLoginMsg.PlayerId;
+            GameManager.Instance.InitPlayer(s2CLoginMsg.PlayerId);
         }
     }
     
@@ -358,9 +359,9 @@ public class NetworkManager : AManager<NetworkManager>
     private void OnS2CCreateRoomMsg(pb.S2C_CreateRoomMsg s2CCreateRoomMsg)
     {
         Logger.Log(LogLevel.Info,$"[S2C_CreateRoomMsg] ErrorCode:{s2CCreateRoomMsg.ErrorCode} RoomId:{s2CCreateRoomMsg.RoomId}");
-        if (s2CCreateRoomMsg.ErrorCode == pb.LogicErrorCode.LogicErrOk && !GameManager.Instance.RoomIdList.Contains(s2CCreateRoomMsg.RoomId))
+        if (s2CCreateRoomMsg.ErrorCode == pb.LogicErrorCode.LogicErrOk)
         {
-            GameManager.Instance.RoomIdList.Add(s2CCreateRoomMsg.RoomId);
+            GameManager.Instance.RefreshRoomInfo(s2CCreateRoomMsg.RoomId);
         }
     }
     
@@ -373,7 +374,6 @@ public class NetworkManager : AManager<NetworkManager>
         Logger.Log(LogLevel.Info,$"[S2C_CreateRoomMsg] ErrorCode:{s2CJoinRoomMsg.ErrorCode} RoomId:{s2CJoinRoomMsg.RoomId} All:{s2CJoinRoomMsg.All}");
         if (s2CJoinRoomMsg.ErrorCode == pb.LogicErrorCode.LogicErrOk)
         {
-            GameManager.Instance.Player.RoomId = s2CJoinRoomMsg.RoomId;
             GameManager.Instance.RefreshRoomInfo(s2CJoinRoomMsg.RoomId, s2CJoinRoomMsg.All.ToList());
         }
     }

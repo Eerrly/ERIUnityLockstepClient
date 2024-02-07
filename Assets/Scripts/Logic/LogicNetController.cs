@@ -12,12 +12,12 @@ public class LogicNetController
     /// <summary>
     /// 发送登录消息
     /// </summary>
-    public void SendLoginMsg()
+    public void SendLoginMsg(string account, string password)
     {
         NetworkManager.Instance.SendTcpMsg(pb.LogicMsgID.LogicMsgLogin, new pb.C2S_LoginMsg
         {
-            Account = ByteString.CopyFromUtf8(GameManager.Instance.Player.Account),
-            Password = ByteString.CopyFromUtf8(GameManager.Instance.Player.Password)
+            Account = ByteString.CopyFromUtf8(account),
+            Password = ByteString.CopyFromUtf8(password)
         });
     }
 
@@ -28,7 +28,7 @@ public class LogicNetController
     {
         NetworkManager.Instance.SendTcpMsg(pb.LogicMsgID.LogicMsgCreateRoom, new pb.C2S_CreateRoomMsg
         {
-            PlayerId = GameManager.Instance.Player.PlayerId,
+            PlayerId = GameManager.Instance.GetPlayer().ID,
         });
     }
 
@@ -40,7 +40,7 @@ public class LogicNetController
     {
         NetworkManager.Instance.SendTcpMsg(pb.LogicMsgID.LogicMsgJoinRoom, new pb.C2S_JoinRoomMsg
         {
-            PlayerId = GameManager.Instance.Player.PlayerId,
+            PlayerId = GameManager.Instance.GetPlayer().ID,
             RoomId = roomId,
         });
     }
