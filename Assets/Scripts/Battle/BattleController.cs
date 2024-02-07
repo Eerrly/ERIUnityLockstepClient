@@ -124,8 +124,7 @@ public class BattleController
     /// <returns>异步任务</returns>
     private Task ProcessBattle(CancellationToken cancellationToken)
     {
-        RollbackConfirm();
-        
+        PredictRollback();
         var predictClientFrame = _predictEntity.Frame + 1;
         if (predictClientFrame - _gameManager.ServerAuthorityFrame < 4)
         {
@@ -144,8 +143,7 @@ public class BattleController
                 PredictiveExecute();
             }
         }
-
-        HeartBeat();
+        ClientHeartBeat();
         return Task.CompletedTask;
     }
     
@@ -154,20 +152,24 @@ public class BattleController
     /// </summary>
     private void PredictiveExecute()
     {
-        var newEntity = _entityPool.Dequeue();
+        // var newEntity = _entityPool.Dequeue();
+        // 加入预测实体队列
+        var newEntity = new Entity();
         _predictEntity.Frame++;
         _predictEntity.CopyTo(newEntity);
         _predictEntityQueue.Enqueue(newEntity);
+        
         newEntity.CopyTo(_displayEntity);
     }
     
     /// <summary>
-    /// 回滚确定
+    /// 预测回滚
     /// </summary>
-    private void RollbackConfirm()
+    private void PredictRollback()
     {
         _serverDataQueue.Clear();
         var pos = _gameManager.GetRoomPos();
+        // 拿到服务器返回的帧数据到客户端确定帧的帧数据差集合
         for (var i = 0; i < 4; i++)
         {
             var frame = _confirmEntity.Frame + i + 1;
@@ -176,12 +178,13 @@ public class BattleController
             _serverDataQueue.Enqueue(_gameManager.FrameInfoDic[frame][pos]);
         }
         
-        Logger.Log(LogLevel.Info, $"Rollback _serverDataQueue.Count:{_serverDataQueue.Count} _predictEntityQueue.Count:{_predictEntityQueue.Count} _confirmEntity:{_confirmEntity}");
+        Logger.Log(LogLevel.Info, $"RollbackConfirm _serverDataQueue.Count:{_serverDataQueue.Count} _predictEntityQueue.Count:{_predictEntityQueue.Count} _confirmEntity:{_confirmEntity}");
 
         var flag = false;
         var confirmPredictEntity = _confirmEntity;
         while (_serverDataQueue.Count > 0)
         {
+            // 计算客户端与服务器的估算时间差
             var timeOffsetShouldBe = _stopwatch.ElapsedMilliseconds - _gameManager.ServerAuthorityFrame * BattleSetting.Interval;
             if (timeOffsetShouldBe < _timeOffset) 
                 _timeOffset = timeOffsetShouldBe;
@@ -190,10 +193,10 @@ public class BattleController
             if (_predictEntityQueue.Count == 0) flag = true;
             if (_predictEntityQueue.Count > 0)
             {
+                //如果帧数据相同，直接使用预测实体
                 _predictEntity = _predictEntityQueue.Dequeue();
                 if (lastServerData == _predictEntity.Data)
                 {
-                    _entityPool.Enqueue(confirmPredictEntity);
                     confirmPredictEntity = _predictEntity;
                 }
                 else
@@ -208,19 +211,20 @@ public class BattleController
             confirmPredictEntity.Data = lastServerData;
         }
         
-        Logger.Log(LogLevel.Info, $"Rollback _serverDataQueue.Count:{_serverDataQueue.Count} confirmPredictEntity:{confirmPredictEntity} flag:{flag}");
+        Logger.Log(LogLevel.Info, $"RollbackConfirm _serverDataQueue.Count:{_serverDataQueue.Count} confirmPredictEntity:{confirmPredictEntity} flag:{flag}");
 
+        // 如果与确定实体不同，拷贝给确定实体
         if (confirmPredictEntity.Frame != _confirmEntity.Frame || confirmPredictEntity.Data != _confirmEntity.Data)
         {
             confirmPredictEntity.CopyTo(_confirmEntity);
-            _entityPool.Enqueue(confirmPredictEntity);
             confirmPredictEntity = _confirmEntity;
         }
         
-        Logger.Log(LogLevel.Info, $"Rollback _confirmEntity:{_confirmEntity} _predictEntity:{_predictEntity}");
+        Logger.Log(LogLevel.Info, $"RollbackConfirm confirmPredictEntity:{confirmPredictEntity} _predictEntity:{_predictEntity}");
         
         if (flag)
         {
+            // 如果预测队列中还存在有预测实体，则按最新的网络帧数据重新赋值
             confirmPredictEntity.CopyTo(_predictEntity);
             
             var count = _predictEntityQueue.Count;
@@ -234,7 +238,7 @@ public class BattleController
                 if (i == count - 1) _displayEntity = entity;
             }
         }
-        Logger.Log(LogLevel.Info, $"Rollback _predictEntityQueue.Count: {_predictEntityQueue.Count} _predictEntity:{_predictEntity}");
+        Logger.Log(LogLevel.Info, $"RollbackConfirm _predictEntityQueue.Count: {_predictEntityQueue.Count} _predictEntity:{_predictEntity}");
     }
 
     /// <summary>
@@ -248,7 +252,7 @@ public class BattleController
     /// <summary>
     /// Ping
     /// </summary>
-    private void HeartBeat()
+    private void ClientHeartBeat()
     {
         if (_stopwatch.ElapsedMilliseconds - _lastHeartbeatTime < BattleSetting.HeartbeatTime) return;
         

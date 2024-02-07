@@ -11,6 +11,10 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     private const int RoomMaxPlayerCount = 2;
     /// <summary>
+    /// 战斗是否连接
+    /// </summary>
+    public bool IsBattleConnected = false;
+    /// <summary>
     /// 战斗开始标记
     /// </summary>
     public bool IsBattleStart = false;
@@ -36,11 +40,20 @@ public class GameManager : AManager<GameManager>
     public int ServerAuthorityFrame = -1;
 
     private LogicNetController _logicNetController;
+    /// <summary>
+    /// 逻辑网络控制器
+    /// </summary>
     public LogicNetController LogicNetController => _logicNetController ?? (_logicNetController = new LogicNetController(Instance));
 
     private BattleController _battleController;
+    /// <summary>
+    /// 战斗控制器
+    /// </summary>
     public BattleController BattleController => _battleController ?? (_battleController = new BattleController(Instance));
     private BattleNetController _battleNetController;
+    /// <summary>
+    /// 战斗网络控制器
+    /// </summary>
     public BattleNetController BattleNetController => _battleNetController ?? (_battleNetController = new BattleNetController(Instance));
     /// <summary>
     /// 所有的房间ID集合

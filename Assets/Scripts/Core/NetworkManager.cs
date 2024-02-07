@@ -56,6 +56,14 @@ public class NetworkManager : AManager<NetworkManager>
     /// TCP客户端对象
     /// </summary>
     private TcpSupport _tcpSupport;
+    /// <summary>
+    /// 服务器返回开始消息的服务器帧号
+    /// </summary>
+    private uint serverStartFrame;
+    /// <summary>
+    /// 服务器返回开始消息的服务器时间
+    /// </summary>
+    private ulong serverStartTimestamp;
 
     /// <summary>
     /// 初始化
@@ -251,6 +259,7 @@ public class NetworkManager : AManager<NetworkManager>
                 {
                     var s2CMsg = pb.S2C_ConnectMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgConnect ErrorCode:{s2CMsg.ErrorCode}");
+                    GameManager.Instance.IsBattleConnected = s2CMsg.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgReady:
@@ -263,9 +272,11 @@ public class NetworkManager : AManager<NetworkManager>
                 case (byte)pb.BattleMsgID.BattleMsgStart:
                 {
                     var s2CMsg = pb.S2C_StartMsg.Parser.ParseFrom(_memoryStream);
-                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgStart ErrorCode:{s2CMsg.ErrorCode}");
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgStart ErrorCode:{s2CMsg.ErrorCode} ServerFrame:{s2CMsg.Frame} ServerTimestamp:{s2CMsg.TimeStamp}");
+                    serverStartFrame = s2CMsg.Frame;
+                    serverStartTimestamp = s2CMsg.TimeStamp;
 
-                    GameManager.Instance.IsBattleStart = true;
+                    GameManager.Instance.IsBattleStart = s2CMsg.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
                     _serverStopwatch.Start();
                     GameManager.Instance.StartClientBattleStopwatch();
                     GameManager.Instance.StartClientBattleThread();
