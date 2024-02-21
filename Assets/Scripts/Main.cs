@@ -92,6 +92,7 @@ public class Main : MonoBehaviour
         Logger.logWarning = Debug.LogWarning;
     }
 
+    private int _lastGetFrameIndex = -1;
     private void Update()
     {
         tcpConnectionStateTxt.text = NetworkManager.Instance.TcpConnected ? "Connected" : "Disconnected";
@@ -145,18 +146,14 @@ public class Main : MonoBehaviour
         if (!GameManager.Instance.IsBattleStart || GameManager.Instance.ServerAuthorityFrame == -1) return;
         
         stringBuilder.Clear();
-        if (GameManager.Instance.FrameInfoDic.TryGetValue(GameManager.Instance.ServerAuthorityFrame, out var datum))
-        {
-            foreach (var d in datum) stringBuilder.Append($"Data:{d}").Append(",");
-        }
 
-        var displayFrame = GameManager.Instance.GetDisplayEntity().Frame;
-        frameInfoTxt.text = $"ClientFrame:{displayFrame} " +
+        var displayEntity = GameManager.Instance.GetDisplayEntity();
+        frameInfoTxt.text = $"ClientFrame:{displayEntity.Frame} " +
                             $"ServerFrame:{GameManager.Instance.ServerAuthorityFrame} " +
-                            $"Offset:{GameManager.Instance.ServerAuthorityFrame - displayFrame} " +
+                            $"Offset:{GameManager.Instance.ServerAuthorityFrame - displayEntity.Frame} " +
                             $"RealPing:{NetworkManager.Instance.RealPing}" +
                             $"MinPing:{NetworkManager.Instance.MinPing}" +
-                            $"Datum:{stringBuilder}";
+                            $"I0:{displayEntity.Players[0].Input} I1:{displayEntity.Players[1].Input}";
     }
 
     private void OnDestroy()

@@ -49,6 +49,10 @@ public class NetworkManager : AManager<NetworkManager>
     /// </summary>
     private MemoryStream _memoryStream;
     /// <summary>
+    /// 数据流读取器
+    /// </summary>
+    private BinaryReader _binaryReader;
+    /// <summary>
     /// 服务器计时器
     /// </summary>
     private Stopwatch _serverStopwatch;
@@ -72,6 +76,7 @@ public class NetworkManager : AManager<NetworkManager>
     {
         _serverStopwatch = new Stopwatch();
         _memoryStream = new MemoryStream();
+        _binaryReader = new BinaryReader(_memoryStream);
         
         _tcpSupport = new TcpSupport();
         _tcpSupport.OnS2CLoginMsg += OnS2CLoginMsg;
@@ -175,6 +180,24 @@ public class NetworkManager : AManager<NetworkManager>
             _data = msg.ToByteArray()
         });
     }
+    
+    /// <summary>
+    /// 发送KCP消息
+    /// </summary>
+    /// <param name="battleMsgID">消息ID</param>
+    /// <param name="msg">消息</param>
+    public void SendKcpMsg(pb.BattleMsgID battleMsgID, byte[] data)
+    {
+        KcpSend(new Packet
+        {
+            _head = new Head
+            {
+                _cmd = (byte)battleMsgID,
+                _length = data.Length
+            },
+            _data = data
+        });
+    }
 
     /// <summary>
     /// TCP连接服务器
@@ -267,45 +290,68 @@ public class NetworkManager : AManager<NetworkManager>
                 {
                     var s2CMsg = pb.S2C_ReadyMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgReady ErrorCode:{s2CMsg.ErrorCode} RoomId:{s2CMsg.RoomId} Status:{s2CMsg.Status}");
-                    GameManager.Instance.SetRoomStatus(s2CMsg.RoomId, s2CMsg.Status.ToList());
+                    if (s2CMsg.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk)
+                    {
+                        GameManager.Instance.SetRoomStatus(s2CMsg.RoomId, s2CMsg.Status.ToList());
+                    }
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgStart:
                 {
                     var s2CMsg = pb.S2C_StartMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgStart ErrorCode:{s2CMsg.ErrorCode} ServerFrame:{s2CMsg.Frame} ServerTimestamp:{s2CMsg.TimeStamp}");
-                    serverStartFrame = s2CMsg.Frame;
-                    serverStartTimestamp = s2CMsg.TimeStamp;
+                    if (s2CMsg.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk)
+                    {
+                        serverStartFrame = s2CMsg.Frame;
+                        serverStartTimestamp = s2CMsg.TimeStamp;
 
-                    GameManager.Instance.IsBattleStart = s2CMsg.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
-                    _serverStopwatch.Start();
-                    GameManager.Instance.StartBattle();
+                        GameManager.Instance.IsBattleStart = s2CMsg.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
+                        _serverStopwatch.Start();
+                        GameManager.Instance.StartBattle();
+                    }
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgFrame:
                 {
-                    var s2CMsg = pb.S2C_FrameMsg.Parser.ParseFrom(_memoryStream);
-                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame ErrorCode:{s2CMsg.ErrorCode} Frame:{s2CMsg.Frame} Datum:{s2CMsg.Datum}");
+                    var inputFrame = FrameBuffer.Frame.defFrame;
+                    inputFrame.frame = _binaryReader.ReadInt32();
+                    inputFrame.playerCount = _binaryReader.ReadInt32();
+                    for (int i = 0; i < inputFrame.playerCount; i++)
+                    {
+                        var input = new FrameBuffer.Input(_binaryReader.ReadByte());
+                        inputFrame[i] = input;
+                    }
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame frame:{inputFrame.frame} playerCount:{inputFrame.playerCount} D0:[{inputFrame[0]}] D1:[{inputFrame[1]}]");
 
-                    GameManager.Instance.FrameInfoDic[(int)s2CMsg.Frame] = s2CMsg.Datum.ToList();
-                    GameManager.Instance.ServerAuthorityFrame = (int)s2CMsg.Frame;
+                    var diff = 0;
+                    while (!GameManager.Instance.FrameBuffer.SyncFrame(inputFrame.frame, ref inputFrame, ref diff))
+                    {
+                        Logger.Log(LogLevel.Error, $"[KCP] BattleMsgFrame Can't SyncFrame [frame]->{inputFrame.frame} [diff]->{diff}");
+                        CloseKcpClient();
+                        break;
+                    }
+                    
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame SyncFrame [frame]->{inputFrame.frame}");
+                    GameManager.Instance.ServerAuthorityFrame = inputFrame.frame;
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgHeartbeat:
                 {
                     var s2CMsg = pb.S2C_HeartbeatMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgHeartbeat ErrorCode:{s2CMsg.ErrorCode} Timestamp:{s2CMsg.TimeStamp}");
-                    
-                    var ping = _serverStopwatch.ElapsedMilliseconds - (long)s2CMsg.TimeStamp;
-                    Instance.RealPing = ping;
-                    Instance.MinPing = Instance.MinPing == 0 ? ping : Math.Min(Instance.MinPing, ping);
+                    if (s2CMsg.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk)
+                    {
+                        var ping = _serverStopwatch.ElapsedMilliseconds - (long)s2CMsg.TimeStamp;
+                        Instance.RealPing = ping;
+                        Instance.MinPing = Instance.MinPing == 0 ? ping : Math.Min(Instance.MinPing, ping);
+                    }
                     break;
                 }
             }
         }
         catch (Exception ex)
         {
-            Logger.Log(LogLevel.Exception, ex.Message);
+            Logger.Log(LogLevel.Exception, ex.Message + ex.StackTrace);
             CloseKcpClient();
         }
     }

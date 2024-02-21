@@ -24,4 +24,9 @@
     /// 最大帧缓存
     /// </summary>
     public const int MaxFrameCount = 1000;
+
+    /// <summary>
+    /// 最大预测缓存队列长度
+    /// </summary>
+    public const int MaxPredictFrameCount = 4;
 }

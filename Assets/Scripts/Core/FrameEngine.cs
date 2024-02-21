@@ -50,7 +50,6 @@ public class FrameEngine
     private void StopNetEngine()
     {
         _netCancellationTokenSource.Cancel();
-        _netTask.Dispose();
     }
 
     public void StopEngine()

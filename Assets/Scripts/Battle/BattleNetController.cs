@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using System.IO;
+
+/// <summary>
 /// 战斗网络控制器
 /// </summary>
 public class BattleNetController
@@ -8,8 +10,13 @@ public class BattleNetController
     /// </summary>
     private uint _frameDataCurrBeingSent;
 
+    private MemoryStream _memoryStream;
+    private BinaryWriter _binaryWriter;
+
     public BattleNetController()
     {
+        _memoryStream = new MemoryStream();
+        _binaryWriter = new BinaryWriter(_memoryStream);
     }
         
     /// <summary>
@@ -45,19 +52,15 @@ public class BattleNetController
     /// 发送帧数据消息
     /// </summary>
     /// <param name="frame">帧号</param>
-    /// <param name="data">帧数据</param>
-    public void SendFrameMsg(uint frame, int data)
+    /// <param name="input">帧数据</param>
+    public void SendFrameMsg(uint frame, FrameBuffer.Input input)
     {
         if (_frameDataCurrBeingSent == frame) return;
         
-        _frameDataCurrBeingSent = frame;
-        var c2SMsg = new pb.C2S_FrameMsg()
-        {
-            Frame = frame,
-            Data = data,
-        };
-        Logger.Log(LogLevel.Info, $"SendFrameMsg frame:{frame} data:{data}");
-        NetworkManager.Instance.SendKcpMsg(pb.BattleMsgID.BattleMsgFrame, c2SMsg);
+        _memoryStream.Reset();
+        _binaryWriter.Write(frame);
+        _binaryWriter.Write(input.ToByte());
+        NetworkManager.Instance.SendKcpMsg(pb.BattleMsgID.BattleMsgFrame, _memoryStream.GetBuffer());
     }
         
 }

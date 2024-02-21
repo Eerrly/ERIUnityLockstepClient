@@ -1,22 +1,22 @@
 ﻿using System.Collections.Generic;
 
-public class EntityPool
+public class BattleEntityPool
 {
-    private readonly Queue<Entity> _entities = new Queue<Entity>();
+    private readonly Queue<BattleEntity> _entities = new Queue<BattleEntity>();
     private readonly object _lock = new object();
 
-    public void Enqueue(Entity entity)
+    public void Enqueue(BattleEntity entity)
     {
         entity.Reset();
         lock (_lock) _entities.Enqueue(entity);
     }
 
-    public Entity Dequeue()
+    public BattleEntity Dequeue()
     {
         lock (_lock)
         {
             if(_entities.Count <= 0)
-                _entities.Enqueue(new Entity());
+                _entities.Enqueue(new BattleEntity());
             return _entities.Dequeue();
         }
     }

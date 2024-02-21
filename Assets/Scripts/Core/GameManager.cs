@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 /// <summary>
 /// 游戏管理器
@@ -36,31 +36,37 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     private BattleNetController _battleNetController;
     /// <summary>
-    /// 服务器返回的全部玩家的帧数据
-    /// </summary>
-    public Dictionary<int, List<int>> FrameInfoDic;
-    /// <summary>
     /// 客户端帧数据
     /// </summary>
-    public int[] Input;
+    public byte[] Input;
     /// <summary>
     /// 战斗逻辑与网络引擎
     /// </summary>
     private FrameEngine _frameEngine;
+    
+    private FrameBuffer _frameBuffer;
+    /// <summary>
+    /// 帧数据
+    /// </summary>
+    public FrameBuffer FrameBuffer
+    {
+        get => _frameBuffer;
+        set => _frameBuffer = value;
+    }
 
     /// <summary>
     /// 初始化
     /// </summary>
     public override void Initialize()
     {
-        FrameInfoDic = new Dictionary<int, List<int>>();
-        Input = new int[BattleSetting.MaxFrameCount];
+        Input = new byte[BattleSetting.MaxFrameCount];
 
         _logicController = new LogicController();
         _logicNetController = new LogicNetController();
         _battleNetController = new BattleNetController();
         _battleController = new BattleController();
-        
+
+        _frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount, BattleSetting.MaxFrameCount);
         _frameEngine = new FrameEngine();
         _frameEngine.RegisterFrameUpdateListener(_battleController.LogicUpdate);
         _frameEngine.RegisterNetUpdateListener(_battleController.NetUpdate);
@@ -75,7 +81,8 @@ public class GameManager : AManager<GameManager>
         _frameEngine.UnRegisterNetUpdateListener();
         _frameEngine.StopEngine();
         
-        FrameInfoDic.Clear();
+        Array.Clear(Input, 0, Input.Length);
+        Input = null;
     }
 
     /// <summary>
@@ -121,13 +128,18 @@ public class GameManager : AManager<GameManager>
         _logicController.RefreshRoomInfo(roomId, players);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="roomId"></param>
+    /// <param name="room"></param>
+    /// <returns></returns>
     public bool TryGetRoom(uint roomId, out RoomInfo room)
     {
         room = null;
         var flag = false;
-        foreach (var r in _logicController.Rooms)
+        foreach (var r in _logicController.Rooms.Where(r => r.ID == roomId))
         {
-            if (r.ID != roomId) continue;
             room = r;
             flag = true;
         }
@@ -148,6 +160,7 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     public void StartBattle()
     {
+        _battleController.InitEntities();
         _battleController.StartClientStopwatch();
         _frameEngine.StartNetEngine(BattleSetting.NetInterval);
         _frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
@@ -158,6 +171,7 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     public void RoomReady()
     {
+        if(!IsBattleConnected) return;
         _battleNetController.SendReadyMsg(_logicController.Player.ID, _logicController.Player.RoomId);
     }
 
@@ -166,6 +180,7 @@ public class GameManager : AManager<GameManager>
     /// </summary>
     public void Heartbeat()
     {
+        if(!IsBattleConnected) return;
         _battleNetController.SendHeartBeatMsg(_logicController.Player.ID);
     }
 
@@ -173,10 +188,11 @@ public class GameManager : AManager<GameManager>
     /// 发送帧数据
     /// </summary>
     /// <param name="frame">帧号</param>
-    /// <param name="data">帧数据</param>
-    public void SendFrame(uint frame, int data)
+    /// <param name="input">操作数据</param>
+    public void SendFrame(uint frame, FrameBuffer.Input input)
     {
-        _battleNetController.SendFrameMsg(frame, data);
+        if(!IsBattleConnected) return;
+        _battleNetController.SendFrameMsg(frame, input);
     }
 
     /// <summary>
@@ -192,11 +208,11 @@ public class GameManager : AManager<GameManager>
     /// 获取显示实体
     /// </summary>
     /// <returns>显示实体</returns>
-    public Entity GetDisplayEntity()
+    public BattleEntity GetDisplayEntity()
     {
         return _battleController.DisplayEntity;
     }
-
+    
     /// <summary>
     /// 初始化玩家实体
     /// </summary>
@@ -225,9 +241,8 @@ public class GameManager : AManager<GameManager>
     /// <param name="status"></param>
     public void SetRoomStatus(uint roomId, List<uint> status)
     {
-        foreach (var r in _logicController.Rooms)
+        foreach (var r in _logicController.Rooms.Where(r => r.ID == roomId))
         {
-            if(r.ID != roomId ) continue;
             r.Status = status;
         }
     }
@@ -236,7 +251,7 @@ public class GameManager : AManager<GameManager>
     /// 设置帧数据
     /// </summary>
     /// <param name="data">帧数据</param>
-    public void SetFrame(int data)
+    public void SetFrame(byte data)
     {
         Input[_battleController.PredictEntity.Frame + 1] = data;
         Logger.Log(LogLevel.Info, $"{_logicController.Player.ID} SetFrame [{_battleController.PredictEntity.Frame + 1}]->{data}");
