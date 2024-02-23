@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 public class BattleEntity : BaseEntity
 {
@@ -32,6 +33,15 @@ public class BattleEntity : BaseEntity
             if(i >= entity.Players.Count) entity.Players.Add(new PlayerEntity());
             Players[i].CopyTo(entity.Players[i]);
         }
+    }
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append($"Frame:{Frame} ");
+        foreach (var p in Players)
+            sb.Append($"[ID:{p.ID} Pos:{p.Input.pos} Yaw:{p.Input.yaw} Key:{p.Input.key}]");
+        return sb.ToString();
     }
 
 }

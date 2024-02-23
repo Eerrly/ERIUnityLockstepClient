@@ -127,10 +127,12 @@
             if (i0.pos == pos)
             {
                 i0 = result;
+                return;
             }
-            if(i1.pos == pos)
+            if (i1.pos == pos)
             {
                 i1 = result;
+                return;
             }
             Logger.Log(LogLevel.Warning, $"FrameBuffer.SetInputByPos pos not found! {pos},{playerCount},{frame}");
         }

@@ -148,12 +148,11 @@ public class Main : MonoBehaviour
         stringBuilder.Clear();
 
         var displayEntity = GameManager.Instance.GetDisplayEntity();
-        frameInfoTxt.text = $"ClientFrame:{displayEntity.Frame} " +
-                            $"ServerFrame:{GameManager.Instance.ServerAuthorityFrame} " +
+        frameInfoTxt.text = $"ServerFrame:{GameManager.Instance.ServerAuthorityFrame} " +
                             $"Offset:{GameManager.Instance.ServerAuthorityFrame - displayEntity.Frame} " +
                             $"RealPing:{NetworkManager.Instance.RealPing}" +
-                            $"MinPing:{NetworkManager.Instance.MinPing}" +
-                            $"I0:{displayEntity.Players[0].Input} I1:{displayEntity.Players[1].Input}";
+                            $"MinPing:{NetworkManager.Instance.MinPing}\n" +
+                            $"Entity:{displayEntity}";
     }
 
     private void OnDestroy()

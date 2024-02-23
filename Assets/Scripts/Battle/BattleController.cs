@@ -244,10 +244,10 @@ public class BattleController
     {
         _serverFrameQueue.Clear();
         var inputFrame = FrameBuffer.Frame.defFrame;
+        var frame = _confirmEntity.Frame;
         for (var i = 0; i < BattleSetting.MaxPredictFrameCount; i++)
         {
-            var frame = _confirmEntity.Frame + i + 1;
-            if (frame > GameManager.Instance.ServerAuthorityFrame + 1) 
+            if (frame++ > GameManager.Instance.ServerAuthorityFrame) 
                 break;
             if (GameManager.Instance.FrameBuffer.TryGetFrame(frame, ref inputFrame))
             {
