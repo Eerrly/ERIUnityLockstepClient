@@ -66,15 +66,15 @@ namespace kcp2k
         internal int fastresend;
         internal int fastlimit;
         internal bool nocwnd;        // congestion control, negated. heavily restricts send/recv window sizes.
-        internal readonly Queue<Segment> snd_queue = new Queue<Segment>(16); // send queue
-        internal readonly Queue<Segment> rcv_queue = new Queue<Segment>(16); // receive queue
+        internal readonly BetterList<Segment> snd_queue = new BetterList<Segment>(); // send queue
+        internal readonly BetterList<Segment> rcv_queue = new BetterList<Segment>(); // receive queue
         // snd_buffer needs index removals.
         // C# LinkedList allocates for each entry, so let's keep List for now.
-        internal readonly List<Segment> snd_buf = new List<Segment>(16);   // send buffer
+        internal readonly BetterList<Segment> snd_buf = new BetterList<Segment>();   // send buffer
         // rcv_buffer needs index insertions and backwards iteration.
         // C# LinkedList allocates for each entry, so let's keep List for now.
-        internal readonly List<Segment> rcv_buf = new List<Segment>(16);   // receive buffer
-        internal readonly List<AckItem> acklist = new List<AckItem>(16);
+        internal readonly BetterList<Segment> rcv_buf = new BetterList<Segment>();   // receive buffer
+        internal readonly BetterList<UInt32> acklist = new BetterList<UInt32>();
 
         // memory buffer
         // size depends on MTU.
@@ -128,14 +128,14 @@ namespace kcp2k
         void SegmentDelete(Segment seg) => SegmentPool.Return(seg);
 
         // calculate how many packets are waiting to be sent
-        public int WaitSnd => snd_buf.Count + snd_queue.Count;
+        public int WaitSnd => snd_buf.Length + snd_queue.Length;
 
         // ikcp_wnd_unused
         // returns the remaining space in receive window (rcv_wnd - rcv_queue)
         internal uint WndUnused()
         {
-            if (rcv_queue.Count < rcv_wnd)
-                return rcv_wnd - (uint)rcv_queue.Count;
+            if (rcv_queue.Length < rcv_wnd)
+                return rcv_wnd - (uint)rcv_queue.Length;
             return 0;
         }
 
@@ -156,7 +156,7 @@ namespace kcp2k
             if (len < 0)
                 throw new NotSupportedException("Receive ispeek for negative len is not supported!");
 
-            if (rcv_queue.Count == 0)
+            if (rcv_queue.Length == 0)
                 return -1;
 
             if (len < 0) len = -len;
@@ -169,7 +169,7 @@ namespace kcp2k
             if (peeksize > len)
                 return -3;
 
-            bool recover = rcv_queue.Count >= rcv_wnd;
+            bool recover = rcv_queue.Length >= rcv_wnd;
 
             // merge fragment.
             int offset = 0;
@@ -178,12 +178,9 @@ namespace kcp2k
             // removing from a c# queue while iterating is not possible, but
             // we can change to 'while Count > 0' and remove every time.
             // (we can remove every time because we removed ispeek support!)
-            while (rcv_queue.Count > 0)
+            for (int i = 0; i < rcv_queue.Length; i++)
             {
-                // unlike original kcp, we dequeue instead of just getting the
-                // entry. this is fine because we remove it in ANY case.
-                Segment seg = rcv_queue.Dequeue();
-
+                Segment seg = rcv_queue[i];
                 // copy segment data into our buffer
                 Buffer.BlockCopy(seg.data.GetBuffer(), 0, buffer, offset, (int)seg.data.Position);
                 offset += (int)seg.data.Position;
@@ -204,16 +201,17 @@ namespace kcp2k
 
             // move available data from rcv_buf -> rcv_queue
             int removed = 0;
-            foreach (Segment seg in rcv_buf)
+            for (int i = 0; i < rcv_buf.Length; i++)
             {
-                if (seg.sn == rcv_nxt && rcv_queue.Count < rcv_wnd)
+                var seg = rcv_buf[i];
+                if (seg.sn == rcv_nxt && rcv_queue.Length < rcv_wnd)
                 {
                     // can't remove while iterating. remember how many to remove
                     // and do it after the loop.
                     // note: don't return segment. we only add it to rcv_queue
                     ++removed;
                     // add
-                    rcv_queue.Enqueue(seg);
+                    rcv_queue.Add(seg);
                     // increase sequence number for next segment
                     rcv_nxt++;
                 }
@@ -222,10 +220,10 @@ namespace kcp2k
                     break;
                 }
             }
-            rcv_buf.RemoveRange(0, removed);
+            rcv_buf.Remove(0, removed);
 
             // fast recover
-            if (rcv_queue.Count < rcv_wnd && recover)
+            if (rcv_queue.Length < rcv_wnd && recover)
             {
                 // ready to send back CMD_WINS in flush
                 // tell remote my window size
@@ -240,13 +238,11 @@ namespace kcp2k
         // returns -1 if there is no message, or if the message is still incomplete.
         public int PeekSize()
         {
-            int length = 0;
-
             // empty queue?
-            if (rcv_queue.Count == 0) return -1;
+            if (rcv_queue.Length == 0) return -1;
 
             // peek the first segment
-            Segment seq = rcv_queue.Peek();
+            Segment seq = rcv_queue[0];
 
             // seg.frg is 0 if the message requires no fragmentation.
             // in that case, the segment's size is the final message size.
@@ -259,12 +255,14 @@ namespace kcp2k
             //   first segment:  .frg is 2 (index in reverse)
             //   second segment: .frg is 1 (index in reverse)
             //   third segment:  .frg is 0 (index in reverse)
-            if (rcv_queue.Count < seq.frg + 1) return -1;
+            if (rcv_queue.Length < seq.frg + 1) return -1;
 
             // recv_queue contains all the fragments necessary to reconstruct the message.
             // sum all fragment's sizes to get the full message size.
-            foreach (Segment seg in rcv_queue)
+            int length = 0;
+            for (int i = 0; i < rcv_queue.Length; i++)
             {
+                var seg = rcv_queue[i];
                 length += (int)seg.data.Position;
                 if (seg.frg == 0) break;
             }
@@ -320,7 +318,7 @@ namespace kcp2k
                 // if the message requires no fragmentation, then
                 // seg.frg becomes 1-0-1 = 0
                 seg.frg = (uint)(count - i - 1);
-                snd_queue.Enqueue(seg);
+                snd_queue.Add(seg);
                 offset += size;
                 len -= size;
             }
@@ -352,7 +350,7 @@ namespace kcp2k
         // ikcp_shrink_buf
         internal void ShrinkBuf()
         {
-            if (snd_buf.Count > 0)
+            if (snd_buf.Length > 0)
             {
                 Segment seg = snd_buf[0];
                 snd_una = seg.sn;
@@ -371,7 +369,7 @@ namespace kcp2k
                 return;
 
             // for-int so we can erase while iterating
-            for (int i = 0; i < snd_buf.Count; ++i)
+            for (int i = 0; i < snd_buf.Length; ++i)
             {
                 // is this the segment?
                 Segment seg = snd_buf[i];
@@ -409,38 +407,26 @@ namespace kcp2k
                     break;
                 }
             }
-            snd_buf.RemoveRange(0, removed);
+            snd_buf.Remove(0, removed);
         }
 
         // ikcp_parse_fastack
         internal void ParseFastack(uint sn, uint ts) // serial number, timestamp
         {
             // sn needs to be between snd_una and snd_nxt
-            // if !(snd_una <= sn && sn < snd_nxt) return;
-
-            // if (Utils.TimeDiff(sn, snd_una) < 0)
-            if (sn < snd_una)
+            if (Utils.TimeDiff(sn, snd_una) < 0 || (Utils.TimeDiff(sn, snd_nxt) >= 0))
                 return;
 
-            // if (Utils.TimeDiff(sn, snd_nxt) >= 0)
-            if (sn >= snd_nxt)
-                return;
-
-            foreach (Segment seg in snd_buf)
+            for (int i = 0; i < snd_buf.Length; i++)
             {
-                // if (Utils.TimeDiff(sn, seg.sn) < 0)
-                if (sn < seg.sn)
+                var seg = snd_buf[i];
+                if (Utils.TimeDiff(sn, seg.sn) < 0)
                 {
                     break;
                 }
                 else if (sn != seg.sn)
                 {
-#if !FASTACK_CONSERVE
                     seg.fastack++;
-#else
-                    if (Utils.TimeDiff(ts, seg.ts) >= 0)
-                        seg.fastack++;
-#endif
                 }
             }
         }
@@ -449,7 +435,14 @@ namespace kcp2k
         // appends an ack.
         void AckPush(uint sn, uint ts) // serial number, timestamp
         {
-            acklist.Add(new AckItem{ serialNumber = sn, timestamp = ts });
+            acklist.Add(sn);
+            acklist.Add(ts);
+        }
+
+        void AckGet(int i, ref UInt32 sn, ref UInt32 ts)
+        {
+            sn = acklist[i * 2 + 0];
+            ts = acklist[i * 2 + 1];
         }
 
         // ikcp_parse_data
@@ -482,7 +475,7 @@ namespace kcp2k
             // original C iterates backwards, so we need to do that as well.
             // note if rcv_buf.Count == 0, i becomes -1 and no looping happens.
             int i;
-            for (i = rcv_buf.Count - 1; i >= 0; i--)
+            for (i = rcv_buf.Length - 1; i >= 0; i--)
             {
                 Segment seg = rcv_buf[i];
                 if (seg.sn == newseg.sn)
@@ -516,17 +509,15 @@ namespace kcp2k
         void MoveReceiveBufferReadySegmentsToQueue()
         {
             int removed = 0;
-            foreach (Segment seg in rcv_buf)
+            for (int i = 0; i < rcv_buf.Length; i++)
             {
-                // move segments while they are in 'rcv_nxt' sequence order.
-                // some may still be missing and inserted later, in this case it stops immediately
-                // because segments always need to be received in the exact sequence order.
-                if (seg.sn == rcv_nxt && rcv_queue.Count < rcv_wnd)
+                var seg = rcv_buf[i];
+                if (seg.sn == rcv_nxt && rcv_queue.Length < rcv_wnd)
                 {
                     // can't remove while iterating. remember how many to remove
                     // and do it after the loop.
                     ++removed;
-                    rcv_queue.Enqueue(seg);
+                    rcv_queue.Add(seg);
                     // increase sequence number for next segment
                     rcv_nxt++;
                 }
@@ -535,7 +526,7 @@ namespace kcp2k
                     break;
                 }
             }
-            rcv_buf.RemoveRange(0, removed);
+            rcv_buf.Remove(0, removed);
         }
 
         // ikcp_input
@@ -741,12 +732,11 @@ namespace kcp2k
             seg.una = rcv_nxt;
 
             // flush acknowledges
-            foreach (AckItem ack in acklist)
+            var count = acklist.Length / 2;
+            for (int i = 0; i < count; i++)
             {
                 MakeSpace(ref size, OVERHEAD);
-                // ikcp_ack_get assigns ack[i] to seg.sn, seg.ts
-                seg.sn = ack.serialNumber;
-                seg.ts = ack.timestamp;
+                AckGet(i, ref seg.sn, ref seg.ts);
                 size += seg.Encode(buffer, size);
             }
             acklist.Clear();
@@ -814,24 +804,30 @@ namespace kcp2k
             //   'snd_nxt' is what we want to send.
             //   'snd_una' is what hasn't been acked yet.
             //   copy up to 'cwnd_' difference between them (sliding window)
-            while (Utils.TimeDiff(snd_nxt, snd_una + cwnd_) < 0)
+            count = 0;
+            for (int k = 0; k < snd_queue.Length; k++)
             {
-                if (snd_queue.Count == 0) break;
+                if(Utils.TimeDiff(snd_nxt, snd_una + cwnd_) >= 0) break;
 
-                Segment newseg = snd_queue.Dequeue();
-
+                var newseg = snd_queue[k];
                 newseg.conv = conv;
                 newseg.cmd = CMD_PUSH;
                 newseg.wnd = seg.wnd;
                 newseg.ts = current;
                 newseg.sn = snd_nxt;
-                snd_nxt += 1; // increase sequence number for next segment
                 newseg.una = rcv_nxt;
                 newseg.resendts = current;
                 newseg.rto = rx_rto;
                 newseg.fastack = 0;
                 newseg.xmit = 0;
                 snd_buf.Add(newseg);
+                snd_nxt++;
+                count++;
+            }
+
+            if (count > 0)
+            {
+                snd_queue.Remove(0, count);
             }
 
             // calculate resent
@@ -840,8 +836,9 @@ namespace kcp2k
 
             // flush data segments
             int change = 0;
-            foreach (Segment segment in snd_buf)
+            for (int i = 0; i < snd_buf.Length; i++)
             {
+                var segment = snd_buf[i];
                 bool needsend = false;
 
                 // initial transmit
@@ -1027,8 +1024,9 @@ namespace kcp2k
 
             int tm_flush = Utils.TimeDiff(ts_flush_, current_);
 
-            foreach (Segment seg in snd_buf)
+            for (int i = 0; i < snd_buf.Length; i++)
             {
+                var seg = snd_buf[i];
                 int diff = Utils.TimeDiff(seg.resendts, current_);
                 if (diff <= 0)
                 {

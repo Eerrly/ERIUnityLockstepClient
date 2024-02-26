@@ -73,7 +73,7 @@ namespace kcp2k
         internal const int QueueDisconnectThreshold = 10000;
 
         // getters for queue and buffer counts, used for debug info
-        public int SendQueueCount     => kcp.snd_queue.Count;
+        public int SendQueueCount     => kcp.snd_queue.Length;
         public int ReceiveQueueCount  => kcp.rcv_queue.Count;
         public int SendBufferCount    => kcp.snd_buf.Count;
         public int ReceiveBufferCount => kcp.rcv_buf.Count;
@@ -257,7 +257,7 @@ namespace kcp2k
             // disconnect connections that can't process the load.
             // see QueueSizeDisconnect comments.
             // => include all of kcp's buffers and the unreliable queue!
-            int total = kcp.rcv_queue.Count + kcp.snd_queue.Count +
+            int total = kcp.rcv_queue.Count + kcp.snd_queue.Length +
                         kcp.rcv_buf.Count   + kcp.snd_buf.Count;
             if (total >= QueueDisconnectThreshold)
             {
@@ -265,7 +265,7 @@ namespace kcp2k
                 // GetType() shows Server/ClientConn instead of just Connection.
                 OnError(ErrorCode.Congestion,
                         $"{GetType()}: disconnecting connection because it can't process data fast enough.\n" +
-                        $"Queue total {total}>{QueueDisconnectThreshold}. rcv_queue={kcp.rcv_queue.Count} snd_queue={kcp.snd_queue.Count} rcv_buf={kcp.rcv_buf.Count} snd_buf={kcp.snd_buf.Count}\n" +
+                        $"Queue total {total}>{QueueDisconnectThreshold}. rcv_queue={kcp.rcv_queue.Count} snd_queue={kcp.snd_queue.Length} rcv_buf={kcp.rcv_buf.Count} snd_buf={kcp.snd_buf.Count}\n" +
                         $"* Try to Enable NoDelay, decrease INTERVAL, disable Congestion Window (= enable NOCWND!), increase SEND/RECV WINDOW or compress data.\n" +
                         $"* Or perhaps the network is simply too slow on our end, or on the other end.");
 
