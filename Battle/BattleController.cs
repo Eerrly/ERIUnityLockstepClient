@@ -9,6 +9,7 @@ public class BattleController
     private Queue<FrameBuffer.Frame> serverFrameQueue;
     private BattleEntityPool battleEntityPool;
     private uint willSentFrame;
+    private uint lastSentFrame;
     private FrameBuffer.Frame lastNetworkFrame;
     private long lastProcessFrameTime;
     private long lastHeartbeatTime;
@@ -66,7 +67,7 @@ public class BattleController
     {
         var predictBattleClientFrame = predictBattleEntity.Frame + 1;
         var predictBattleClientFrameInput = GameManager.Instance.Input[predictBattleClientFrame];
-        if (willSentFrame != default && predictBattleClientFrameInput != default)
+        if (willSentFrame != default && predictBattleClientFrameInput != default && lastSentFrame != willSentFrame)
         {
             var input = new FrameBuffer.Input
             {
@@ -76,6 +77,7 @@ public class BattleController
             };
             System.Console.WriteLine($"NetUpdate SendFrame Frame:{willSentFrame} Input:{input}");
             NetworkManager.Instance.SendBattleFrameMessage(willSentFrame, input.ToByte());
+            lastSentFrame = willSentFrame;
         }
         if (stopwatch.ElapsedMilliseconds - lastHeartbeatTime >= BattleSetting.HeartbeatTime)
         {
@@ -93,7 +95,7 @@ public class BattleController
         if (predictBattleClientFrame - GameManager.Instance.ServerAuthorityFrame < BattleSetting.MaxPredictFrameCount)
         {
             var estimateServerTime = stopwatch.ElapsedMilliseconds - timeOffset + NetworkManager.Instance.MinPing * 0.5f;
-            var hasNewFrame = estimateServerTime + NetworkManager.Instance.MinPing * 0.5f >= predictBattleClientFrame * BattleSetting.BattleInterval;
+            var hasNewFrame = estimateServerTime + NetworkManager.Instance.RealPing * 0.5f >= predictBattleClientFrame * BattleSetting.BattleInterval;
             var slowdown = stopwatch.ElapsedMilliseconds - lastProcessFrameTime >= BattleSetting.BattleInterval * 2;
             if (slowdown){
                 System.Console.WriteLine($"Slowdown! predictBattleClientFrame:{predictBattleClientFrame} CurServerFrame:{GameManager.Instance.ServerAuthorityFrame}");

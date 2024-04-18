@@ -20,16 +20,19 @@ var _ = Task.Run(async ()=>{
             {
                 switch (commandParams[0])
                 {
+                    case "l":
                     case "login":
                     {
                         NetworkManager.Instance.SendLogicLoginMessage(commandParams[1], commandParams[2]);   
                         break;
                     }
+                    case "cr":
                     case "createroom":
                     {
                         NetworkManager.Instance.SendLogicCreateRoomMessage(uint.Parse(commandParams[1]));
                         break;
                     }
+                    case "jr":
                     case "joinroom":
                     {
                         NetworkManager.Instance.SendLogicJoinRoomMessage(uint.Parse(commandParams[1]), uint.Parse(commandParams[2]));
@@ -41,21 +44,25 @@ var _ = Task.Run(async ()=>{
             {
                 switch(commandParams[0])
                 {
+                    case "c":
                     case "connect":
                     {
                         NetworkManager.Instance.SendBattleConnectMessage(uint.Parse(commandParams[1]), uint.Parse(commandParams[2]));
                         break;
                     }
+                    case "r":
                     case "ready":
                     {
                         NetworkManager.Instance.SendBattleReadyMessage(uint.Parse(commandParams[1]), uint.Parse(commandParams[2]));
                         break;
                     }
+                    case "s":
                     case "shutdown":
                     {
                         NetworkManager.Instance.KcpShutdown();
                         break;
                     }
+                    case "f":
                     case "frame":
                     {
                         var randomValue = random.Next(1, 5);
@@ -65,12 +72,6 @@ var _ = Task.Run(async ()=>{
                 }
             }
             command = string.Empty;
-        }
-        if (lastSentFrame != GameManager.Instance.ServerAuthorityFrame)
-        {
-            lastSentFrame = GameManager.Instance.ServerAuthorityFrame;
-            GameManager.Instance.SetFrame(1);
-            System.Console.WriteLine($"Program SendFrame ServerAuthorityFrame:{GameManager.Instance.ServerAuthorityFrame}");
         }
     }
 });

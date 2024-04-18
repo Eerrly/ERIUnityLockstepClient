@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 public class FrameEngine
 {
     private Func<CancellationToken, Task> _frameUpdateListeners = null;
