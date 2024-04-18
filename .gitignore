@@ -1,5 +1,8 @@
-[Bb]in/
+[Ll]ibrary/
+[Tt]emp/
 [Oo]bj/
+[Ll]ogs/
+[Oo]utput/
 
 # Visual Studio cache directory
 .vs/
