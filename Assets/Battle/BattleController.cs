@@ -14,6 +14,7 @@ public class BattleController
     private BattleEntityPool battleEntityPool;
     private uint willSentFrame;
     private uint lastSentFrame;
+    private FrameBuffer.Input lastSentInput;
     private FrameBuffer.Frame lastNetworkFrame;
     private long lastProcessFrameTime;
     private long lastHeartbeatTime;
@@ -67,19 +68,13 @@ public class BattleController
 
     public Task NetUpdate(CancellationToken cancellationToken)
     {
-        var predictBattleClientFrame = predictBattleEntity.Frame + 1;
-        var predictBattleClientFrameInput = GameManager.Instance.Input[predictBattleClientFrame];
-        if (willSentFrame != default && predictBattleClientFrameInput != default && lastSentFrame != willSentFrame)
+        var input = InputManager.Instance.GetInput(GameManager.Instance.PlayerId);
+        if (willSentFrame != default && !input.Compare(lastSentInput) && lastSentFrame != willSentFrame)
         {
-            var input = new FrameBuffer.Input
-            {
-                pos = (byte)GameManager.Instance.GetBattlePos(),
-                yaw = 0,
-                key = predictBattleClientFrameInput,
-            };
             Logger.Log(LogLevel.Info, $"NetUpdate SendFrame Frame:{willSentFrame} Input:{input}");
             NetworkManager.Instance.SendBattleFrameMessage(willSentFrame, input.ToByte());
             lastSentFrame = willSentFrame;
+            lastSentInput = input;
         }
         if (stopwatch.ElapsedMilliseconds - lastHeartbeatTime >= BattleSetting.HeartbeatTime)
         {

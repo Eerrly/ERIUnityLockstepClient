@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class GameManager : AManager<GameManager>
 {
     public uint PlayerId;
@@ -16,7 +18,6 @@ public class GameManager : AManager<GameManager>
 
     private FrameEngine frameEngine;
     private BattleController battleController;
-
 
     public override void Initialize()
     {
@@ -50,6 +51,8 @@ public class GameManager : AManager<GameManager>
     public void StopBattle()
     {
         frameEngine.StopEngine();
+        NetworkManager.Instance.KcpShutdown();
+        NetworkManager.Instance.TcpShutdown();
     }
 
 }

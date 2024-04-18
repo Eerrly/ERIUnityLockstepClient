@@ -12,7 +12,6 @@ public class Main : MonoBehaviour
     public Button JoinRoomBtn;
     public Button ConnectBtn;
     public Button ReadyBtn;
-    public Button FrameBtn;
     public Button ShutdownBtn;
 
     private System.Random random = new System.Random();
@@ -22,6 +21,7 @@ public class Main : MonoBehaviour
         InitLogger();
         GameManager.Instance.Initialize();
         NetworkManager.Instance.Initialize();
+        InputManager.Instance.Initialize();
     }
 
     private void InitLogger()
@@ -55,11 +55,6 @@ public class Main : MonoBehaviour
         ReadyBtn.onClick.AddListener(() =>
         {
             NetworkManager.Instance.SendBattleReadyMessage(GameManager.Instance.RoomInfo.RoomId, GameManager.Instance.PlayerId);
-        });
-        FrameBtn.onClick.AddListener(() =>
-        {
-            var randomValue = random.Next(1, 5);
-            GameManager.Instance.SetFrame((byte)randomValue);
         });
         ShutdownBtn.onClick.AddListener(() =>
         {

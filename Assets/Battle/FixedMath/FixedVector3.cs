@@ -72,6 +72,13 @@ public struct FixedVector3
         this.y = y;
         this.z = z;
     }
+    
+    public FixedVector3(UnityEngine.Vector3 vector)
+    {
+        this.x = FixedNumber.MakeFixNum((int)(vector.x * FixedMath.DataConrvertScale), FixedMath.DataConrvertScale);
+        this.y = FixedNumber.MakeFixNum((int)(vector.y * FixedMath.DataConrvertScale), FixedMath.DataConrvertScale);
+        this.z = FixedNumber.MakeFixNum((int)(vector.z * FixedMath.DataConrvertScale), FixedMath.DataConrvertScale);
+    }
 
     public FixedVector3 Scale(FixedNumber scale)
     {
