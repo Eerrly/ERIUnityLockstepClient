@@ -7,7 +7,6 @@ public class PlayerEntity : BaseEntity
     public override void Init()
     {
         ID = -1;
-        Input.pos = 0;
         Input.yaw = FixedMath.YawOffset;
         Input.key = 0;
     }
@@ -15,7 +14,6 @@ public class PlayerEntity : BaseEntity
     public override void Reset()
     {
         ID = -1;
-        Input.pos = 0;
         Input.yaw = FixedMath.YawOffset;
         Input.key = 0;
     }

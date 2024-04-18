@@ -68,7 +68,7 @@ public class BattleController
 
     public Task NetUpdate(CancellationToken cancellationToken)
     {
-        var input = InputManager.Instance.GetInput(GameManager.Instance.PlayerId);
+        var input = InputManager.Instance.GetInput(GameManager.Instance.GetBattlePos());
         if (willSentFrame != default && !input.Compare(lastSentInput) && lastSentFrame != willSentFrame)
         {
             Logger.Log(LogLevel.Info, $"NetUpdate SendFrame Frame:{willSentFrame} Input:{input}");
@@ -147,6 +147,7 @@ public class BattleController
 
             if (!flag) continue;
             
+            UpdateDisplayEntityInput(confirmPredictEntity, ref lastServerFrame);
             confirmPredictEntity.Frame++;
             CopyInput(confirmPredictEntity, ref lastServerFrame);
         }
@@ -238,6 +239,8 @@ public class BattleController
 
         predictBattleEntity.Frame++;
         lastNetworkFrame.frame = predictBattleEntity.Frame;
+        lastNetworkFrame.SetInputByPos(lastSentInput.pos, lastSentInput);
+        UpdateDisplayEntityInput(predictBattleEntity, ref lastNetworkFrame);
         Logger.Log(LogLevel.Info,$"EnqueueEntityToPredictQueueAndDisplay lastNetworkFrame:{lastNetworkFrame.frame} predictBattleEntity:{predictBattleEntity} confirmBattleEntity:{confirmBattleEntity}");
     
         predictBattleEntity.CopyTo(newEntity);
@@ -245,6 +248,22 @@ public class BattleController
         predictFrameQueue.Enqueue(lastNetworkFrame);
 
         newEntity.CopyTo(displayBattleEntity);
+        Logger.Log(LogLevel.Info, $"EnqueueEntityToPredictQueueAndDisplay displayBattleEntity:{displayBattleEntity}");
+    }
+
+    private void UpdateDisplayEntityInput(BattleEntity battleEntity, ref FrameBuffer.Frame inputFrame)
+    {
+        var playerEntities = battleEntity.PlayerEntities;
+        for (var i = 0; i < playerEntities.Count; i++)
+        {
+            var inputComponent = playerEntities[i].Input;
+            var input = new FrameBuffer.Input();
+            if (inputFrame.GetInputByPos(playerEntities[i].ID, ref input))
+            {
+                inputComponent.yaw = input.yaw - FixedMath.YawOffset;
+                inputComponent.key = input.key;
+            }
+        }
     }
     
 

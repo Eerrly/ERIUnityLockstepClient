@@ -14,7 +14,7 @@ public class PlayerInput : MonoBehaviour
         keyCodes.Add(keyCode);
     }
 
-    public FrameBuffer.Input GetPlayerInput(uint pos)
+    public FrameBuffer.Input GetPlayerInput(int pos)
     {
         input = new FrameBuffer.Input
         {

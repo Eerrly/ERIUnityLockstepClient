@@ -134,7 +134,7 @@
                 i1 = result;
                 return;
             }
-            Logger.Log(LogLevel.Error,$"FrameBuffer.SetInputByPos pos not found! {pos},{playerCount},{frame}");
+            Logger.Log(LogLevel.Warning,$"FrameBuffer.SetInputByPos pos not found! {pos},{playerCount},{frame}");
         }
 
         public bool GetInputByPos(int pos, ref Input result)
@@ -149,7 +149,7 @@
                 result = i1;
                 return true;
             }
-            Logger.Log(LogLevel.Error,$"FrameBuffer.GetInputByPos pos not found! {pos},{playerCount},{frame}");
+            Logger.Log(LogLevel.Warning,$"FrameBuffer.GetInputByPos pos not found! {pos},{playerCount},{frame}");
             return false;
         }
 

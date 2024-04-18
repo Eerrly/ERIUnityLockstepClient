@@ -34,7 +34,7 @@ public class BattleEntity: BaseEntity
         var sb = new System.Text.StringBuilder();
         sb.Append($"Frame:{Frame} ");
         foreach (var p in PlayerEntities)
-            sb.Append($"[ID:{p.ID} Pos:{p.Input.pos} Yaw:{p.Input.yaw} Key:{p.Input.key}]");
+            sb.Append($"[ID:{p.ID} Yaw:{p.Input.yaw} Key:{p.Input.key}]");
         return sb.ToString();
     }
 

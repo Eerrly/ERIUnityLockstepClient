@@ -4,7 +4,6 @@ public class GameManager : AManager<GameManager>
 {
     public uint PlayerId;
     public RoomInfo RoomInfo;
-    public byte[] Input;
     public int ServerAuthorityFrame = -1;
     public bool IsBattleConnected = false;
     public bool IsBattleStart = false;
@@ -21,8 +20,6 @@ public class GameManager : AManager<GameManager>
 
     public override void Initialize()
     {
-        Input = new byte[BattleSetting.MaxFrameCount];
-
         battleController = new BattleController();
         frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount);
         frameEngine = new FrameEngine();
@@ -40,12 +37,6 @@ public class GameManager : AManager<GameManager>
     public int GetBattlePos()
     {
         return (int)(PlayerId - GameSetting.DefaultPlayerIdBase - 1);
-    }
-
-    public void SetFrame(byte data)
-    {
-        Input[battleController.PredictBattleEntity.Frame + 1] = data;
-        Logger.Log(LogLevel.Info,$"SetFrame [{battleController.PredictBattleEntity.Frame + 1}] -> {data}");
     }
 
     public void StopBattle()

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,8 +12,6 @@ public class Main : MonoBehaviour
     public Button ConnectBtn;
     public Button ReadyBtn;
     public Button ShutdownBtn;
-
-    private System.Random random = new System.Random();
 
     private void Awake()
     {

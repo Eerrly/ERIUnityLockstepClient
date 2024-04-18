@@ -57,9 +57,9 @@ public class InputManager : MManager<InputManager>
             DefaultKeies[i] = false;
     }
 
-    public FrameBuffer.Input GetInput(uint playerId)
+    public FrameBuffer.Input GetInput(int pos)
     {
-        var input = playerInput.GetPlayerInput(playerId);
+        var input = playerInput.GetPlayerInput(pos);
         return input;
     }
 
