@@ -22,6 +22,9 @@ public class BattleController
     public BattleEntity PredictBattleEntity => predictBattleEntity;
     public BattleEntity ConfirmBattleEntity => confirmBattleEntity;
 
+    private int lostFrameCount;
+    private int lastLostFrame;
+
     public BattleController()
     {
         stopwatch = new Stopwatch();
@@ -33,20 +36,15 @@ public class BattleController
 
     public void InitEntities()
     {
-        confirmBattleEntity = new BattleEntity();
-        predictBattleEntity = new BattleEntity();
-        displayBattleEntity = new BattleEntity();
+        confirmBattleEntity = new BattleEntity(); confirmBattleEntity.Init();
+        predictBattleEntity = new BattleEntity(); predictBattleEntity.Init();
+        displayBattleEntity = new BattleEntity(); displayBattleEntity.Init();
         for (int i = 0; i < GameManager.Instance.RoomInfo.Gamers.Count; i ++)
             confirmBattleEntity.PlayerEntities.Add(new PlayerEntity(){ 
                 ID = (int)(GameManager.Instance.RoomInfo.Gamers[i] - GameSetting.DefaultPlayerIdBase - 1) 
             });
         confirmBattleEntity.CopyTo(predictBattleEntity);
         confirmBattleEntity.CopyTo(displayBattleEntity);
-    }
-
-    public void StartClientStopwatch()
-    {
-        stopwatch.Start();
     }
 
     private void CopyInput(BattleEntity entity, ref FrameBuffer.Frame inputFrame)
@@ -94,8 +92,9 @@ public class BattleController
         var predictBattleClientFrame = predictBattleEntity.Frame + 1;
         if (predictBattleClientFrame - GameManager.Instance.ServerAuthorityFrame < BattleSetting.MaxPredictFrameCount)
         {
+            var magic = Math.Min(BattleSetting.BattleInterval, lostFrameCount * 2 + 4);
             var estimateServerTime = stopwatch.ElapsedMilliseconds - timeOffset + NetworkManager.Instance.MinPing * 0.5f;
-            var hasNewFrame = estimateServerTime + NetworkManager.Instance.RealPing * 0.5f >= predictBattleClientFrame * BattleSetting.BattleInterval;
+            var hasNewFrame = estimateServerTime + NetworkManager.Instance.RealPing * 0.5f + magic >= predictBattleClientFrame * BattleSetting.BattleInterval;
             var slowdown = stopwatch.ElapsedMilliseconds - lastProcessFrameTime >= BattleSetting.BattleInterval * 2;
             if (slowdown){
                 System.Console.WriteLine($"Slowdown! predictBattleClientFrame:{predictBattleClientFrame} CurServerFrame:{GameManager.Instance.ServerAuthorityFrame}");
@@ -127,9 +126,9 @@ public class BattleController
         var flag = false;
         while (serverFrameQueue.Count > 0)
         {
-            CalculateDiffBetweenServerAndClientTime();
-            
             lastServerFrame = serverFrameQueue.Dequeue();
+            CalculateDiffBetweenServerAndClientTime(lastServerFrame.frame);
+            
             if (predictBattleEntityQueue.Count == 0) flag = true;
             if (predictBattleEntityQueue.Count > 0)
             {
@@ -142,6 +141,8 @@ public class BattleController
                 {
                     battleEntityPool.Enqueue(predictBattleEntityQueue.Dequeue());
                     flag = true;
+                    lostFrameCount ++;
+                    lastLostFrame = lastServerFrame.frame;
                 }
             }
 
@@ -201,10 +202,17 @@ public class BattleController
                 break;
             serverFrameQueue.Enqueue(inputFrame);
         }
+        if (lostFrameCount > 0 && frame - lastLostFrame >= BattleSetting.BattleInterval * 2)
+            lostFrameCount --;
     }
 
-    private void CalculateDiffBetweenServerAndClientTime()
+    private void CalculateDiffBetweenServerAndClientTime(int frame)
     {
+        if (frame == 0) 
+        {
+            stopwatch.Start();
+            timeOffset = 0;
+        }
         var timeOffsetShouldBe = stopwatch.ElapsedMilliseconds - GameManager.Instance.ServerAuthorityFrame * BattleSetting.BattleInterval;
         if (timeOffsetShouldBe < timeOffset) 
             timeOffset = timeOffsetShouldBe;

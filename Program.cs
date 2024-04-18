@@ -2,13 +2,11 @@
 using System.Diagnostics;
 
 Random random = new Random();
-Stopwatch stopwatch= new Stopwatch();
 
 GameManager.Instance.Initialize();
 NetworkManager.Instance.Initialize();
 NetworkManager.Instance.TcpConnect();
 
-var lastSentFrame = GameManager.Instance.ServerAuthorityFrame;
 var command = string.Empty;
 var _ = Task.Run(async ()=>{
     while (true){

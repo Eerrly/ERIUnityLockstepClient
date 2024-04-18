@@ -34,7 +34,6 @@ public class GameManager : AManager<GameManager>
     public void StartBattle()
     {
         battleController.InitEntities();
-        battleController.StartClientStopwatch();
         frameEngine.StartNetEngine(BattleSetting.NetInterval);
         frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
     }
