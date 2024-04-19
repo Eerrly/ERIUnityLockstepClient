@@ -219,7 +219,7 @@
             {
                 if(frame != 0 && _lastGetFrame.frame + 1 != frame)
                 {
-                    Logger.Log(LogLevel.Warning,$"TryGetFrame must frame by frame lastFrame:{_lastGetFrame.frame} currFrame:{frame}");
+                    Logger.Log(LogLevel.Error,$"TryGetFrame must frame by frame lastFrame:{_lastGetFrame.frame} currFrame:{frame}");
                     return false;
                 }
                 var currentFrame = *(int*)dest;

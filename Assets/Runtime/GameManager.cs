@@ -30,6 +30,7 @@ public class GameManager : AManager<GameManager>
     public void StartBattle()
     {
         battleController.InitEntities();
+        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Initialize), false);
         frameEngine.StartNetEngine(BattleSetting.NetInterval);
         frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
     }
@@ -42,6 +43,7 @@ public class GameManager : AManager<GameManager>
     public void StopBattle()
     {
         frameEngine.StopEngine();
+        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Release), false);
         NetworkManager.Instance.KcpShutdown();
         NetworkManager.Instance.TcpShutdown();
     }

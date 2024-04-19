@@ -42,12 +42,18 @@ public class BattleController
     public void InitEntities()
     {
         confirmBattleEntity = new BattleEntity(); confirmBattleEntity.Init();
+        confirmBattleEntity.Name = "Confirm";
         predictBattleEntity = new BattleEntity(); predictBattleEntity.Init();
+        predictBattleEntity.Name = "Predict";
         displayBattleEntity = new BattleEntity(); displayBattleEntity.Init();
-        for (int i = 0; i < GameManager.Instance.RoomInfo.Gamers.Count; i ++)
-            confirmBattleEntity.PlayerEntities.Add(new PlayerEntity(){ 
-                ID = (int)(GameManager.Instance.RoomInfo.Gamers[i] - GameSetting.DefaultPlayerIdBase - 1) 
-            });
+        displayBattleEntity.Name = "Display";
+        for (var i = 0; i < GameManager.Instance.RoomInfo.Gamers.Count; i++)
+        {
+            var playerEntity = new PlayerEntity(); 
+            playerEntity.Init();
+            playerEntity.ID = (int)(GameManager.Instance.RoomInfo.Gamers[i] - GameSetting.DefaultPlayerIdBase - 1);
+            confirmBattleEntity.PlayerEntities.Add(playerEntity);
+        }
         confirmBattleEntity.CopyTo(predictBattleEntity);
         confirmBattleEntity.CopyTo(displayBattleEntity);
     }
@@ -126,13 +132,14 @@ public class BattleController
         while (serverFrameQueue.Count > 0)
         {
             lastServerFrame = serverFrameQueue.Dequeue();
+            Logger.Log(LogLevel.Info, $"UpdateConfirmPredictEntity Step1 confirmPredictEntity:{confirmPredictEntity} lastServerFrame.frame:{lastServerFrame.frame}");
             CalculateDiffBetweenServerAndClientTime(lastServerFrame.frame);
             
             if (predictBattleEntityQueue.Count == 0) flag = true;
             if (predictBattleEntityQueue.Count > 0)
             {
                 var predictFrame = predictFrameQueue.Dequeue();
-                if (CompareFrame(ref predictFrame, ref lastServerFrame))
+                if (CompareFrame(ref lastServerFrame, ref predictFrame) && !flag)
                 {
                     confirmPredictEntity = predictBattleEntityQueue.Dequeue();
                 }
@@ -147,9 +154,9 @@ public class BattleController
 
             if (!flag) continue;
             
-            UpdateDisplayEntityInput(confirmPredictEntity, ref lastServerFrame);
+            UpdateEntityInput(confirmPredictEntity, ref lastServerFrame);
             confirmPredictEntity.Frame++;
-            CopyInput(confirmPredictEntity, ref lastServerFrame);
+            Logger.Log(LogLevel.Info, $"UpdateConfirmPredictEntity Step2 confirmPredictEntity:{confirmPredictEntity} lastServerFrame.frame:{lastServerFrame.frame}");
         }
         return flag;
     }
@@ -184,7 +191,7 @@ public class BattleController
                 predictBattleEntity.CopyTo(predictEntity);
                 predictBattleEntityQueue.Enqueue(predictEntity);
 
-                if(i == count -1) displayBattleEntity = predictEntity;
+                if(i == count -1) predictEntity.CopyTo(displayBattleEntity);
             }
         }
     }
@@ -240,9 +247,11 @@ public class BattleController
         predictBattleEntity.Frame++;
         lastNetworkFrame.frame = predictBattleEntity.Frame;
         lastNetworkFrame.SetInputByPos(lastSentInput.pos, lastSentInput);
-        UpdateDisplayEntityInput(predictBattleEntity, ref lastNetworkFrame);
+        UpdateEntityInput(predictBattleEntity, ref lastNetworkFrame);
+        UpdateEntityState(predictBattleEntity);
         Logger.Log(LogLevel.Info,$"EnqueueEntityToPredictQueueAndDisplay lastNetworkFrame:{lastNetworkFrame.frame} predictBattleEntity:{predictBattleEntity} confirmBattleEntity:{confirmBattleEntity}");
-    
+
+        newEntity.Name = "Predict";
         predictBattleEntity.CopyTo(newEntity);
         predictBattleEntityQueue.Enqueue(newEntity);
         predictFrameQueue.Enqueue(lastNetworkFrame);
@@ -251,7 +260,7 @@ public class BattleController
         Logger.Log(LogLevel.Info, $"EnqueueEntityToPredictQueueAndDisplay displayBattleEntity:{displayBattleEntity}");
     }
 
-    private void UpdateDisplayEntityInput(BattleEntity battleEntity, ref FrameBuffer.Frame inputFrame)
+    private void UpdateEntityInput(BattleEntity battleEntity, ref FrameBuffer.Frame inputFrame)
     {
         var playerEntities = battleEntity.PlayerEntities;
         for (var i = 0; i < playerEntities.Count; i++)
@@ -264,6 +273,14 @@ public class BattleController
                 inputComponent.key = input.key;
             }
         }
+    }
+
+    private void UpdateEntityState(BattleEntity battleEntity)
+    {
+        var playerEntities = battleEntity.PlayerEntities;
+        foreach (var entity in playerEntities) PlayerStateMachine.Instance.Update(entity, battleEntity);
+        foreach (var entity in playerEntities) PlayerStateMachine.Instance.LateUpdate(entity, battleEntity);
+        foreach (var entity in playerEntities) PlayerStateMachine.Instance.DoChangeState(entity, battleEntity);
     }
     
 
