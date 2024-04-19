@@ -439,6 +439,11 @@ public struct FixedVector3
         }
     }
     
+    public UnityEngine.Vector3 ToVector3()
+    {
+        return new UnityEngine.Vector3(x.ToFloat(), y.ToFloat(), z.ToFloat());
+    }
+    
 }
 
 

@@ -58,20 +58,6 @@ public class BattleController
         confirmBattleEntity.CopyTo(displayBattleEntity);
     }
 
-    private void CopyInput(BattleEntity entity, ref FrameBuffer.Frame inputFrame)
-    {
-        var playerList = entity.PlayerEntities;
-        for (int i = 0; i < playerList.Count; i++)
-        {
-            var input = new FrameBuffer.Input();
-            if (inputFrame.GetInputByPos(playerList[i].ID, ref input))
-            {
-                playerList[i].Input.yaw = input.yaw;
-                playerList[i].Input.key = input.key;
-            }
-        }
-    }
-
     public Task NetUpdate(CancellationToken cancellationToken)
     {
         var input = InputManager.Instance.GetInput(GameManager.Instance.GetBattlePos());
@@ -155,6 +141,7 @@ public class BattleController
             if (!flag) continue;
             
             UpdateEntityInput(confirmPredictEntity, ref lastServerFrame);
+            UpdateEntityState(confirmPredictEntity);
             confirmPredictEntity.Frame++;
             Logger.Log(LogLevel.Info, $"UpdateConfirmPredictEntity Step2 confirmPredictEntity:{confirmPredictEntity} lastServerFrame.frame:{lastServerFrame.frame}");
         }
@@ -187,7 +174,8 @@ public class BattleController
 
                 var predictEntity = predictBattleEntityQueue.Dequeue();
                 predictBattleEntity.Frame++;
-                CopyInput(predictBattleEntity, ref predictInputFrame);
+                UpdateEntityInput(predictBattleEntity, ref predictInputFrame);
+                UpdateEntityState(predictBattleEntity);
                 predictBattleEntity.CopyTo(predictEntity);
                 predictBattleEntityQueue.Enqueue(predictEntity);
 

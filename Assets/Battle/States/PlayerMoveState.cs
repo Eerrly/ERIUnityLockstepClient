@@ -16,11 +16,12 @@ public class PlayerMoveState : PlayerBaseState
     public override void OnLateUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         Logger.Log(LogLevel.Info, $"PlayerMoveState OnLateUpdate " +
-                                  $"PlayerId:{playerEntity.ID} " +
-                                  $"Yaw:{playerEntity.Input.yaw}" +
-                                  $"Key:{playerEntity.Input.key}" +
-                                  $"Move.Position:{playerEntity.Movement.position} " +
-                                  $"Move.Rotation:{playerEntity.Movement.rotation}");
+                                  $"battleEntity:{battleEntity}" +
+                                  $"ID:{playerEntity.ID} " +
+                                  $"Y:{playerEntity.Input.yaw}" +
+                                  $"K:{playerEntity.Input.key}" +
+                                  $"P:{playerEntity.Movement.position} " +
+                                  $"R:{playerEntity.Movement.rotation}");
     }
 
     public override void OnExit(PlayerEntity playerEntity, BattleEntity battleEntity)

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class BattleSetting
 {
     public const int NetInterval = 1;
@@ -11,4 +13,8 @@ public class BattleSetting
     public const int MaxFrameCount = 1000;
 
     public const int MaxPredictFrameCount = 4;
+    
+    public const string PlayerCharacterPath = "Cube";
+    
+    public static readonly Color[] InitPlayerColor = { new Color((float)42/255, (float)100 /255, (float)178 /255), new Color((float)229/255, (float)46 /255, (float)40 /255) };
 }
