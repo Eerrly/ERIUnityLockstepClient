@@ -273,8 +273,9 @@ public class BattleController
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.Update(entity, battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.LateUpdate(entity, battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.DoChangeState(entity, battleEntity);
+        foreach (var entity in playerEntities) MoveSystem.TransformLogicUpdate(entity, FixedNumber.MakeFixNum(BattleSetting.BattleInterval, 1000));
         
-        Logger.Log(LogLevel.Info, $"UpdateEntityState battleEntity:{battleEntity} lastNetworkFrame:{lastNetworkFrame}");
+        Logger.Log(LogLevel.Info, $"UpdateEntityState lastNetworkFrame:{lastNetworkFrame} battleEntity:{battleEntity}");
     }
     
 

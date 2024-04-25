@@ -21,17 +21,20 @@ public class PlayerView : BaseView<PlayerEntity>
 
     private void TransformUpdate(PlayerEntity entity, float deltaTime)
     {
-        var currentPosition = transform.position;
+        var currentPosition = entity.Transform.pos.ToVector3();
         var nextDeltaPosition = currentPosition + entity.Movement.position.ToVector3();
         if((currentPosition - nextDeltaPosition).sqrMagnitude >= 4)
         {
             currentPosition = Vector3.Lerp(currentPosition, nextDeltaPosition, deltaTime);
         }
-        var currentRotation = transform.rotation;
+        var currentRotation = entity.Transform.rot.ToQuaternion();
         var nextDeltaRotation = entity.Movement.rotation.ToQuaternion();
         if(currentRotation != nextDeltaRotation)
         {
-            currentRotation = Quaternion.RotateTowards(transform.rotation, nextDeltaRotation, entity.Movement.turnSpeed.ToFloat() * deltaTime);
+            var forward = MoveSystem.GetForwardAngle(entity).ToFloat();
+            var target = MoveSystem.GetTargetAngle(entity).ToFloat();
+            var angle = Mathf.MoveTowardsAngle(forward, target, entity.Movement.turnSpeed.ToFloat() * deltaTime);
+            currentRotation = Quaternion.Euler(0f, angle, 0f);
         }
 
         var transform1 = transform;
