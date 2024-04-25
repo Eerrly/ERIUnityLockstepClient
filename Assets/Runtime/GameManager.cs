@@ -27,7 +27,7 @@ public class GameManager : MManager<GameManager>
     public override void Initialize()
     {
         battleController = new BattleController();
-        frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount);
+        frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount, BattleSetting.MaxFrameCount);
         frameEngine = new FrameEngine();
         frameEngine.RegisterNetUpdateListener(battleController.NetUpdate);
         frameEngine.RegisterFrameUpdateListener(battleController.LogicUpdate);

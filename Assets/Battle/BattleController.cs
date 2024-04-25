@@ -41,6 +41,7 @@ public class BattleController
 
     public void InitEntities()
     {
+        lastSentInput = new FrameBuffer.Input(byte.MaxValue);
         confirmBattleEntity = new BattleEntity(); confirmBattleEntity.Init();
         confirmBattleEntity.Name = "Confirm";
         predictBattleEntity = new BattleEntity(); predictBattleEntity.Init();
@@ -238,7 +239,8 @@ public class BattleController
 
         predictBattleEntity.Frame++;
         lastNetworkFrame.frame = predictBattleEntity.Frame;
-        lastNetworkFrame.SetInputByPos(lastSentInput.pos, lastSentInput);
+        if (lastSentInput.ToByte() != byte.MaxValue)
+            lastNetworkFrame.SetInputByPos(lastSentInput.pos, lastSentInput);
         UpdateEntityInput(predictBattleEntity, ref lastNetworkFrame);
         UpdateEntityState(predictBattleEntity);
 
@@ -271,6 +273,8 @@ public class BattleController
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.Update(entity, battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.LateUpdate(entity, battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.DoChangeState(entity, battleEntity);
+        
+        Logger.Log(LogLevel.Info, $"UpdateEntityState battleEntity:{battleEntity} lastNetworkFrame:{lastNetworkFrame}");
     }
     
 
