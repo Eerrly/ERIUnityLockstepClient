@@ -93,16 +93,19 @@ public class NetworkManager : AManager<NetworkManager>
                 case (byte)pb.BattleMsgID.BattleMsgFrame:
                 {
                     var s2CMessage = pb.S2C_FrameMsg.Parser.ParseFrom(memoryStream);
-                    Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame -> errorCode:{s2CMessage.ErrorCode} frame:{s2CMessage.Frame} playerCount:{s2CMessage.PlayerCount} datumCount:{s2CMessage.Datum.Count()}");
+                    Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame -> errorCode:{s2CMessage.ErrorCode} frame:{s2CMessage.Frame} playerCount:{s2CMessage.PlayerCount} inputCount:{s2CMessage.InputCount} datumCount:{s2CMessage.Datum.Count()}");
                     
                     var inputFrame = FrameBuffer.Frame.defFrame;
                     inputFrame.frame = (int)s2CMessage.Frame;
                     inputFrame.playerCount = (int)s2CMessage.PlayerCount;
+                    
                     var byteArray = s2CMessage.Datum.ToByteArray();
                     for (int i = 0; i < inputFrame.playerCount; i++)
-                        inputFrame[i] = new FrameBuffer.Input(byteArray[i]);
+                        inputFrame[i] = new FrameBuffer.Input(byte.MaxValue);
+                    for (int i = 0; i < BattleSetting.MaxPlayerInRoomCount; i++)
+                        if ((s2CMessage.InputCount & (1 << i)) == (1 << i)) inputFrame[i] = new FrameBuffer.Input(byteArray[i]);
                     
-                    Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame frame:{inputFrame.frame} playerCount:{inputFrame.playerCount} D0:[{inputFrame[0]}] D1:[{inputFrame[1]}]");
+                    Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame frame:{inputFrame.frame} B0:{byteArray[0]} B1:{byteArray[1]} D0:[{inputFrame[0]}] D1:[{inputFrame[1]}]");
 
                     var diff = 0;
                     while (!GameManager.Instance.FrameBuffer.SyncFrame(inputFrame.frame, ref inputFrame, ref diff))
