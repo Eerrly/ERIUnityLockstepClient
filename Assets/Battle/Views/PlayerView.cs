@@ -40,7 +40,7 @@ public class PlayerView : BaseView<PlayerEntity>
         }
 
         var offset = entity.Transform.pos.ToVector3() - currentPosition;
-        var dis = 0.6f;
+        var dis = 0.4f;
         if (offset.magnitude > dis)
         {
             var target = currentPosition + offset.normalized * (offset.magnitude - dis);
