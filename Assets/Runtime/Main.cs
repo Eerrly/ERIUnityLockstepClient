@@ -19,6 +19,7 @@ public class Main : MonoBehaviour
         InitLogger();
         Loom.CreateInstance();
         GameManager.Instance.Initialize();
+        MsgPoolManager.Instance.Initialize();
         NetworkManager.Instance.Initialize();
         InputManager.Instance.Initialize();
     }

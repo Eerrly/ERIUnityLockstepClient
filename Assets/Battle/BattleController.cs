@@ -6,93 +6,93 @@ using System.Threading.Tasks;
 
 public class BattleController
 {
-    private long timeOffset;
-    private readonly Stopwatch stopwatch;
-    private Queue<BattleEntity> predictBattleEntityQueue;
-    private Queue<FrameBuffer.Frame> predictFrameQueue;
-    private Queue<FrameBuffer.Frame> serverFrameQueue;
-    private BattleEntityPool battleEntityPool;
-    private uint willSentFrame;
-    private uint lastSentFrame;
-    private FrameBuffer.Input lastSentInput;
-    private FrameBuffer.Frame lastNetworkFrame;
-    private long lastProcessFrameTime;
-    private long lastHeartbeatTime;
+    private long _timeOffset;
+    private readonly Stopwatch _stopwatch;
+    private readonly Queue<BattleEntity> _predictBattleEntityQueue;
+    private readonly Queue<FrameBuffer.Frame> _predictFrameQueue;
+    private readonly Queue<FrameBuffer.Frame> _serverFrameQueue;
+    private readonly BattleEntityPool _battleEntityPool;
+    private uint _willSentFrame;
+    private uint _lastSentFrame;
+    private FrameBuffer.Input _lastSentInput;
+    private FrameBuffer.Frame _lastNetworkFrame;
+    private long _lastProcessFrameTime;
+    private long _lastHeartbeatTime;
 
-    private BattleEntity displayBattleEntity;
-    private BattleEntity predictBattleEntity;
-    private BattleEntity confirmBattleEntity;
+    private BattleEntity _displayBattleEntity;
+    private BattleEntity _predictBattleEntity;
+    private BattleEntity _confirmBattleEntity;
 
-    public BattleEntity DisplayBattleEntity => displayBattleEntity;
-    public BattleEntity PredictBattleEntity => predictBattleEntity;
-    public BattleEntity ConfirmBattleEntity => confirmBattleEntity;
+    public BattleEntity DisplayBattleEntity => _displayBattleEntity;
+    public BattleEntity PredictBattleEntity => _predictBattleEntity;
+    public BattleEntity ConfirmBattleEntity => _confirmBattleEntity;
 
-    private int lostFrameCount;
-    private int lastLostFrame;
+    private int _lostFrameCount;
+    private int _lastLostFrame;
 
     public BattleController()
     {
-        stopwatch = new Stopwatch();
-        battleEntityPool = new BattleEntityPool();
-        predictBattleEntityQueue = new Queue<BattleEntity>();
-        predictFrameQueue = new Queue<FrameBuffer.Frame>();
-        serverFrameQueue = new Queue<FrameBuffer.Frame>();
+        _stopwatch = new Stopwatch();
+        _battleEntityPool = new BattleEntityPool();
+        _predictBattleEntityQueue = new Queue<BattleEntity>();
+        _predictFrameQueue = new Queue<FrameBuffer.Frame>();
+        _serverFrameQueue = new Queue<FrameBuffer.Frame>();
     }
 
     public void InitEntities()
     {
-        lastSentInput = new FrameBuffer.Input(byte.MaxValue);
-        confirmBattleEntity = new BattleEntity(); confirmBattleEntity.Init();
-        confirmBattleEntity.Name = "Confirm";
-        predictBattleEntity = new BattleEntity(); predictBattleEntity.Init();
-        predictBattleEntity.Name = "Predict";
-        displayBattleEntity = new BattleEntity(); displayBattleEntity.Init();
-        displayBattleEntity.Name = "Display";
+        _lastSentInput = new FrameBuffer.Input(byte.MaxValue);
+        _confirmBattleEntity = new BattleEntity(); _confirmBattleEntity.Init();
+        _confirmBattleEntity.Name = "Confirm";
+        _predictBattleEntity = new BattleEntity(); _predictBattleEntity.Init();
+        _predictBattleEntity.Name = "Predict";
+        _displayBattleEntity = new BattleEntity(); _displayBattleEntity.Init();
+        _displayBattleEntity.Name = "Display";
         for (var i = 0; i < GameManager.Instance.RoomInfo.Gamers.Count; i++)
         {
             var playerEntity = new PlayerEntity(); 
             playerEntity.Init();
             playerEntity.ID = (int)(GameManager.Instance.RoomInfo.Gamers[i] - GameSetting.DefaultPlayerIdBase - 1);
-            confirmBattleEntity.PlayerEntities.Add(playerEntity);
+            _confirmBattleEntity.PlayerEntities.Add(playerEntity);
         }
-        confirmBattleEntity.CopyTo(predictBattleEntity);
-        confirmBattleEntity.CopyTo(displayBattleEntity);
+        _confirmBattleEntity.CopyTo(_predictBattleEntity);
+        _confirmBattleEntity.CopyTo(_displayBattleEntity);
     }
 
     public Task NetUpdate(CancellationToken cancellationToken)
     {
         var input = InputManager.Instance.GetInput(GameManager.Instance.GetBattlePos());
-        if (willSentFrame != default && !input.Compare(lastSentInput) && lastSentFrame != willSentFrame)
+        if (_willSentFrame != default && !input.Compare(_lastSentInput) && _lastSentFrame != _willSentFrame)
         {
-            Logger.Log(LogLevel.Info, $"NetUpdate SendFrame Frame:{willSentFrame} Input:{input}");
-            NetworkManager.Instance.SendBattleFrameMessage(willSentFrame, input.ToByte());
-            lastSentFrame = willSentFrame;
-            lastSentInput = input;
+            Logger.Log(LogLevel.Info, $"NetUpdate SendFrame Frame:{_willSentFrame} Input:{input}");
+            NetworkManager.Instance.SendBattleFrameMessage(_willSentFrame, input.ToByte());
+            _lastSentFrame = _willSentFrame;
+            _lastSentInput = input;
         }
-        if (stopwatch.ElapsedMilliseconds - lastHeartbeatTime >= BattleSetting.HeartbeatTime)
+        if (_stopwatch.ElapsedMilliseconds - _lastHeartbeatTime >= BattleSetting.HeartbeatTime)
         {
-            lastHeartbeatTime = stopwatch.ElapsedMilliseconds;
-            NetworkManager.Instance.SendBattleHeartBeatMessage(GameManager.Instance.PlayerId, (ulong)stopwatch.ElapsedMilliseconds);
+            _lastHeartbeatTime = _stopwatch.ElapsedMilliseconds;
+            NetworkManager.Instance.SendBattleHeartBeatMessage(GameManager.Instance.PlayerId, (ulong)_stopwatch.ElapsedMilliseconds);
         }
         return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
     }
 
     public Task LogicUpdate(CancellationToken cancellationToken)
     {
-        RollbackConfirmAndSyncEntities(ref lastNetworkFrame);
+        RollbackConfirmAndSyncEntities(ref _lastNetworkFrame);
         
-        var predictBattleClientFrame = predictBattleEntity.Frame + 1;
+        var predictBattleClientFrame = _predictBattleEntity.Frame + 1;
         if (predictBattleClientFrame - GameManager.Instance.ServerAuthorityFrame < BattleSetting.MaxPredictFrameCount)
         {
-            var magic = Math.Min(BattleSetting.BattleInterval, lostFrameCount * 2 + 4);
-            var estimateServerTime = stopwatch.ElapsedMilliseconds - timeOffset + NetworkManager.Instance.MinPing * 0.5f;
+            var magic = Math.Min(BattleSetting.BattleInterval, _lostFrameCount * 2 + 4);
+            var estimateServerTime = _stopwatch.ElapsedMilliseconds - _timeOffset + NetworkManager.Instance.MinPing * 0.5f;
             var hasNewFrame = estimateServerTime + NetworkManager.Instance.RealPing * 0.5f + magic >= predictBattleClientFrame * BattleSetting.BattleInterval;
-            var slowdown = stopwatch.ElapsedMilliseconds - lastProcessFrameTime >= BattleSetting.BattleInterval * 2;
+            var slowdown = _stopwatch.ElapsedMilliseconds - _lastProcessFrameTime >= BattleSetting.BattleInterval * 2;
             if (slowdown)
                 Logger.Log(LogLevel.Info, $"Slowdown! predictBattleClientFrame:{predictBattleClientFrame} CurServerFrame:{GameManager.Instance.ServerAuthorityFrame}");
             if (hasNewFrame || slowdown){
-                willSentFrame = (uint)predictBattleClientFrame + 1;
-                lastProcessFrameTime = stopwatch.ElapsedMilliseconds;
+                _willSentFrame = (uint)predictBattleClientFrame + 1;
+                _lastProcessFrameTime = _stopwatch.ElapsedMilliseconds;
                 EnqueueEntityToPredictQueueAndDisplay();
             }
         }
@@ -104,7 +104,7 @@ public class BattleController
     {
         UpdateServerFrameQueue();
 
-        var confirmPredictEntity = confirmBattleEntity;
+        var confirmPredictEntity = _confirmBattleEntity;
         var flag = UpdateConfirmPredictEntity(ref confirmPredictEntity, ref lastServerFrame);
 
         SyncConfirmPredictEntity(flag, ref confirmPredictEntity, ref lastServerFrame);
@@ -113,30 +113,30 @@ public class BattleController
     private bool UpdateConfirmPredictEntity(ref BattleEntity confirmPredictEntity, ref FrameBuffer.Frame lastServerFrame)
     {
         var flag = false;
-        while (serverFrameQueue.Count > 0)
+        while (_serverFrameQueue.Count > 0)
         {
-            lastServerFrame = serverFrameQueue.Dequeue();
+            lastServerFrame = _serverFrameQueue.Dequeue();
             CalculateDiffBetweenServerAndClientTime(lastServerFrame.frame);
 
             var tmpInput = new FrameBuffer.Input();
             var tmpSelfInput = lastServerFrame.GetInputByPos(GameManager.Instance.GetBattlePos(), ref tmpInput);
-            if (lastServerFrame.frame == lastSentFrame && tmpSelfInput && !tmpInput.Compare(lastSentInput))
+            if (lastServerFrame.frame == _lastSentFrame && tmpSelfInput && !tmpInput.Compare(_lastSentInput))
             {
-                lostFrameCount ++;
-                lastLostFrame = lastServerFrame.frame;
+                _lostFrameCount ++;
+                _lastLostFrame = lastServerFrame.frame;
             }
             
-            if (predictBattleEntityQueue.Count == 0) flag = true;
-            if (predictBattleEntityQueue.Count > 0)
+            if (_predictBattleEntityQueue.Count == 0) flag = true;
+            if (_predictBattleEntityQueue.Count > 0)
             {
-                var predictFrame = predictFrameQueue.Dequeue();
+                var predictFrame = _predictFrameQueue.Dequeue();
                 if (CompareFrame(ref lastServerFrame, ref predictFrame) && !flag)
                 {
-                    confirmPredictEntity = predictBattleEntityQueue.Dequeue();
+                    confirmPredictEntity = _predictBattleEntityQueue.Dequeue();
                 }
                 else
                 {
-                    battleEntityPool.Enqueue(predictBattleEntityQueue.Dequeue());
+                    _battleEntityPool.Enqueue(_predictBattleEntityQueue.Dequeue());
                     flag = true;
                 }
             }
@@ -147,76 +147,76 @@ public class BattleController
                 UpdateEntityState(confirmPredictEntity);
             }
             
-            confirmPredictEntity.CopyTo(confirmBattleEntity);
+            confirmPredictEntity.CopyTo(_confirmBattleEntity);
         }
         return flag;
     }
 
     private void SyncConfirmPredictEntity(bool flag, ref BattleEntity confirmPredictEntity, ref FrameBuffer.Frame lastServerFrame)
     {
-        if (confirmPredictEntity != confirmBattleEntity)
+        if (confirmPredictEntity != _confirmBattleEntity)
         {
-            confirmPredictEntity.CopyTo(confirmBattleEntity);
-            confirmPredictEntity = confirmBattleEntity;
+            confirmPredictEntity.CopyTo(_confirmBattleEntity);
+            confirmPredictEntity = _confirmBattleEntity;
         }
         if (flag)
         {
-            confirmPredictEntity.CopyTo(predictBattleEntity);
+            confirmPredictEntity.CopyTo(_predictBattleEntity);
 
-            var count = predictFrameQueue.Count;
+            var count = _predictFrameQueue.Count;
             for (int i = 0; i < count; i++)
             {
-                var predictInputFrame = predictFrameQueue.Dequeue();
+                var predictInputFrame = _predictFrameQueue.Dequeue();
                 for (int j = 0; j < predictInputFrame.Length; j++)
                 {
                     var input = new FrameBuffer.Input();
                     if (lastServerFrame.GetInputByPos(predictInputFrame[j].pos, ref input))
                         predictInputFrame.SetInputByPos(input.pos, input);
                 }
-                predictFrameQueue.Enqueue(predictInputFrame);
+                _predictFrameQueue.Enqueue(predictInputFrame);
 
-                var predictEntity = predictBattleEntityQueue.Dequeue();
-                predictBattleEntity.Frame++;
-                UpdateEntityInput(predictBattleEntity, ref predictInputFrame);
-                UpdateEntityState(predictBattleEntity);
-                predictBattleEntity.CopyTo(predictEntity);
-                predictBattleEntityQueue.Enqueue(predictEntity);
+                var predictEntity = _predictBattleEntityQueue.Dequeue();
+                _predictBattleEntity.Frame++;
+                UpdateEntityInput(_predictBattleEntity, ref predictInputFrame);
+                UpdateEntityState(_predictBattleEntity);
+                _predictBattleEntity.CopyTo(predictEntity);
+                _predictBattleEntityQueue.Enqueue(predictEntity);
 
-                if(i == count -1) predictEntity.CopyTo(displayBattleEntity);
+                if(i == count -1) predictEntity.CopyTo(_displayBattleEntity);
             }
         }
     }
 
     private void UpdateServerFrameQueue()
     {
-        serverFrameQueue.Clear();
+        _serverFrameQueue.Clear();
         var inputFrame = FrameBuffer.Frame.defFrame;
-        var frame = confirmBattleEntity.Frame;
+        var frame = _confirmBattleEntity.Frame;
         for (int i = 0; i < BattleSetting.MaxPredictFrameCount; i++)
         {
             if(frame++ > GameManager.Instance.ServerAuthorityFrame)
                 break;
             if(!GameManager.Instance.FrameBuffer.TryGetFrame(frame, ref inputFrame))
                 break;
-            serverFrameQueue.Enqueue(inputFrame);
+            _serverFrameQueue.Enqueue(inputFrame);
         }
 
         if (GameManager.Instance.FrameBuffer.LastSetFrameIndex - frame > BattleSetting.MaxPredictFrameCount)
-            lostFrameCount = 0;
-        if (lostFrameCount > 0 && frame - lastLostFrame >= BattleSetting.BattleInterval * 2)
-            lostFrameCount --;
+            _lostFrameCount = 0;
+        if (_lostFrameCount > 0 && frame - _lastLostFrame >= BattleSetting.BattleInterval * 2)
+            _lostFrameCount --;
     }
 
     private void CalculateDiffBetweenServerAndClientTime(int frame)
     {
         if (frame == 0) 
         {
-            stopwatch.Start();
-            timeOffset = 0;
+            _stopwatch.Start();
+            _timeOffset = 0;
         }
-        var timeOffsetShouldBe = stopwatch.ElapsedMilliseconds - GameManager.Instance.ServerAuthorityFrame * BattleSetting.BattleInterval;
-        if (timeOffsetShouldBe < timeOffset) 
-            timeOffset = timeOffsetShouldBe;
+        var timeOffsetShouldBe = _stopwatch.ElapsedMilliseconds - GameManager.Instance.ServerAuthorityFrame * BattleSetting.BattleInterval;
+        if (timeOffsetShouldBe < _timeOffset) 
+            _timeOffset = timeOffsetShouldBe;
     }
 
     private bool CompareFrame(ref FrameBuffer.Frame networkFrame, ref FrameBuffer.Frame predictFrame)
@@ -235,21 +235,21 @@ public class BattleController
 
     private void EnqueueEntityToPredictQueueAndDisplay()
     {
-        var newEntity = battleEntityPool.Dequeue();
+        var newEntity = _battleEntityPool.Dequeue();
 
-        predictBattleEntity.Frame++;
-        lastNetworkFrame.frame = predictBattleEntity.Frame;
-        if (lastSentInput.ToByte() != byte.MaxValue)
-            lastNetworkFrame.SetInputByPos(lastSentInput.pos, lastSentInput);
-        UpdateEntityInput(predictBattleEntity, ref lastNetworkFrame);
-        UpdateEntityState(predictBattleEntity);
+        _predictBattleEntity.Frame++;
+        _lastNetworkFrame.frame = _predictBattleEntity.Frame;
+        if (_lastSentInput.ToByte() != byte.MaxValue)
+            _lastNetworkFrame.SetInputByPos(_lastSentInput.pos, _lastSentInput);
+        UpdateEntityInput(_predictBattleEntity, ref _lastNetworkFrame);
+        UpdateEntityState(_predictBattleEntity);
 
         newEntity.Name = "Predict";
-        predictBattleEntity.CopyTo(newEntity);
-        predictBattleEntityQueue.Enqueue(newEntity);
-        predictFrameQueue.Enqueue(lastNetworkFrame);
+        _predictBattleEntity.CopyTo(newEntity);
+        _predictBattleEntityQueue.Enqueue(newEntity);
+        _predictFrameQueue.Enqueue(_lastNetworkFrame);
 
-        newEntity.CopyTo(displayBattleEntity);
+        newEntity.CopyTo(_displayBattleEntity);
     }
 
     private void UpdateEntityInput(BattleEntity battleEntity, ref FrameBuffer.Frame inputFrame)
@@ -275,7 +275,7 @@ public class BattleController
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.DoChangeState(entity, battleEntity);
         foreach (var entity in playerEntities) MoveSystem.TransformLogicUpdate(entity, FixedNumber.MakeFixNum(BattleSetting.BattleInterval, 1000));
         
-        Logger.Log(LogLevel.Info, $"UpdateEntityState lastNetworkFrame:{lastNetworkFrame} battleEntity:{battleEntity}");
+        Logger.Log(LogLevel.Info, $"UpdateEntityState lastNetworkFrame:{_lastNetworkFrame} battleEntity:{battleEntity}");
     }
     
 

@@ -65,10 +65,11 @@ public class KcpClientTransport : ClientTransport
         }
     }
 
-    public void SendMessage(pb.BattleMsgID battleMsgID, IMessage message)
+    public void SendMessage<T>(pb.BattleMsgID battleMsgID, T message) where T : IMessage
     {
         var head = new Head() { _cmd = (byte)battleMsgID, _length = message.CalculateSize() };
         var packet = new Packet() { _data = message.ToByteArray(), _head = head };
+        MsgPoolManager.Instance.Release(message);
         Send(packet);
     }
 

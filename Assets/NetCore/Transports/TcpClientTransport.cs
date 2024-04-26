@@ -92,10 +92,11 @@ public class TcpClientTransport : ClientTransport
         }
     }
 
-    public void SendMessage(pb.LogicMsgID logicMsgID, IMessage message)
+    public void SendMessage<T>(pb.LogicMsgID logicMsgID, T message) where T : IMessage
     {
         var head = new Head() { _cmd = (byte)logicMsgID, _length = message.CalculateSize() };
         var packet = new Packet() { _data = message.ToByteArray(), _head = head };
+        MsgPoolManager.Instance.Release(message);
         Send(packet);
     }
 
