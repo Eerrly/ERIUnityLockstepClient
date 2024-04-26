@@ -41,9 +41,11 @@ public class BattleEntity: BaseEntity
     public override string ToString()
     {
         var sb = new System.Text.StringBuilder();
+        sb.Append("[");
         sb.Append($"Name:{Name} Frame:{Frame} Time:{Time} ");
         foreach (var p in PlayerEntities)
-            sb.Append($"[ID:{p.ID} Yaw:{p.Input.yaw} Key:{p.Input.key}]");
+            sb.Append($"{p}");
+        sb.Append("]");
         return sb.ToString();
     }
 

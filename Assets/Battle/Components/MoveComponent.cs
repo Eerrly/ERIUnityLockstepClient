@@ -5,6 +5,7 @@
     {
         public FixedVector3 position;
         public FixedQuaternion rotation;
+        public FixedNumber curYAngle;
         public FixedNumber moveSpeed;
         public FixedNumber turnSpeed;
 
@@ -12,6 +13,7 @@
         {
             position = default(FixedVector3);
             rotation = default(FixedQuaternion);
+            curYAngle = default(FixedNumber);
             moveSpeed = default(FixedNumber);
             turnSpeed = default(FixedNumber);
         }
@@ -29,6 +31,12 @@
     {
         get => common.rotation;
         set => common.rotation = value;
+    }
+
+    public FixedNumber curYAngle
+    {
+        get => common.curYAngle;
+        set => common.curYAngle = value;
     }
 
     public FixedNumber moveSpeed

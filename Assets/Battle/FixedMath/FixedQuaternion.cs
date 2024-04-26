@@ -21,6 +21,14 @@ public struct FixedQuaternion
         z = iz;
         w = iw;
     }
+    
+    public FixedQuaternion(UnityEngine.Quaternion quaternion)
+    {
+        x = FixedNumber.MakeFixNum((int)(quaternion.x * FixedMath.DataConrvertScale), FixedMath.DataConrvertScale);
+        y = FixedNumber.MakeFixNum((int)(quaternion.y * FixedMath.DataConrvertScale), FixedMath.DataConrvertScale);
+        z = FixedNumber.MakeFixNum((int)(quaternion.z * FixedMath.DataConrvertScale), FixedMath.DataConrvertScale);
+        w = FixedNumber.MakeFixNum((int)(quaternion.w * FixedMath.DataConrvertScale), FixedMath.DataConrvertScale);
+    }
 
     public static FixedQuaternion EluerY(FixedNumber y)
     {
@@ -208,5 +216,10 @@ public struct FixedQuaternion
     }
 
     #endregion
+    
+    public UnityEngine.Quaternion ToQuaternion()
+    {
+        return new UnityEngine.Quaternion(x.ToFloat(), y.ToFloat(), z.ToFloat(), w.ToFloat());
+    }
 }
 

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +17,7 @@ public class Main : MonoBehaviour
     private void Awake()
     {
         InitLogger();
+        Loom.CreateInstance();
         GameManager.Instance.Initialize();
         NetworkManager.Instance.Initialize();
         InputManager.Instance.Initialize();
@@ -58,6 +60,13 @@ public class Main : MonoBehaviour
             NetworkManager.Instance.KcpShutdown();
         });
         NetworkManager.Instance.TcpConnect();
+    }
+
+    private void Update()
+    {
+        if(!GameManager.Instance.IsBattleStart) return;
+        
+        GameManager.Instance.RenderUpdate(Time.deltaTime);
     }
 
     private void OnDestroy()

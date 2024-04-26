@@ -152,7 +152,11 @@
             Logger.Log(LogLevel.Warning,$"FrameBuffer.GetInputByPos pos not found! {pos},{playerCount},{frame}");
             return false;
         }
-
+        
+        public override string ToString()
+        {
+            return $"[frame:{frame}, playerCount:{playerCount}, (i0:{i0}, i1:{i1})]";
+        }
     }
 
 
@@ -164,6 +168,7 @@
 
     private Frame _lastGetFrame = Frame.defFrame;
     private int _lastSetFrameIndex = -1;
+    public int LastSetFrameIndex => _lastSetFrameIndex;
 
     public FrameBuffer(int playerCount, int capacity = 1000)
     {
@@ -244,6 +249,18 @@
                 {
                     *(int*)dest = -1;
                 }
+
+                if (frame > 0)
+                {
+                    for (int i = 0; i < result.playerCount; i++)
+                    {
+                        if (result[i].ToByte() == byte.MaxValue)
+                        {
+                            result[i] = _lastGetFrame[i];
+                            *(Input*)(dest + 4 /*frame*/ + i * inputSize) = result[i];
+                        }
+                    }
+                }
                 _lastGetFrame = result;
             }
         }
@@ -256,9 +273,7 @@
         unsafe
         {
             if(frame <= _lastSetFrameIndex)
-            {
                 return true;
-            }
 
             fixed(byte* dest = &buffer[(frame % capacity) * frameSize])
             {
