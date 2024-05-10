@@ -6,15 +6,14 @@ using Google.Protobuf;
 public class TcpClientTransport : ClientTransport
 {
     public ushort port {get; private set;}
-    public Action<byte[], int, NetworkStream> onDataReceived;
-    public Action<NetworkStream, Packet> onDataSent;
-
+    public Action<byte[], int, NetworkStream> OnDataReceived;
+    public Action<NetworkStream, Packet> OnDataSent;
     private TcpClient _client;
     private int acceptBufferMaxLength;
     private byte[] acceptBuffer;
-
+    
     public override bool Connected => _client.Connected;
-
+    
     public TcpClientTransport(ushort port, int acceptBufferMaxLength = 1024)
     {
         this.port = port;
@@ -22,12 +21,12 @@ public class TcpClientTransport : ClientTransport
         this.acceptBuffer = new byte[this.acceptBufferMaxLength];
         _client = new TcpClient();
     }
-
+    
     public override void Connect(string address)
     {
         _client.BeginConnect(address, port, OnConnectAsync, _client);
     }
-
+    
     private void OnConnectAsync(IAsyncResult iar)
     {
         var tcpClient = (TcpClient)iar.AsyncState;
@@ -37,8 +36,8 @@ public class TcpClientTransport : ClientTransport
             return;
         }
         tcpClient.EndConnect(iar);
-        Logger.Log(LogLevel.Info,$"[TCP] Connected Server Point: {tcpClient.Client.RemoteEndPoint} Start RecvTask Listener");
-        Task.Run(()=> HandleServerCommand());
+        Logger.Log(LogLevel.Info,$"[TCP] Connected Server Point: {tcpClient.Client.RemoteEndPoint} Start ReceiveTask Listener");
+        Task.Run(HandleServerCommand);
     }
 
     private async void HandleServerCommand()
@@ -56,15 +55,15 @@ public class TcpClientTransport : ClientTransport
                 Logger.Log(LogLevel.Error,$"[TCP] Exception ->\n{ex.Message}\n{ex.StackTrace}");
             }
             if(read == 0) break;
-            onDataReceived?.Invoke(acceptBuffer, read, stream);
+            OnDataReceived?.Invoke(acceptBuffer, read, stream);
         }
     }
-
+    
     public override void Send(Packet packet)
     {
         SendAsync(packet);
     }
-
+    
     public async void SendAsync(Packet packet)
     {
         var buffer = BufferPool.GetBuffer(packet._head._length + Head.HeadLength);
@@ -80,7 +79,7 @@ public class TcpClientTransport : ClientTransport
 
             BufferPool.ReleaseBuff(buffer);
             Logger.Log(LogLevel.Info,$"[TCP] Send -> MsgID:{Enum.GetName(typeof(pb.LogicMsgID), packet._head._cmd)} dataSize:{packet._head._length}");
-            onDataSent?.Invoke(stream, packet);
+            OnDataSent?.Invoke(stream, packet);
         }
         catch (Exception ex)
         {
@@ -91,7 +90,7 @@ public class TcpClientTransport : ClientTransport
             BufferPool.ReleaseBuff(buffer);
         }
     }
-
+    
     public void SendMessage<T>(pb.LogicMsgID logicMsgID, T message) where T : IMessage
     {
         var head = new Head() { _cmd = (byte)logicMsgID, _length = message.CalculateSize() };
@@ -99,7 +98,7 @@ public class TcpClientTransport : ClientTransport
         MsgPoolManager.Instance.Release(message);
         Send(packet);
     }
-
+    
     public override void Shutdown()
     {
         _client.Close();

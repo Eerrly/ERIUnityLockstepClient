@@ -29,27 +29,27 @@ public class NetworkManager : AManager<NetworkManager>
         _memoryStream = new MemoryStream();
         _kcpClientTransport = new KcpClientTransport(KcpUtil.defaultConfig, NetSetting.KcpPort)
         {
-            onConnected = OnKcpConnected,
-            onDataReceived = OnKcpDataReceived,
-            onDisconnected = OnkcpDisconnected,
-            onError = OnKcpError
+            OnConnected = OnKcpConnected,
+            OnDataReceived = OnKcpDataReceived,
+            OnDisconnected = OnKcpDisconnected,
+            OnError = OnKcpError
         };
         _tcpClientTransport = new TcpClientTransport(NetSetting.TcpPort)
         {
-            onDataReceived = OnTcpDataReceived
+            OnDataReceived = OnTcpDataReceived
         };
     }
 
     private void OnKcpConnected()
     {
-        Logger.Log(LogLevel.Info,$"onConnected");
+        Logger.Log(LogLevel.Info,$"OnKcpConnected");
     }
 
     private void OnKcpDataReceived(ArraySegment<byte> data, kcp2k.KcpChannel channel)
     {
-        Logger.Log(LogLevel.Info,$"OnKcpDataReceived data.len: {data.Count} channel: {channel}");
+        Logger.Log(LogLevel.Info,$"[KCP] OnKcpDataReceived data.len: {data.Count} channel: {channel}");
         if (data.Array == null) {
-            Logger.Log(LogLevel.Error,$"kcpClientTransport.onDataReceived data.Array == null");
+            Logger.Log(LogLevel.Error,$"[KCP] OnKcpDataReceived data.Array == null");
             return;
         }
         _kcpClientTransport.OnMessageProcess(data.ToArray(), _memoryStream, cmd => {
@@ -128,14 +128,14 @@ public class NetworkManager : AManager<NetworkManager>
         }, _kcpClientTransport.Shutdown);
     }
 
-    private void OnkcpDisconnected()
+    private void OnKcpDisconnected()
     {
-        Logger.Log(LogLevel.Info,$"onDisconnected");
+        Logger.Log(LogLevel.Info,$"OnKcpDisconnected");
     }
 
     private void OnKcpError(kcp2k.ErrorCode errorCode, string error)
     {
-        Logger.Log(LogLevel.Error,$"onError errorCode: {errorCode} error: {error}");
+        Logger.Log(LogLevel.Error,$"OnKcpError errorCode: {errorCode} error: {error}");
     }
 
     public void KcpConnect()

@@ -17,7 +17,7 @@ public class Main : MonoBehaviour
     private void Awake()
     {
         InitLogger();
-        Loom.CreateInstance();
+        LoomManager.Instance.Initialize();
         GameManager.Instance.Initialize();
         MsgPoolManager.Instance.Initialize();
         NetworkManager.Instance.Initialize();

@@ -14,7 +14,6 @@ public class GameManager : MManager<GameManager>
         get => frameBuffer;
         set => frameBuffer = value;
     }
-
     private FrameEngine frameEngine;
     private BattleController battleController;
     private BattleView battleView;
@@ -38,7 +37,7 @@ public class GameManager : MManager<GameManager>
     public void StartBattle()
     {
         battleController.InitEntities();
-        Loom.QueueOnMainThread(() => { battleView.InitView(battleController.DisplayBattleEntity); });
+        LoomManager.Instance.QueueOnMainThread(() => { battleView.InitView(battleController.DisplayBattleEntity); });
         Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Initialize), false);
         frameEngine.StartNetEngine(BattleSetting.NetInterval);
         frameEngine.StartFrameEngine(BattleSetting.BattleInterval);

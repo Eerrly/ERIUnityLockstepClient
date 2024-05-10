@@ -7,13 +7,20 @@ using Google.Protobuf;
 public class KcpClientTransport : ClientTransport
 {
     public ushort port {get; private set;}
+
     public readonly KcpConfig _config;
+
     public KcpClient _client;
-    public Action onConnected;
-    public Action<ArraySegment<byte>, KcpChannel> onDataReceived;
-    public Action onDisconnected;
-    public Action<ErrorCode, string> onError;
-    public Action<Packet> onDataSent;
+
+    public Action OnConnected;
+
+    public Action<ArraySegment<byte>, KcpChannel> OnDataReceived;
+
+    public Action OnDisconnected;
+
+    public Action<ErrorCode, string> OnError;
+
+    public Action<Packet> OnDataSent;
 
     private Queue<Packet> packets;
 
@@ -22,10 +29,10 @@ public class KcpClientTransport : ClientTransport
         _config = config;
         this.port = port;
         _client = new KcpClient(
-            () => onConnected?.Invoke(),
-            (data, channelId) => onDataReceived?.Invoke(data, channelId),
-            () => onDisconnected?.Invoke(),
-            (errorCode, error) => onError?.Invoke(errorCode, error),
+            () => OnConnected?.Invoke(),
+            (data, channelId) => OnDataReceived?.Invoke(data, channelId),
+            () => OnDisconnected?.Invoke(),
+            (errorCode, error) => OnError?.Invoke(errorCode, error),
             _config
         );
         packets = new Queue<Packet>();
@@ -35,10 +42,12 @@ public class KcpClientTransport : ClientTransport
 
     public override Uri Uri()
     {
-        UriBuilder builder = new UriBuilder();
-        builder.Scheme = nameof(KcpClientTransport);
-        builder.Host = System.Net.Dns.GetHostName();
-        builder.Port = port;
+        var builder = new UriBuilder
+        {
+            Scheme = nameof(KcpClientTransport),
+            Host = System.Net.Dns.GetHostName(),
+            Port = port
+        };
         return builder.Uri;
     }
 
@@ -101,7 +110,7 @@ public class KcpClientTransport : ClientTransport
 
             BufferPool.ReleaseBuff(buffer);
             Logger.Log(LogLevel.Info,$"[KCP] Send -> MsgID:{Enum.GetName(typeof(pb.BattleMsgID), packet._head._cmd)} dataSize:{packet._head._length}");
-            onDataSent?.Invoke(packet);
+            OnDataSent?.Invoke(packet);
         }
         catch (Exception ex)
         {
