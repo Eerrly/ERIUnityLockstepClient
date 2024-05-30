@@ -124,6 +124,12 @@ public class NetworkManager : AManager<NetworkManager>
                     GameManager.Instance.ServerAuthorityFrame = inputFrame.frame;
                     break;
                 }
+                case (byte)pb.BattleMsgID.BattleMsgCheck:
+                {
+                    var s2CMessage = pb.S2C_CheckMsg.Parser.ParseFrom(_memoryStream);
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgCheck -> errorCode:{s2CMessage.ErrorCode}");
+                    break;
+                }
             }
         }, _kcpClientTransport.Shutdown);
     }
@@ -184,6 +190,15 @@ public class NetworkManager : AManager<NetworkManager>
         c2SMessage.Frame = frame;
         c2SMessage.Datum = ByteString.CopyFrom(_sendFrameByteArray);
         _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgFrame, c2SMessage);
+    }
+
+    public void SendBattleCheckMessage(int frame, int pos, int md5)
+    {
+        var c2SMessage = MsgPoolManager.Instance.Require<pb.C2S_CheckMsg>();
+        c2SMessage.Frame = frame;
+        c2SMessage.Pos = pos;
+        c2SMessage.Md5 = md5;
+        _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgCheck, c2SMessage);
     }
 
     private void OnTcpDataReceived(byte[] data, int read, NetworkStream stream)

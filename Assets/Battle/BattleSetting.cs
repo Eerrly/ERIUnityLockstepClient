@@ -11,6 +11,8 @@ public class BattleSetting
     public const int MaxPlayerInRoomCount = 2;
     
     public const int MaxFrameCount = 10000;
+
+    public const int Md5CheckFrame = 200;
     
     public const int MaxPredictFrameCount = 4;
     

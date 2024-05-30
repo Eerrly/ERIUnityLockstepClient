@@ -148,6 +148,13 @@ public class BattleController
             }
             
             confirmPredictEntity.CopyTo(_confirmBattleEntity);
+            if (_confirmBattleEntity.Frame != 0 && _confirmBattleEntity.Frame % BattleSetting.Md5CheckFrame == 0)
+            {
+                var md5 = 0L;
+                foreach (var entity in _confirmBattleEntity.PlayerEntities)
+                    md5 ^= (entity.Transform.pos.x._raw ^ entity.Transform.pos.z._raw);
+                NetworkManager.Instance.SendBattleCheckMessage(_confirmBattleEntity.Frame, GameManager.Instance.GetBattlePos(), (int)md5);
+            }
         }
         return flag;
     }
