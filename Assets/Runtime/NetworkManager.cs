@@ -81,7 +81,7 @@ public class NetworkManager : AManager<NetworkManager>
                     _serverStopwatch.Start();
                     GameManager.Instance.IsBattleStart = s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
                     if (GameManager.Instance.IsBattleStart)
-                        GameManager.Instance.StartBattle();
+                        GameManager.Instance.StartBattle(BattleType.Remote);
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgHeartbeat:

@@ -7,12 +7,16 @@ public class Main : MonoBehaviour
 {
     public InputField AccountInputField;
     public InputField PasswordInputField;
+    public Button AttachBtn;
     public Button LoginBtn;
     public Button CreateRoomBtn;
     public Button JoinRoomBtn;
     public Button ConnectBtn;
     public Button ReadyBtn;
     public Button ShutdownBtn;
+    public Button ReplayBtn;
+
+    private BattleType currBattleType = BattleType.Remote;
 
     private void Awake()
     {
@@ -22,6 +26,7 @@ public class Main : MonoBehaviour
         MsgPoolManager.Instance.Initialize();
         NetworkManager.Instance.Initialize();
         InputManager.Instance.Initialize();
+        BattleRecordManager.Instance.Initialize();
     }
 
     private void InitLogger()
@@ -36,6 +41,10 @@ public class Main : MonoBehaviour
 
     private void Start()
     {
+        AttachBtn.onClick.AddListener(() =>
+        {
+            NetworkManager.Instance.TcpConnect();
+        });
         LoginBtn.onClick.AddListener(() =>
         {
             NetworkManager.Instance.SendLogicLoginMessage(AccountInputField.text, PasswordInputField.text);
@@ -60,18 +69,24 @@ public class Main : MonoBehaviour
         {
             NetworkManager.Instance.KcpShutdown();
         });
-        NetworkManager.Instance.TcpConnect();
+        ReplayBtn.onClick.AddListener(() =>
+        {
+            currBattleType = BattleType.Replay;
+            GameManager.Instance.StartBattle(currBattleType);
+            GameManager.Instance.IsBattleStart = true;
+        });
     }
 
     private void Update()
     {
         if(!GameManager.Instance.IsBattleStart) return;
         
-        GameManager.Instance.RenderUpdate(Time.deltaTime);
+        GameManager.Instance.RenderUpdate(currBattleType, Time.deltaTime);
     }
 
     private void OnDestroy()
     {
-        GameManager.Instance.StopBattle();
+        if (BattleRecordManager.Instance != null) BattleRecordManager.Instance.OnRelease();
+        if (GameManager.Instance != null) GameManager.Instance.StopBattle(currBattleType);
     }
 }

@@ -148,13 +148,14 @@ public class BattleController
             }
             
             confirmPredictEntity.CopyTo(_confirmBattleEntity);
-            if (_confirmBattleEntity.Frame != 0 && _confirmBattleEntity.Frame % BattleSetting.Md5CheckFrame == 0)
+            if (confirmPredictEntity.Frame != 0 && confirmPredictEntity.Frame % BattleSetting.Md5CheckFrame == 0)
             {
                 var md5 = 0L;
-                foreach (var entity in _confirmBattleEntity.PlayerEntities)
+                foreach (var entity in confirmPredictEntity.PlayerEntities)
                     md5 ^= (entity.Transform.pos.x._raw ^ entity.Transform.pos.z._raw);
-                NetworkManager.Instance.SendBattleCheckMessage(_confirmBattleEntity.Frame, GameManager.Instance.GetBattlePos(), (int)md5);
+                NetworkManager.Instance.SendBattleCheckMessage(confirmPredictEntity.Frame, GameManager.Instance.GetBattlePos(), (int)md5);
             }
+            BattleRecordManager.Instance.RecordBattleEntity(confirmPredictEntity);
         }
         return flag;
     }
@@ -206,6 +207,7 @@ public class BattleController
             if(!GameManager.Instance.FrameBuffer.TryGetFrame(frame, ref inputFrame))
                 break;
             _serverFrameQueue.Enqueue(inputFrame);
+            ReplaySystem.SaveFrame(inputFrame);
         }
 
         if (GameManager.Instance.FrameBuffer.LastSetFrameIndex - frame > BattleSetting.MaxPredictFrameCount)

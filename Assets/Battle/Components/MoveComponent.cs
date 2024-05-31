@@ -1,4 +1,6 @@
-﻿public class MoveComponent : BaseComponent
+﻿using System.IO;
+
+public class MoveComponent : BaseComponent
 {
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto, Pack = 4)]
     internal struct Common
@@ -55,5 +57,26 @@
     {
         var data = component as MoveComponent;
         data.common = common;
+    }
+
+    public override void Serialize(BinaryWriter writer)
+    {
+        writer.Write(common.position.x._raw);
+        writer.Write(common.position.y._raw);
+        writer.Write(common.position.z._raw);
+        writer.Write(common.rotation.x._raw);
+        writer.Write(common.rotation.y._raw);
+        writer.Write(common.rotation.z._raw);
+        writer.Write(common.rotation.w._raw);
+        writer.Write(common.moveSpeed._raw);
+        writer.Write(common.turnSpeed._raw);
+    }
+
+    public override void Deserialize(BinaryReader reader)
+    {
+        common.position = new FixedVector3(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
+        common.rotation = new FixedQuaternion(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
+        common.moveSpeed = new FixedNumber(reader.ReadInt64());
+        common.turnSpeed = new FixedNumber(reader.ReadInt64());
     }
 }

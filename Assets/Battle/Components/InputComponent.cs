@@ -1,3 +1,5 @@
+using System.IO;
+
 public class InputComponent: BaseComponent
 {
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto, Pack = 4)]
@@ -31,5 +33,17 @@ public class InputComponent: BaseComponent
     {
         var data = component as InputComponent;
         data.common = common;
+    }
+
+    public override void Serialize(System.IO.BinaryWriter writer)
+    {
+        writer.Write(common.yaw);
+        writer.Write(common.key);
+    }
+
+    public override void Deserialize(BinaryReader reader)
+    {
+        common.yaw = reader.ReadInt32();
+        common.key = reader.ReadInt32();
     }
 }
