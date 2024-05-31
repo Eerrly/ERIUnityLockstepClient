@@ -43,25 +43,40 @@ public class GameManager : MManager<GameManager>
         {
             case BattleType.Remote:
             {
-                battleController.InitEntities();
-                LoomManager.Instance.QueueOnMainThread(() => { battleView.InitView(battleController.DisplayBattleEntity); });
-                Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Initialize), false);
-                frameEngine.StartNetEngine(BattleSetting.NetInterval);
-                frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
-                LoomManager.Instance.QueueOnMainThread(() => { BattleRecordManager.Instance.StartRecordBattle(GetBattlePos()); });
-                ReplaySystem.Init();
+                StartRemoteBattle();
                 break;
             }
             case BattleType.Replay:
             {
-                replayController.InitReplay(GetBattlePos());
-                LoomManager.Instance.QueueOnMainThread(() => { battleView.InitView(replayController.DisplayBattleEntity); });
-                Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Initialize), false);
-                frameEngine.StartReplayEngine(BattleSetting.BattleInterval);
-                replayController.StartReplayStopwatch();
+                StartReplayBattle();
                 break;
             }
         }
+    }
+
+    private void StartRemoteBattle()
+    {
+        battleController.InitEntities();
+        LoomManager.Instance.QueueOnMainThread(() => { battleView.InitView(battleController.DisplayBattleEntity); });
+        InitializeEntitySystems();
+        frameEngine.StartNetEngine(BattleSetting.NetInterval);
+        frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
+        LoomManager.Instance.QueueOnMainThread(() => { BattleRecordManager.Instance.StartRecordBattle(GetBattlePos()); });
+        ReplaySystem.Init();
+    }
+
+    private void StartReplayBattle()
+    {
+        replayController.InitReplay(GetBattlePos());
+        LoomManager.Instance.QueueOnMainThread(() => { battleView.InitView(replayController.DisplayBattleEntity); });
+        InitializeEntitySystems();
+        frameEngine.StartReplayEngine(BattleSetting.BattleInterval);
+        replayController.StartReplayStopwatch();
+    }
+
+    private void InitializeEntitySystems()
+    {
+        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Initialize), false);
     }
 
     public void RenderUpdate(BattleType battleType, float deltaTime)
@@ -94,23 +109,37 @@ public class GameManager : MManager<GameManager>
         {
             case BattleType.Remote:
             {
-                frameEngine.StopEngine();
-                battleView.OnRelease(battleController.DisplayBattleEntity);
-                Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Release), false);
-                NetworkManager.Instance.KcpShutdown();
-                NetworkManager.Instance.TcpShutdown();
-                ReplaySystem.Release();
+                StopRemoteBattle();
                 break;
             }
             case BattleType.Replay:
             {
-                frameEngine.StopReplayEngine();
-                battleView.OnRelease(replayController.DisplayBattleEntity);
-                Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Release), false);
+                StopReplayBattle();
                 break;
             }
         }
-        
     }
 
+    private void StopRemoteBattle()
+    {
+        frameEngine.StopEngine();
+        battleView.OnRelease(battleController.DisplayBattleEntity);
+        ReleaseEntitySystems();
+        NetworkManager.Instance.KcpShutdown();
+        NetworkManager.Instance.TcpShutdown();
+        ReplaySystem.Release();
+    }
+
+    private void StopReplayBattle()
+    {
+        frameEngine.StopReplayEngine();
+        battleView.OnRelease(replayController.DisplayBattleEntity);
+        ReleaseEntitySystems();
+    }
+
+    private void ReleaseEntitySystems()
+    {
+        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Release), false);
+    }
+    
 }

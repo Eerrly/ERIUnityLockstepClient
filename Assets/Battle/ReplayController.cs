@@ -8,10 +8,10 @@ using UnityEngine;
 
 public class ReplayController
 {
+    private int _frame;
     private readonly Stopwatch _stopwatch;
     private readonly List<BattleEntity> _battleEntities;
-    private int _frame;
-    private BattleEntity _displayBattleEntity;
+    private readonly BattleEntity _displayBattleEntity;
     public BattleEntity DisplayBattleEntity => _displayBattleEntity;
 
     public ReplayController()
@@ -32,28 +32,34 @@ public class ReplayController
     public void InitReplay(int pos)
     {
         var battleRecordPath = $"{Application.persistentDataPath}/battle_record_{pos}.log";
-        using (var fs = new FileStream(battleRecordPath, FileMode.Open, FileAccess.Read))
-        using (var br = new BinaryReader(fs))
+        if (!File.Exists(battleRecordPath))
         {
-            try
+            Logger.Log(LogLevel.Error, $"InitReplay file not found: {battleRecordPath}");
+            return;
+        }
+
+        try
+        {
+            using (var fs = new FileStream(battleRecordPath, FileMode.Open, FileAccess.Read))
+            using (var br = new BinaryReader(fs))
             {
-                while (true)
+                while (fs.Position < fs.Length)
                 {
-                    var entity = new BattleEntity() { Name = "Display" };
+                    var entity = new BattleEntity { Name = "Display" };
                     entity.Deserialize(br);
                     _battleEntities.Add(entity);
                 }
             }
-            catch (Exception _)
-            {
-                // ignored
-            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Log(LogLevel.Error, $"InitReplay Deserialize Failed: {ex.Message}\n{ex.StackTrace}");
         }
     }
 
     public Task ReplayUpdate(CancellationToken cancellationToken)
     {
-        if (_stopwatch.ElapsedMilliseconds >= _frame * BattleSetting.BattleInterval)
+        if (_frame < _battleEntities.Count && _stopwatch.ElapsedMilliseconds >= _frame * BattleSetting.BattleInterval)
         {
             _battleEntities[_frame].CopyTo(_displayBattleEntity);
             _frame++;
