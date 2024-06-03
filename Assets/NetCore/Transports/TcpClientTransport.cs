@@ -5,26 +5,25 @@ using Google.Protobuf;
 
 public class TcpClientTransport : ClientTransport
 {
-    public ushort port {get; private set;}
+    private readonly ushort _port;
+    private readonly TcpClient _client;
+    private readonly byte[] _acceptBuffer;
+    
     public Action<byte[], int, NetworkStream> OnDataReceived;
     public Action<NetworkStream, Packet> OnDataSent;
-    private TcpClient _client;
-    private int acceptBufferMaxLength;
-    private byte[] acceptBuffer;
     
     public override bool Connected => _client.Connected;
     
     public TcpClientTransport(ushort port, int acceptBufferMaxLength = 1024)
     {
-        this.port = port;
-        this.acceptBufferMaxLength = acceptBufferMaxLength;
-        this.acceptBuffer = new byte[this.acceptBufferMaxLength];
+        this._port = port;
+        this._acceptBuffer = new byte[acceptBufferMaxLength];
         _client = new TcpClient();
     }
     
     public override void Connect(string address)
     {
-        _client.BeginConnect(address, port, OnConnectAsync, _client);
+        _client.BeginConnect(address, _port, OnConnectAsync, _client);
     }
     
     private void OnConnectAsync(IAsyncResult iar)
@@ -48,14 +47,14 @@ public class TcpClientTransport : ClientTransport
             var read = 0;
             try
             {
-                read = await stream.ReadAsync(acceptBuffer, 0, acceptBuffer.Length);
+                read = await stream.ReadAsync(_acceptBuffer, 0, _acceptBuffer.Length);
             }
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error,$"[TCP] Exception ->\n{ex.Message}\n{ex.StackTrace}");
             }
             if(read == 0) break;
-            OnDataReceived?.Invoke(acceptBuffer, read, stream);
+            OnDataReceived?.Invoke(_acceptBuffer, read, stream);
         }
     }
     
@@ -93,6 +92,11 @@ public class TcpClientTransport : ClientTransport
     
     public void SendMessage<T>(pb.LogicMsgID logicMsgID, T message) where T : IMessage
     {
+        if (!Connected)
+        {
+            Logger.Log(LogLevel.Error, $"[TCP] Not Connected!");
+            return;
+        }
         var head = new Head() { _cmd = (byte)logicMsgID, _length = message.CalculateSize() };
         var packet = new Packet() { _data = message.ToByteArray(), _head = head };
         MsgPoolManager.Instance.Release(message);

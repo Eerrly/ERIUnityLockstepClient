@@ -47,6 +47,11 @@ public class NetworkManager : AManager<NetworkManager>
 
     private void OnKcpDataReceived(ArraySegment<byte> data, kcp2k.KcpChannel channel)
     {
+        if (!KcpConnected)
+        {
+            Logger.Log(LogLevel.Error, $"[KCP] Kcp Not Connected!");
+            return;
+        }
         Logger.Log(LogLevel.Info,$"[KCP] OnKcpDataReceived data.len: {data.Count} channel: {channel}");
         if (data.Array == null) {
             Logger.Log(LogLevel.Error,$"[KCP] OnKcpDataReceived data.Array == null");
@@ -156,6 +161,7 @@ public class NetworkManager : AManager<NetworkManager>
 
     public void KcpShutdown()
     {
+        Logger.Log(LogLevel.Info, $"[KCP] {KcpUri} Shutdown!");
         _kcpClientTransport.Shutdown();
     }
 
@@ -203,6 +209,11 @@ public class NetworkManager : AManager<NetworkManager>
 
     private void OnTcpDataReceived(byte[] data, int read, NetworkStream stream)
     {
+        if (!TcpConnected)
+        {
+            Logger.Log(LogLevel.Error, $"[TCP] Tcp Not Connected!");
+            return;
+        }
         Logger.Log(LogLevel.Info,$"OnTcpDataReceived data.len: {data.Length} read: {read}");
         _tcpClientTransport.OnMessageProcess(data, _memoryStream, cmd => {
             Logger.Log(LogLevel.Info,$"[TCP] OnMessageProcess -> Cmd:{cmd} Length:{data.Length}");
@@ -255,6 +266,7 @@ public class NetworkManager : AManager<NetworkManager>
 
     public void TcpShutdown()
     {
+        Logger.Log(LogLevel.Info, $"[TCP] {TcpUri} Shutdown!");
         _tcpClientTransport.Shutdown();
     }
 

@@ -8,16 +8,16 @@ public class GameManager : MManager<GameManager>
     public bool IsBattleConnected = false;
     public bool IsBattleStart = false;
 
-    private FrameBuffer frameBuffer;
+    private FrameBuffer _frameBuffer;
     public FrameBuffer FrameBuffer
     {
-        get => frameBuffer;
-        set => frameBuffer = value;
+        get => _frameBuffer;
+        set => _frameBuffer = value;
     }
-    private FrameEngine frameEngine;
-    private BattleController battleController;
-    private ReplayController replayController;
-    private BattleView battleView;
+    private FrameEngine _frameEngine;
+    private BattleController _battleController;
+    private ReplayController _replayController;
+    private BattleView _battleView;
     
     public int GetBattlePos()
     {
@@ -26,15 +26,15 @@ public class GameManager : MManager<GameManager>
 
     public override void Initialize()
     {
-        battleController = new BattleController();
-        replayController = new ReplayController();
-        frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount, BattleSetting.MaxFrameCount);
-        frameEngine = new FrameEngine();
-        frameEngine.RegisterNetUpdateListener(battleController.NetUpdate);
-        frameEngine.RegisterFrameUpdateListener(battleController.LogicUpdate);
-        frameEngine.RegisterReplayUpdateListener(replayController.ReplayUpdate);
+        _battleController = new BattleController();
+        _replayController = new ReplayController();
+        _frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount, BattleSetting.MaxFrameCount);
+        _frameEngine = new FrameEngine();
+        _frameEngine.RegisterNetUpdateListener(_battleController.NetUpdate);
+        _frameEngine.RegisterFrameUpdateListener(_battleController.LogicUpdate);
+        _frameEngine.RegisterReplayUpdateListener(_replayController.ReplayUpdate);
         
-        battleView = Util.GetOrAddComponent<BattleView>(gameObject);
+        _battleView = Util.GetOrAddComponent<BattleView>(gameObject);
     }
 
     public void StartBattle(BattleType battleType)
@@ -56,22 +56,22 @@ public class GameManager : MManager<GameManager>
 
     private void StartRemoteBattle()
     {
-        battleController.InitEntities();
-        LoomManager.Instance.QueueOnMainThread(() => { battleView.InitView(battleController.DisplayBattleEntity); });
+        _battleController.InitEntities();
+        LoomManager.Instance.QueueOnMainThread(() => { _battleView.InitView(_battleController.DisplayBattleEntity); });
         InitializeEntitySystems();
-        frameEngine.StartNetEngine(BattleSetting.NetInterval);
-        frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
+        _frameEngine.StartNetEngine(BattleSetting.NetInterval);
+        _frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
         LoomManager.Instance.QueueOnMainThread(() => { BattleRecordManager.Instance.StartRecordBattle(GetBattlePos()); });
         ReplaySystem.Init();
     }
 
     private void StartReplayBattle()
     {
-        replayController.InitReplay(GetBattlePos());
-        LoomManager.Instance.QueueOnMainThread(() => { battleView.InitView(replayController.DisplayBattleEntity); });
+        _replayController.InitReplay(GetBattlePos());
+        LoomManager.Instance.QueueOnMainThread(() => { _battleView.InitView(_replayController.DisplayBattleEntity); });
         InitializeEntitySystems();
-        frameEngine.StartReplayEngine(BattleSetting.BattleInterval);
-        replayController.StartReplayStopwatch();
+        _frameEngine.StartReplayEngine(BattleSetting.BattleInterval);
+        _replayController.StartReplayStopwatch();
     }
 
     private void InitializeEntitySystems()
@@ -87,12 +87,12 @@ public class GameManager : MManager<GameManager>
             {
                 case BattleType.Remote:
                 {
-                    battleView.RenderUpdate(battleController.DisplayBattleEntity, deltaTime);
+                    _battleView.RenderUpdate(_battleController.DisplayBattleEntity, deltaTime);
                     break;
                 }
                 case BattleType.Replay:
                 {
-                    battleView.RenderUpdate(replayController.DisplayBattleEntity, deltaTime);
+                    _battleView.RenderUpdate(_replayController.DisplayBattleEntity, deltaTime);
                     break;
                 }
             }
@@ -122,8 +122,8 @@ public class GameManager : MManager<GameManager>
 
     private void StopRemoteBattle()
     {
-        frameEngine.StopEngine();
-        battleView.OnRelease(battleController.DisplayBattleEntity);
+        _frameEngine.StopEngine();
+        _battleView.OnRelease(_battleController.DisplayBattleEntity);
         ReleaseEntitySystems();
         NetworkManager.Instance.KcpShutdown();
         NetworkManager.Instance.TcpShutdown();
@@ -132,8 +132,8 @@ public class GameManager : MManager<GameManager>
 
     private void StopReplayBattle()
     {
-        frameEngine.StopReplayEngine();
-        battleView.OnRelease(replayController.DisplayBattleEntity);
+        _frameEngine.StopReplayEngine();
+        _battleView.OnRelease(_replayController.DisplayBattleEntity);
         ReleaseEntitySystems();
     }
 
