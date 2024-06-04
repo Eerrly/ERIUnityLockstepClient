@@ -3,7 +3,7 @@
 public abstract class MManager<T> : MonoBehaviour, IManager where T : Component
 {
     private static T _instance;
-
+    
     public static T Instance
     {
         get
@@ -18,6 +18,6 @@ public abstract class MManager<T> : MonoBehaviour, IManager where T : Component
     }
     
     public virtual void Initialize() { }
-
+    
     public virtual void OnRelease() { }
 }

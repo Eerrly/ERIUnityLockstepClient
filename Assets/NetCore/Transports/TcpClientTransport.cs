@@ -5,29 +5,27 @@ using Google.Protobuf;
 
 public class TcpClientTransport : ClientTransport
 {
-    public ushort port {get; private set;}
-    public Action<byte[], int, NetworkStream> onDataReceived;
-    public Action<NetworkStream, Packet> onDataSent;
-
-    private TcpClient _client;
-    private int acceptBufferMaxLength;
-    private byte[] acceptBuffer;
-
+    private readonly ushort _port;
+    private readonly TcpClient _client;
+    private readonly byte[] _acceptBuffer;
+    
+    public Action<byte[], int, NetworkStream> OnDataReceived;
+    public Action<NetworkStream, Packet> OnDataSent;
+    
     public override bool Connected => _client.Connected;
-
+    
     public TcpClientTransport(ushort port, int acceptBufferMaxLength = 1024)
     {
-        this.port = port;
-        this.acceptBufferMaxLength = acceptBufferMaxLength;
-        this.acceptBuffer = new byte[this.acceptBufferMaxLength];
+        this._port = port;
+        this._acceptBuffer = new byte[acceptBufferMaxLength];
         _client = new TcpClient();
     }
-
+    
     public override void Connect(string address)
     {
-        _client.BeginConnect(address, port, OnConnectAsync, _client);
+        _client.BeginConnect(address, _port, OnConnectAsync, _client);
     }
-
+    
     private void OnConnectAsync(IAsyncResult iar)
     {
         var tcpClient = (TcpClient)iar.AsyncState;
@@ -37,8 +35,8 @@ public class TcpClientTransport : ClientTransport
             return;
         }
         tcpClient.EndConnect(iar);
-        Logger.Log(LogLevel.Info,$"[TCP] Connected Server Point: {tcpClient.Client.RemoteEndPoint} Start RecvTask Listener");
-        Task.Run(()=> HandleServerCommand());
+        Logger.Log(LogLevel.Info,$"[TCP] Connected Server Point: {tcpClient.Client.RemoteEndPoint} Start ReceiveTask Listener");
+        Task.Run(HandleServerCommand);
     }
 
     private async void HandleServerCommand()
@@ -49,22 +47,22 @@ public class TcpClientTransport : ClientTransport
             var read = 0;
             try
             {
-                read = await stream.ReadAsync(acceptBuffer, 0, acceptBuffer.Length);
+                read = await stream.ReadAsync(_acceptBuffer, 0, _acceptBuffer.Length);
             }
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error,$"[TCP] Exception ->\n{ex.Message}\n{ex.StackTrace}");
             }
             if(read == 0) break;
-            onDataReceived?.Invoke(acceptBuffer, read, stream);
+            OnDataReceived?.Invoke(_acceptBuffer, read, stream);
         }
     }
-
+    
     public override void Send(Packet packet)
     {
         SendAsync(packet);
     }
-
+    
     public async void SendAsync(Packet packet)
     {
         var buffer = BufferPool.GetBuffer(packet._head._length + Head.HeadLength);
@@ -80,7 +78,7 @@ public class TcpClientTransport : ClientTransport
 
             BufferPool.ReleaseBuff(buffer);
             Logger.Log(LogLevel.Info,$"[TCP] Send -> MsgID:{Enum.GetName(typeof(pb.LogicMsgID), packet._head._cmd)} dataSize:{packet._head._length}");
-            onDataSent?.Invoke(stream, packet);
+            OnDataSent?.Invoke(stream, packet);
         }
         catch (Exception ex)
         {
@@ -91,14 +89,20 @@ public class TcpClientTransport : ClientTransport
             BufferPool.ReleaseBuff(buffer);
         }
     }
-
-    public void SendMessage(pb.LogicMsgID logicMsgID, IMessage message)
+    
+    public void SendMessage<T>(pb.LogicMsgID logicMsgID, T message) where T : IMessage
     {
+        if (!Connected)
+        {
+            Logger.Log(LogLevel.Error, $"[TCP] Not Connected!");
+            return;
+        }
         var head = new Head() { _cmd = (byte)logicMsgID, _length = message.CalculateSize() };
         var packet = new Packet() { _data = message.ToByteArray(), _head = head };
+        MsgPoolManager.Instance.Release(message);
         Send(packet);
     }
-
+    
     public override void Shutdown()
     {
         _client.Close();

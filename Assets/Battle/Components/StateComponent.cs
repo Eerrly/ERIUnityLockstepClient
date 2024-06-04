@@ -1,4 +1,6 @@
-﻿public class StateComponent : BaseComponent
+﻿using System.IO;
+
+public class StateComponent : BaseComponent
 {
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto, Pack = 4)]
     internal struct Common
@@ -65,4 +67,23 @@
         data.common = common;
     }
 
+    public override void Serialize(BinaryWriter writer)
+    {
+        writer.Write(common.currStateId);
+        writer.Write(common.nextStateId);
+        writer.Write(common.prevStateId);
+        writer.Write(common.enteTime);
+        writer.Write(common.exitTime);
+        writer.Write(common.count);
+    }
+
+    public override void Deserialize(BinaryReader reader)
+    {
+        common.currStateId = reader.ReadInt32();
+        common.nextStateId = reader.ReadInt32();
+        common.prevStateId = reader.ReadInt32();
+        common.enteTime = reader.ReadSingle();
+        common.exitTime = reader.ReadSingle();
+        common.count = reader.ReadInt32();
+    }
 }

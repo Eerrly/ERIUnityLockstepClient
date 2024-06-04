@@ -1,3 +1,5 @@
+using System.IO;
+
 public class PlayerEntity : BaseEntity
 {
     public int ID;
@@ -53,6 +55,18 @@ public class PlayerEntity : BaseEntity
         State.CopyTo(playerEntity.State);
         Movement.CopyTo(playerEntity.Movement);
         Transform.CopyTo(playerEntity.Transform);
+    }
+
+    public override void Serialize(BinaryWriter writer)
+    {
+        writer.Write(ID);
+        base.Serialize(writer);
+    }
+
+    public override void Deserialize(BinaryReader reader)
+    {
+        ID = reader.ReadInt32();
+        base.Deserialize(reader);
     }
 
     public override string ToString()

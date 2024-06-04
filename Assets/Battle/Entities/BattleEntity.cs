@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 
 public class BattleEntity: BaseEntity
 {
@@ -35,6 +36,25 @@ public class BattleEntity: BaseEntity
         {
             if(i >= battleEntity.PlayerEntities.Count) battleEntity.PlayerEntities.Add(new PlayerEntity());
             PlayerEntities[i].CopyTo(battleEntity.PlayerEntities[i]);
+        }
+    }
+
+    public override void Serialize(BinaryWriter writer)
+    {
+        writer.Write(Frame);
+        writer.Write(PlayerEntities.Count);
+        foreach (var entity in PlayerEntities)
+            entity.Serialize(writer);
+    }
+
+    public override void Deserialize(BinaryReader reader)
+    {
+        Frame = reader.ReadInt32();
+        var playerCount = reader.ReadInt32();
+        for (var i = 0; i < playerCount; i++)
+        {
+            if(PlayerEntities.Count <= i) PlayerEntities.Add(new PlayerEntity());
+            PlayerEntities[i].Deserialize(reader);
         }
     }
 

@@ -6,45 +6,47 @@ using Google.Protobuf;
 
 public class KcpClientTransport : ClientTransport
 {
-    public ushort port {get; private set;}
-    public readonly KcpConfig _config;
-    public KcpClient _client;
-    public Action onConnected;
-    public Action<ArraySegment<byte>, KcpChannel> onDataReceived;
-    public Action onDisconnected;
-    public Action<ErrorCode, string> onError;
-    public Action<Packet> onDataSent;
+    private readonly ushort _port;
+    private readonly KcpConfig _config;
+    private readonly KcpClient _client;
+    private readonly Queue<Packet> _packets;
 
-    private Queue<Packet> packets;
-
+    public Action OnConnected;
+    public Action<ArraySegment<byte>, KcpChannel> OnDataReceived;
+    public Action OnDisconnected;
+    public Action<ErrorCode, string> OnError;
+    public Action<Packet> OnDataSent;
+    
     public KcpClientTransport(KcpConfig config, ushort port)
     {
         _config = config;
-        this.port = port;
+        _port = port;
         _client = new KcpClient(
-            () => onConnected?.Invoke(),
-            (data, channelId) => onDataReceived?.Invoke(data, channelId),
-            () => onDisconnected?.Invoke(),
-            (errorCode, error) => onError?.Invoke(errorCode, error),
+            () => OnConnected?.Invoke(),
+            (data, channelId) => OnDataReceived?.Invoke(data, channelId),
+            () => OnDisconnected?.Invoke(),
+            (errorCode, error) => OnError?.Invoke(errorCode, error),
             _config
         );
-        packets = new Queue<Packet>();
+        _packets = new Queue<Packet>();
     }
 
     public override bool Connected => _client.connected;
 
     public override Uri Uri()
     {
-        UriBuilder builder = new UriBuilder();
-        builder.Scheme = nameof(KcpClientTransport);
-        builder.Host = System.Net.Dns.GetHostName();
-        builder.Port = port;
+        var builder = new UriBuilder
+        {
+            Scheme = nameof(KcpClientTransport),
+            Host = System.Net.Dns.GetHostName(),
+            Port = _port
+        };
         return builder.Uri;
     }
 
     public override void Connect(string address)
     {
-        _client.Connect(address, port);
+        _client.Connect(address, _port);
     }
 
     public override void Disconnect()
@@ -56,7 +58,7 @@ public class KcpClientTransport : ClientTransport
     {
         try
         {
-            packets.Enqueue(packet);
+            _packets.Enqueue(packet);
         }
         catch (Exception ex)
         {
@@ -65,10 +67,16 @@ public class KcpClientTransport : ClientTransport
         }
     }
 
-    public void SendMessage(pb.BattleMsgID battleMsgID, IMessage message)
+    public void SendMessage<T>(pb.BattleMsgID battleMsgID, T message) where T : IMessage
     {
+        if (!Connected)
+        {
+            Logger.Log(LogLevel.Error, $"[KCP] Not Connected!");
+            return;
+        }
         var head = new Head() { _cmd = (byte)battleMsgID, _length = message.CalculateSize() };
         var packet = new Packet() { _data = message.ToByteArray(), _head = head };
+        MsgPoolManager.Instance.Release(message);
         Send(packet);
     }
 
@@ -85,9 +93,9 @@ public class KcpClientTransport : ClientTransport
 
     private void UpdatePacketInfosSent()
     {
-        if(packets.Count <= 0) return;
+        if(_packets.Count <= 0) return;
 
-        var packet = packets.Dequeue();
+        var packet = _packets.Dequeue();
         var buffer = BufferPool.GetBuffer(packet._head._length + Head.HeadLength);
         try
         {
@@ -100,7 +108,7 @@ public class KcpClientTransport : ClientTransport
 
             BufferPool.ReleaseBuff(buffer);
             Logger.Log(LogLevel.Info,$"[KCP] Send -> MsgID:{Enum.GetName(typeof(pb.BattleMsgID), packet._head._cmd)} dataSize:{packet._head._length}");
-            onDataSent?.Invoke(packet);
+            OnDataSent?.Invoke(packet);
         }
         catch (Exception ex)
         {

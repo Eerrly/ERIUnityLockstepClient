@@ -4,7 +4,7 @@ public class PlayerView : BaseView<PlayerEntity>
 {
     public int ID;
     
-    private Vector3 fixV;
+    private Vector3 _fixV;
     
     public override void InitView(PlayerEntity entity)
     {
@@ -44,11 +44,11 @@ public class PlayerView : BaseView<PlayerEntity>
         if (offset.magnitude > dis)
         {
             var target = currentPosition + offset.normalized * (offset.magnitude - dis);
-            currentPosition = Vector3.SmoothDamp(currentPosition, target, ref fixV, 0.2f);
+            currentPosition = Vector3.SmoothDamp(currentPosition, target, ref _fixV, 0.2f);
         }
         else
         {
-            fixV = Vector3.zero;
+            _fixV = Vector3.zero;
         }
 
         var transform1 = transform;

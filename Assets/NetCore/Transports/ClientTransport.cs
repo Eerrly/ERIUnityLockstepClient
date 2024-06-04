@@ -33,7 +33,7 @@ public abstract class ClientTransport
         }
         catch (Exception ex)
         {
-            Logger.Log(LogLevel.Error,$"[NET] Exception ->\n{ex.Message}\n{ex.StackTrace}");
+            Logger.Log(LogLevel.Error,$"[NET] {Uri()} Exception ->\n{ex.Message}\n{ex.StackTrace}");
             onCatch?.Invoke();
         }
         finally

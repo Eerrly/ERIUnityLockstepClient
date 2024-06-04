@@ -8,16 +8,16 @@ public class GameManager : MManager<GameManager>
     public bool IsBattleConnected = false;
     public bool IsBattleStart = false;
 
-    private FrameBuffer frameBuffer;
+    private FrameBuffer _frameBuffer;
     public FrameBuffer FrameBuffer
     {
-        get => frameBuffer;
-        set => frameBuffer = value;
+        get => _frameBuffer;
+        set => _frameBuffer = value;
     }
-
-    private FrameEngine frameEngine;
-    private BattleController battleController;
-    private BattleView battleView;
+    private FrameEngine _frameEngine;
+    private BattleController _battleController;
+    private ReplayController _replayController;
+    private BattleView _battleView;
     
     public int GetBattlePos()
     {
@@ -26,29 +26,76 @@ public class GameManager : MManager<GameManager>
 
     public override void Initialize()
     {
-        battleController = new BattleController();
-        frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount, BattleSetting.MaxFrameCount);
-        frameEngine = new FrameEngine();
-        frameEngine.RegisterNetUpdateListener(battleController.NetUpdate);
-        frameEngine.RegisterFrameUpdateListener(battleController.LogicUpdate);
+        _battleController = new BattleController();
+        _replayController = new ReplayController();
+        _frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount, BattleSetting.MaxFrameCount);
+        _frameEngine = new FrameEngine();
+        _frameEngine.RegisterNetUpdateListener(_battleController.NetUpdate);
+        _frameEngine.RegisterFrameUpdateListener(_battleController.LogicUpdate);
+        _frameEngine.RegisterReplayUpdateListener(_replayController.ReplayUpdate);
         
-        battleView = Util.GetOrAddComponent<BattleView>(gameObject);
+        _battleView = Util.GetOrAddComponent<BattleView>(gameObject);
     }
 
-    public void StartBattle()
+    public void StartBattle(BattleType battleType)
     {
-        battleController.InitEntities();
-        Loom.QueueOnMainThread(() => { battleView.InitView(battleController.DisplayBattleEntity); });
-        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Initialize), false);
-        frameEngine.StartNetEngine(BattleSetting.NetInterval);
-        frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
+        switch (battleType)
+        {
+            case BattleType.Remote:
+            {
+                StartRemoteBattle();
+                break;
+            }
+            case BattleType.Replay:
+            {
+                StartReplayBattle();
+                break;
+            }
+        }
     }
 
-    public void RenderUpdate(float deltaTime)
+    private void StartRemoteBattle()
+    {
+        _battleController.InitEntities();
+        LoomManager.Instance.QueueOnMainThread(() => { _battleView.InitView(_battleController.DisplayBattleEntity); });
+        InitializeEntitySystems();
+        _frameEngine.StartNetEngine(BattleSetting.NetInterval);
+        _frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
+        LoomManager.Instance.QueueOnMainThread(() => { BattleRecordManager.Instance.StartRecordBattle(GetBattlePos()); });
+        ReplaySystem.Init();
+    }
+
+    private void StartReplayBattle()
+    {
+        _replayController.InitReplay(GetBattlePos());
+        LoomManager.Instance.QueueOnMainThread(() => { _battleView.InitView(_replayController.DisplayBattleEntity); });
+        InitializeEntitySystems();
+        _frameEngine.StartReplayEngine(BattleSetting.BattleInterval);
+        _replayController.StartReplayStopwatch();
+    }
+
+    private void InitializeEntitySystems()
+    {
+        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Initialize), false);
+    }
+
+    public void RenderUpdate(BattleType battleType, float deltaTime)
     {
         try
         {
-            battleView.RenderUpdate(battleController.DisplayBattleEntity, deltaTime);
+            switch (battleType)
+            {
+                case BattleType.Remote:
+                {
+                    _battleView.RenderUpdate(_battleController.DisplayBattleEntity, deltaTime);
+                    break;
+                }
+                case BattleType.Replay:
+                {
+                    _battleView.RenderUpdate(_replayController.DisplayBattleEntity, deltaTime);
+                    break;
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -56,13 +103,43 @@ public class GameManager : MManager<GameManager>
         }
     }
     
-    public void StopBattle()
+    public void StopBattle(BattleType battleType)
     {
-        frameEngine.StopEngine();
-        battleView.OnRelease(battleController.DisplayBattleEntity);
-        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Release), false);
-        NetworkManager.Instance.KcpShutdown();
-        NetworkManager.Instance.TcpShutdown();
+        switch (battleType)
+        {
+            case BattleType.Remote:
+            {
+                StopRemoteBattle();
+                break;
+            }
+            case BattleType.Replay:
+            {
+                StopReplayBattle();
+                break;
+            }
+        }
     }
 
+    private void StopRemoteBattle()
+    {
+        _frameEngine.StopEngine();
+        _battleView.OnRelease(_battleController.DisplayBattleEntity);
+        ReleaseEntitySystems();
+        NetworkManager.Instance.KcpShutdown();
+        NetworkManager.Instance.TcpShutdown();
+        ReplaySystem.Release();
+    }
+
+    private void StopReplayBattle()
+    {
+        _frameEngine.StopReplayEngine();
+        _battleView.OnRelease(_replayController.DisplayBattleEntity);
+        ReleaseEntitySystems();
+    }
+
+    private void ReleaseEntitySystems()
+    {
+        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Release), false);
+    }
+    
 }
