@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using Google.Protobuf;
+using pb;
 
 public class NetworkManager : AManager<NetworkManager>
 {
@@ -132,7 +133,10 @@ public class NetworkManager : AManager<NetworkManager>
                 case (byte)pb.BattleMsgID.BattleMsgCheck:
                 {
                     var s2CMessage = pb.S2C_CheckMsg.Parser.ParseFrom(_memoryStream);
-                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgCheck -> errorCode:{s2CMessage.ErrorCode}");
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgCheck -> errorCode:{s2CMessage.ErrorCode} frame:{s2CMessage.Frame}");
+                    
+                    if (s2CMessage.ErrorCode == BattleErrorCode.BattleErrDiff)
+                        Logger.Log(LogLevel.Error, $"[KCP] BattleMsgCheck -> frame:{s2CMessage.Frame} out of sync!");
                     break;
                 }
             }
