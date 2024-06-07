@@ -297,4 +297,11 @@ public class NetworkManager : AManager<NetworkManager>
         _tcpClientTransport.SendMessage(pb.LogicMsgID.LogicMsgJoinRoom, c2SMessage);
     }
 
+    public override void OnRelease()
+    {
+        KcpShutdown();
+        TcpShutdown();
+        _serverStopwatch.Stop();
+        _memoryStream.Dispose();
+    }
 }

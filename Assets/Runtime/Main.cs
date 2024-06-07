@@ -67,7 +67,7 @@ public class Main : MonoBehaviour
         });
         ShutdownBtn.onClick.AddListener(() =>
         {
-            NetworkManager.Instance.KcpShutdown();
+            GameManager.Instance.StopBattle(currBattleType);
         });
         ReplayBtn.onClick.AddListener(() =>
         {
@@ -88,5 +88,6 @@ public class Main : MonoBehaviour
     {
         if (BattleRecordManager.Instance != null) BattleRecordManager.Instance.OnRelease();
         if (GameManager.Instance != null) GameManager.Instance.StopBattle(currBattleType);
+        if (NetworkManager.Instance != null) NetworkManager.Instance.OnRelease();
     }
 }

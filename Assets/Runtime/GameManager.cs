@@ -126,7 +126,6 @@ public class GameManager : MManager<GameManager>
         _battleView.OnRelease(_battleController.DisplayBattleEntity);
         ReleaseEntitySystems();
         NetworkManager.Instance.KcpShutdown();
-        NetworkManager.Instance.TcpShutdown();
         ReplaySystem.Release();
     }
 
