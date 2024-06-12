@@ -24,11 +24,11 @@ public class PlayerView : BaseView<PlayerEntity>
     private void TransformUpdate(PlayerEntity entity, float deltaTime)
     {
         var currentPosition = transform.position;
-        var nextDeltaPosition = currentPosition + entity.Movement.position.ToVector3();
-        if((currentPosition - nextDeltaPosition).sqrMagnitude >= 4)
-        {
-            currentPosition = Vector3.Lerp(currentPosition, nextDeltaPosition, deltaTime);
-        }
+        var entityPosition = entity.Transform.pos.ToVector3();
+        var moveDelta = entity.Movement.position * entity.Movement.moveSpeed;
+        currentPosition += moveDelta.ToVector3() * deltaTime;
+        currentPosition = Vector3.Lerp(currentPosition, entityPosition, 0);
+        
         var currentRotation = transform.rotation;
         var nextDeltaRotation = entity.Movement.rotation.ToQuaternion();
         if(currentRotation != nextDeltaRotation)
@@ -39,8 +39,8 @@ public class PlayerView : BaseView<PlayerEntity>
             currentRotation = Quaternion.Euler(0f, angle, 0f);
         }
 
-        var offset = entity.Transform.pos.ToVector3() - currentPosition;
-        var dis = 0.4f;
+        var offset = entityPosition - currentPosition;
+        var dis = 0.3f;
         if (offset.magnitude > dis)
         {
             var target = currentPosition + offset.normalized * (offset.magnitude - dis);

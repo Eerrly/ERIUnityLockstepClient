@@ -8,8 +8,7 @@ public class MoveSystem
         var position = FixedVector3.Zero;
         if(!KeySystem.IsYawTypeStop(entity.Input.yaw))
         {
-            var vector = FixedMath.FromYawToVector3(entity.Input.yaw);
-            position = (vector * entity.Movement.moveSpeed).YZero();
+            position = FixedMath.FromYawToVector3(entity.Input.yaw).YZero();
         }
         entity.Movement.position = position;
     }
@@ -28,7 +27,8 @@ public class MoveSystem
     public static void TransformLogicUpdate(PlayerEntity entity, FixedNumber delta)
     {
         var currentPosition = entity.Transform.pos;
-        var nextDeltaPosition = currentPosition + entity.Movement.position;
+        var moveDelta = entity.Movement.position * entity.Movement.moveSpeed;
+        var nextDeltaPosition = currentPosition + moveDelta;
         if((currentPosition - nextDeltaPosition).sqrMagnitudeLongXZ >= 4)
         {
             currentPosition = FixedVector3.Lerp(currentPosition, nextDeltaPosition, delta);
