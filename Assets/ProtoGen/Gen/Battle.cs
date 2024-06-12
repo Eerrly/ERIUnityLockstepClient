@@ -27,30 +27,32 @@ namespace pb {
             "c2cSIwoJZXJyb3JDb2RlGAEgASgOMhAuQmF0dGxlRXJyb3JDb2RlIjcKEEMy",
             "U19IZWFydGJlYXRNc2cSEAoIcGxheWVySWQYASABKA0SEQoJdGltZVN0YW1w",
             "GAIgASgEIkoKEFMyQ19IZWFydGJlYXRNc2cSIwoJZXJyb3JDb2RlGAEgASgO",
-            "MhAuQmF0dGxlRXJyb3JDb2RlEhEKCXRpbWVTdGFtcBgCIAEoBCIwCgxDMlNf",
-            "UmVhZHlNc2cSDgoGcm9vbUlkGAEgASgNEhAKCHBsYXllcklkGAIgASgNIlMK",
-            "DFMyQ19SZWFkeU1zZxIjCgllcnJvckNvZGUYASABKA4yEC5CYXR0bGVFcnJv",
-            "ckNvZGUSDgoGcm9vbUlkGAIgASgNEg4KBnN0YXR1cxgDIAMoDSJVCgxTMkNf",
-            "U3RhcnRNc2cSIwoJZXJyb3JDb2RlGAEgASgOMhAuQmF0dGxlRXJyb3JDb2Rl",
-            "Eg0KBWZyYW1lGAIgASgNEhEKCXRpbWVTdGFtcBgDIAEoBCIsCgxDMlNfRnJh",
-            "bWVNc2cSDQoFZnJhbWUYASABKA0SDQoFZGF0dW0YAiABKAwiegoMUzJDX0Zy",
-            "YW1lTXNnEiMKCWVycm9yQ29kZRgBIAEoDjIQLkJhdHRsZUVycm9yQ29kZRIN",
-            "CgVmcmFtZRgCIAEoDRITCgtwbGF5ZXJDb3VudBgDIAEoDRISCgppbnB1dENv",
-            "dW50GAQgASgNEg0KBWRhdHVtGAUgASgMIjcKDEMyU19DaGVja01zZxINCgVm",
-            "cmFtZRgBIAEoBRILCgNwb3MYAiABKAUSCwoDbWQ1GAMgASgFIkIKDFMyQ19D",
-            "aGVja01zZxIjCgllcnJvckNvZGUYASABKA4yEC5CYXR0bGVFcnJvckNvZGUS",
-            "DQoFZnJhbWUYAiABKAUiRAoNUzJDX1Jlc3VsdE1zZxIjCgllcnJvckNvZGUY",
-            "ASABKA4yEC5CYXR0bGVFcnJvckNvZGUSDgoGd2lubmVyGAIgASgNIk0KFlMy",
-            "Q19CYXR0bGVFeGNlcHRpb25Nc2cSIwoJZXJyb3JDb2RlGAEgASgOMhAuQmF0",
-            "dGxlRXJyb3JDb2RlEg4KBnJlYXNvbhgCIAEoCSreAQoLQmF0dGxlTXNnSUQS",
-            "FAoQQkFUVExFX01TR19CZWdpbhAAEhYKEkJBVFRMRV9NU0dfQ29ubmVjdBAB",
-            "EhgKFEJBVFRMRV9NU0dfSGVhcnRiZWF0EAISFAoQQkFUVExFX01TR19SZWFk",
-            "eRAKEhQKEEJBVFRMRV9NU0dfU3RhcnQQFBIUChBCQVRUTEVfTVNHX0ZyYW1l",
-            "EB4SFAoQQkFUVExFX01TR19DaGVjaxAoEhUKEUJBVFRMRV9NU0dfUmVzdWx0",
-            "EDISGAoUQkFUVExFX01TR19FeGNlcHRpb24QZCptCg9CYXR0bGVFcnJvckNv",
-            "ZGUSGAoUQkFUVExFX0VSUl9CYXR0bGVfT2sQABIWChJCQVRUTEVfRVJSX1Rp",
-            "bWVvdXQQARITCg9CQVRUTEVfRVJSX0RhdGEQAhITCg9CQVRUTEVfRVJSX0Rp",
-            "ZmYQA0IFqgICcGJiBnByb3RvMw=="));
+            "MhAuQmF0dGxlRXJyb3JDb2RlEhEKCXRpbWVTdGFtcBgCIAEoBCJICgxDMlNf",
+            "UmVhZHlNc2cSDgoGcm9vbUlkGAEgASgNEhAKCHBsYXllcklkGAIgASgNEhYK",
+            "DnJlY29ubmVjdEZyYW1lGAMgASgFIlMKDFMyQ19SZWFkeU1zZxIjCgllcnJv",
+            "ckNvZGUYASABKA4yEC5CYXR0bGVFcnJvckNvZGUSDgoGcm9vbUlkGAIgASgN",
+            "Eg4KBnN0YXR1cxgDIAMoDSJVCgxTMkNfU3RhcnRNc2cSIwoJZXJyb3JDb2Rl",
+            "GAEgASgOMhAuQmF0dGxlRXJyb3JDb2RlEg0KBWZyYW1lGAIgASgNEhEKCXRp",
+            "bWVTdGFtcBgDIAEoBCIsCgxDMlNfRnJhbWVNc2cSDQoFZnJhbWUYASABKA0S",
+            "DQoFZGF0dW0YAiABKAwiVQoMUzJDRnJhbWVEYXRhEg0KBWZyYW1lGAEgASgN",
+            "EhMKC3BsYXllckNvdW50GAIgASgNEhIKCmlucHV0Q291bnQYAyABKA0SDQoF",
+            "ZGF0dW0YBCABKAwiVgoMUzJDX0ZyYW1lTXNnEiMKCWVycm9yQ29kZRgBIAEo",
+            "DjIQLkJhdHRsZUVycm9yQ29kZRIhCgpmcmFtZURhdHVtGAIgAygLMg0uUzJD",
+            "RnJhbWVEYXRhIjcKDEMyU19DaGVja01zZxINCgVmcmFtZRgBIAEoBRILCgNw",
+            "b3MYAiABKAUSCwoDbWQ1GAMgASgFIkIKDFMyQ19DaGVja01zZxIjCgllcnJv",
+            "ckNvZGUYASABKA4yEC5CYXR0bGVFcnJvckNvZGUSDQoFZnJhbWUYAiABKAUi",
+            "RAoNUzJDX1Jlc3VsdE1zZxIjCgllcnJvckNvZGUYASABKA4yEC5CYXR0bGVF",
+            "cnJvckNvZGUSDgoGd2lubmVyGAIgASgNIk0KFlMyQ19CYXR0bGVFeGNlcHRp",
+            "b25Nc2cSIwoJZXJyb3JDb2RlGAEgASgOMhAuQmF0dGxlRXJyb3JDb2RlEg4K",
+            "BnJlYXNvbhgCIAEoCSreAQoLQmF0dGxlTXNnSUQSFAoQQkFUVExFX01TR19C",
+            "ZWdpbhAAEhYKEkJBVFRMRV9NU0dfQ29ubmVjdBABEhgKFEJBVFRMRV9NU0df",
+            "SGVhcnRiZWF0EAISFAoQQkFUVExFX01TR19SZWFkeRAKEhQKEEJBVFRMRV9N",
+            "U0dfU3RhcnQQFBIUChBCQVRUTEVfTVNHX0ZyYW1lEB4SFAoQQkFUVExFX01T",
+            "R19DaGVjaxAoEhUKEUJBVFRMRV9NU0dfUmVzdWx0EDISGAoUQkFUVExFX01T",
+            "R19FeGNlcHRpb24QZCptCg9CYXR0bGVFcnJvckNvZGUSGAoUQkFUVExFX0VS",
+            "Ul9CYXR0bGVfT2sQABIWChJCQVRUTEVfRVJSX1RpbWVvdXQQARITCg9CQVRU",
+            "TEVfRVJSX0RhdGEQAhITCg9CQVRUTEVfRVJSX0RpZmYQA0IFqgICcGJiBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::pb.BattleMsgID), typeof(global::pb.BattleErrorCode), }, new pbr::GeneratedClrTypeInfo[] {
@@ -58,11 +60,12 @@ namespace pb {
             new pbr::GeneratedClrTypeInfo(typeof(global::pb.S2C_ConnectMsg), global::pb.S2C_ConnectMsg.Parser, new[]{ "ErrorCode" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::pb.C2S_HeartbeatMsg), global::pb.C2S_HeartbeatMsg.Parser, new[]{ "PlayerId", "TimeStamp" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::pb.S2C_HeartbeatMsg), global::pb.S2C_HeartbeatMsg.Parser, new[]{ "ErrorCode", "TimeStamp" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::pb.C2S_ReadyMsg), global::pb.C2S_ReadyMsg.Parser, new[]{ "RoomId", "PlayerId" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::pb.C2S_ReadyMsg), global::pb.C2S_ReadyMsg.Parser, new[]{ "RoomId", "PlayerId", "ReconnectFrame" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::pb.S2C_ReadyMsg), global::pb.S2C_ReadyMsg.Parser, new[]{ "ErrorCode", "RoomId", "Status" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::pb.S2C_StartMsg), global::pb.S2C_StartMsg.Parser, new[]{ "ErrorCode", "Frame", "TimeStamp" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::pb.C2S_FrameMsg), global::pb.C2S_FrameMsg.Parser, new[]{ "Frame", "Datum" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::pb.S2C_FrameMsg), global::pb.S2C_FrameMsg.Parser, new[]{ "ErrorCode", "Frame", "PlayerCount", "InputCount", "Datum" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::pb.S2CFrameData), global::pb.S2CFrameData.Parser, new[]{ "Frame", "PlayerCount", "InputCount", "Datum" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::pb.S2C_FrameMsg), global::pb.S2C_FrameMsg.Parser, new[]{ "ErrorCode", "FrameDatum" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::pb.C2S_CheckMsg), global::pb.C2S_CheckMsg.Parser, new[]{ "Frame", "Pos", "Md5" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::pb.S2C_CheckMsg), global::pb.S2C_CheckMsg.Parser, new[]{ "ErrorCode", "Frame" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::pb.S2C_ResultMsg), global::pb.S2C_ResultMsg.Parser, new[]{ "ErrorCode", "Winner" }, null, null, null),
@@ -751,6 +754,7 @@ namespace pb {
     public C2S_ReadyMsg(C2S_ReadyMsg other) : this() {
       roomId_ = other.roomId_;
       playerId_ = other.playerId_;
+      reconnectFrame_ = other.reconnectFrame_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -786,6 +790,20 @@ namespace pb {
       }
     }
 
+    /// <summary>Field number for the "reconnectFrame" field.</summary>
+    public const int ReconnectFrameFieldNumber = 3;
+    private int reconnectFrame_;
+    /// <summary>
+    ///重连的帧数(默认-1)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int ReconnectFrame {
+      get { return reconnectFrame_; }
+      set {
+        reconnectFrame_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as C2S_ReadyMsg);
@@ -801,6 +819,7 @@ namespace pb {
       }
       if (RoomId != other.RoomId) return false;
       if (PlayerId != other.PlayerId) return false;
+      if (ReconnectFrame != other.ReconnectFrame) return false;
       return true;
     }
 
@@ -809,6 +828,7 @@ namespace pb {
       int hash = 1;
       if (RoomId != 0) hash ^= RoomId.GetHashCode();
       if (PlayerId != 0) hash ^= PlayerId.GetHashCode();
+      if (ReconnectFrame != 0) hash ^= ReconnectFrame.GetHashCode();
       return hash;
     }
 
@@ -827,6 +847,10 @@ namespace pb {
         output.WriteRawTag(16);
         output.WriteUInt32(PlayerId);
       }
+      if (ReconnectFrame != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(ReconnectFrame);
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -837,6 +861,9 @@ namespace pb {
       }
       if (PlayerId != 0) {
         size += 1 + pb::CodedOutputStream.ComputeUInt32Size(PlayerId);
+      }
+      if (ReconnectFrame != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ReconnectFrame);
       }
       return size;
     }
@@ -851,6 +878,9 @@ namespace pb {
       }
       if (other.PlayerId != 0) {
         PlayerId = other.PlayerId;
+      }
+      if (other.ReconnectFrame != 0) {
+        ReconnectFrame = other.ReconnectFrame;
       }
     }
 
@@ -868,6 +898,10 @@ namespace pb {
           }
           case 16: {
             PlayerId = input.ReadUInt32();
+            break;
+          }
+          case 24: {
+            ReconnectFrame = input.ReadInt32();
             break;
           }
         }
@@ -1393,13 +1427,10 @@ namespace pb {
 
   }
 
-  /// <summary>
-  /// 帧消息
-  /// </summary>
-  public sealed partial class S2C_FrameMsg : pb::IMessage<S2C_FrameMsg> {
-    private static readonly pb::MessageParser<S2C_FrameMsg> _parser = new pb::MessageParser<S2C_FrameMsg>(() => new S2C_FrameMsg());
+  public sealed partial class S2CFrameData : pb::IMessage<S2CFrameData> {
+    private static readonly pb::MessageParser<S2CFrameData> _parser = new pb::MessageParser<S2CFrameData>(() => new S2CFrameData());
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<S2C_FrameMsg> Parser { get { return _parser; } }
+    public static pb::MessageParser<S2CFrameData> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -1412,15 +1443,14 @@ namespace pb {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public S2C_FrameMsg() {
+    public S2CFrameData() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public S2C_FrameMsg(S2C_FrameMsg other) : this() {
-      errorCode_ = other.errorCode_;
+    public S2CFrameData(S2CFrameData other) : this() {
       frame_ = other.frame_;
       playerCount_ = other.playerCount_;
       inputCount_ = other.inputCount_;
@@ -1428,26 +1458,12 @@ namespace pb {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public S2C_FrameMsg Clone() {
-      return new S2C_FrameMsg(this);
-    }
-
-    /// <summary>Field number for the "errorCode" field.</summary>
-    public const int ErrorCodeFieldNumber = 1;
-    private global::pb.BattleErrorCode errorCode_ = 0;
-    /// <summary>
-    ///错误码
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::pb.BattleErrorCode ErrorCode {
-      get { return errorCode_; }
-      set {
-        errorCode_ = value;
-      }
+    public S2CFrameData Clone() {
+      return new S2CFrameData(this);
     }
 
     /// <summary>Field number for the "frame" field.</summary>
-    public const int FrameFieldNumber = 2;
+    public const int FrameFieldNumber = 1;
     private uint frame_;
     /// <summary>
     ///帧号
@@ -1461,7 +1477,7 @@ namespace pb {
     }
 
     /// <summary>Field number for the "playerCount" field.</summary>
-    public const int PlayerCountFieldNumber = 3;
+    public const int PlayerCountFieldNumber = 2;
     private uint playerCount_;
     /// <summary>
     ///玩家数量
@@ -1475,7 +1491,7 @@ namespace pb {
     }
 
     /// <summary>Field number for the "inputCount" field.</summary>
-    public const int InputCountFieldNumber = 4;
+    public const int InputCountFieldNumber = 3;
     private uint inputCount_;
     /// <summary>
     ///操作数量
@@ -1489,7 +1505,7 @@ namespace pb {
     }
 
     /// <summary>Field number for the "datum" field.</summary>
-    public const int DatumFieldNumber = 5;
+    public const int DatumFieldNumber = 4;
     private pb::ByteString datum_ = pb::ByteString.Empty;
     /// <summary>
     ///玩家帧数据
@@ -1504,18 +1520,17 @@ namespace pb {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as S2C_FrameMsg);
+      return Equals(other as S2CFrameData);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(S2C_FrameMsg other) {
+    public bool Equals(S2CFrameData other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (ErrorCode != other.ErrorCode) return false;
       if (Frame != other.Frame) return false;
       if (PlayerCount != other.PlayerCount) return false;
       if (InputCount != other.InputCount) return false;
@@ -1526,7 +1541,6 @@ namespace pb {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (ErrorCode != 0) hash ^= ErrorCode.GetHashCode();
       if (Frame != 0) hash ^= Frame.GetHashCode();
       if (PlayerCount != 0) hash ^= PlayerCount.GetHashCode();
       if (InputCount != 0) hash ^= InputCount.GetHashCode();
@@ -1541,24 +1555,20 @@ namespace pb {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (ErrorCode != 0) {
-        output.WriteRawTag(8);
-        output.WriteEnum((int) ErrorCode);
-      }
       if (Frame != 0) {
-        output.WriteRawTag(16);
+        output.WriteRawTag(8);
         output.WriteUInt32(Frame);
       }
       if (PlayerCount != 0) {
-        output.WriteRawTag(24);
+        output.WriteRawTag(16);
         output.WriteUInt32(PlayerCount);
       }
       if (InputCount != 0) {
-        output.WriteRawTag(32);
+        output.WriteRawTag(24);
         output.WriteUInt32(InputCount);
       }
       if (Datum.Length != 0) {
-        output.WriteRawTag(42);
+        output.WriteRawTag(34);
         output.WriteBytes(Datum);
       }
     }
@@ -1566,9 +1576,6 @@ namespace pb {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (ErrorCode != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ErrorCode);
-      }
       if (Frame != 0) {
         size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Frame);
       }
@@ -1585,12 +1592,9 @@ namespace pb {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(S2C_FrameMsg other) {
+    public void MergeFrom(S2CFrameData other) {
       if (other == null) {
         return;
-      }
-      if (other.ErrorCode != 0) {
-        ErrorCode = other.ErrorCode;
       }
       if (other.Frame != 0) {
         Frame = other.Frame;
@@ -1615,23 +1619,165 @@ namespace pb {
             input.SkipLastField();
             break;
           case 8: {
-            errorCode_ = (global::pb.BattleErrorCode) input.ReadEnum();
-            break;
-          }
-          case 16: {
             Frame = input.ReadUInt32();
             break;
           }
-          case 24: {
+          case 16: {
             PlayerCount = input.ReadUInt32();
             break;
           }
-          case 32: {
+          case 24: {
             InputCount = input.ReadUInt32();
             break;
           }
-          case 42: {
+          case 34: {
             Datum = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
+  /// 帧消息
+  /// </summary>
+  public sealed partial class S2C_FrameMsg : pb::IMessage<S2C_FrameMsg> {
+    private static readonly pb::MessageParser<S2C_FrameMsg> _parser = new pb::MessageParser<S2C_FrameMsg>(() => new S2C_FrameMsg());
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<S2C_FrameMsg> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::pb.BattleReflection.Descriptor.MessageTypes[9]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public S2C_FrameMsg() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public S2C_FrameMsg(S2C_FrameMsg other) : this() {
+      errorCode_ = other.errorCode_;
+      frameDatum_ = other.frameDatum_.Clone();
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public S2C_FrameMsg Clone() {
+      return new S2C_FrameMsg(this);
+    }
+
+    /// <summary>Field number for the "errorCode" field.</summary>
+    public const int ErrorCodeFieldNumber = 1;
+    private global::pb.BattleErrorCode errorCode_ = 0;
+    /// <summary>
+    ///错误码
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::pb.BattleErrorCode ErrorCode {
+      get { return errorCode_; }
+      set {
+        errorCode_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "frameDatum" field.</summary>
+    public const int FrameDatumFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::pb.S2CFrameData> _repeated_frameDatum_codec
+        = pb::FieldCodec.ForMessage(18, global::pb.S2CFrameData.Parser);
+    private readonly pbc::RepeatedField<global::pb.S2CFrameData> frameDatum_ = new pbc::RepeatedField<global::pb.S2CFrameData>();
+    /// <summary>
+    ///帧数据
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::pb.S2CFrameData> FrameDatum {
+      get { return frameDatum_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as S2C_FrameMsg);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(S2C_FrameMsg other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (ErrorCode != other.ErrorCode) return false;
+      if(!frameDatum_.Equals(other.frameDatum_)) return false;
+      return true;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (ErrorCode != 0) hash ^= ErrorCode.GetHashCode();
+      hash ^= frameDatum_.GetHashCode();
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (ErrorCode != 0) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) ErrorCode);
+      }
+      frameDatum_.WriteTo(output, _repeated_frameDatum_codec);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (ErrorCode != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ErrorCode);
+      }
+      size += frameDatum_.CalculateSize(_repeated_frameDatum_codec);
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(S2C_FrameMsg other) {
+      if (other == null) {
+        return;
+      }
+      if (other.ErrorCode != 0) {
+        ErrorCode = other.ErrorCode;
+      }
+      frameDatum_.Add(other.frameDatum_);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            input.SkipLastField();
+            break;
+          case 8: {
+            errorCode_ = (global::pb.BattleErrorCode) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            frameDatum_.AddEntriesFrom(input, _repeated_frameDatum_codec);
             break;
           }
         }
@@ -1650,7 +1796,7 @@ namespace pb {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::pb.BattleReflection.Descriptor.MessageTypes[9]; }
+      get { return global::pb.BattleReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1832,7 +1978,7 @@ namespace pb {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::pb.BattleReflection.Descriptor.MessageTypes[10]; }
+      get { return global::pb.BattleReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1983,7 +2129,7 @@ namespace pb {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::pb.BattleReflection.Descriptor.MessageTypes[11]; }
+      get { return global::pb.BattleReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2137,7 +2283,7 @@ namespace pb {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::pb.BattleReflection.Descriptor.MessageTypes[12]; }
+      get { return global::pb.BattleReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

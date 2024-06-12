@@ -104,30 +104,33 @@ public class NetworkManager : AManager<NetworkManager>
                 case (byte)pb.BattleMsgID.BattleMsgFrame:
                 {
                     var s2CMessage = pb.S2C_FrameMsg.Parser.ParseFrom(_memoryStream);
-                    Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame -> errorCode:{s2CMessage.ErrorCode} frame:{s2CMessage.Frame} playerCount:{s2CMessage.PlayerCount} inputCount:{s2CMessage.InputCount} datumCount:{s2CMessage.Datum.Count()}");
-                    
-                    var inputFrame = FrameBuffer.Frame.defFrame;
-                    inputFrame.frame = (int)s2CMessage.Frame;
-                    inputFrame.playerCount = (int)s2CMessage.PlayerCount;
-                    
-                    var byteArray = s2CMessage.Datum.ToByteArray();
-                    for (int i = 0; i < inputFrame.playerCount; i++)
-                        inputFrame[i] = new FrameBuffer.Input(byte.MaxValue);
-                    for (int i = 0; i < BattleSetting.MaxPlayerInRoomCount; i++)
-                        if ((s2CMessage.InputCount & (1 << i)) == (1 << i)) inputFrame[i] = new FrameBuffer.Input(byteArray[i]);
-                    
-                    Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame frame:{inputFrame.frame} B0:[{byteArray[0]}] B1:[{byteArray[1]}] D0:[{inputFrame[0]}] D1:[{inputFrame[1]}]");
+                    Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame -> errorCode:{s2CMessage.ErrorCode} frameDatumCount:{s2CMessage.FrameDatum.Count}");
 
-                    var diff = 0;
-                    while (!GameManager.Instance.FrameBuffer.SyncFrame(inputFrame.frame, ref inputFrame, ref diff))
+                    foreach (var s2CFrameData in s2CMessage.FrameDatum)
                     {
-                        Logger.Log(LogLevel.Error,$"[KCP] BattleMsgFrame Can't SyncFrame frame->{inputFrame.frame} diff->{diff}");
-                        KcpShutdown();
-                        break;
-                    }
+                        var inputFrame = FrameBuffer.Frame.defFrame;
+                        inputFrame.frame = (int)s2CFrameData.Frame;
+                        inputFrame.playerCount = (int)s2CFrameData.PlayerCount;
+                    
+                        var byteArray = s2CFrameData.Datum.ToByteArray();
+                        for (int i = 0; i < inputFrame.playerCount; i++)
+                            inputFrame[i] = new FrameBuffer.Input(byte.MaxValue);
+                        for (int i = 0; i < BattleSetting.MaxPlayerInRoomCount; i++)
+                            if ((s2CFrameData.InputCount & (1 << i)) == (1 << i)) inputFrame[i] = new FrameBuffer.Input(byteArray[i]);
+                    
+                        Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame frame:{inputFrame.frame} B0:[{byteArray[0]}] B1:[{byteArray[1]}] D0:[{inputFrame[0]}] D1:[{inputFrame[1]}]");
 
-                    Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame SyncFrame [frame]->{inputFrame.frame}");
-                    GameManager.Instance.ServerAuthorityFrame = inputFrame.frame;
+                        var diff = 0;
+                        while (!GameManager.Instance.FrameBuffer.SyncFrame(inputFrame.frame, ref inputFrame, ref diff))
+                        {
+                            Logger.Log(LogLevel.Error,$"[KCP] BattleMsgFrame Can't SyncFrame frame->{inputFrame.frame} diff->{diff}");
+                            KcpShutdown();
+                            break;
+                        }
+
+                        Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame SyncFrame [frame]->{inputFrame.frame}");
+                        GameManager.Instance.ServerAuthorityFrame = inputFrame.frame;
+                    }
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgCheck:
@@ -177,11 +180,12 @@ public class NetworkManager : AManager<NetworkManager>
         _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgConnect, c2SMessage);
     }
 
-    public void SendBattleReadyMessage(uint roomId, uint playerId)
+    public void SendBattleReadyMessage(uint roomId, uint playerId, int reconnectFrame)
     {
         var c2SMessage = MsgPoolManager.Instance.Require<pb.C2S_ReadyMsg>();
         c2SMessage.RoomId = roomId;
         c2SMessage.PlayerId = playerId;
+        c2SMessage.ReconnectFrame = reconnectFrame;
         _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgReady, c2SMessage);
     }
 

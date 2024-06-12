@@ -63,7 +63,7 @@ public class Main : MonoBehaviour
         });
         ReadyBtn.onClick.AddListener(() =>
         {
-            NetworkManager.Instance.SendBattleReadyMessage(GameManager.Instance.RoomInfo.RoomId, GameManager.Instance.PlayerId);
+            NetworkManager.Instance.SendBattleReadyMessage(GameManager.Instance.RoomInfo.RoomId, GameManager.Instance.PlayerId, -1);
         });
         ShutdownBtn.onClick.AddListener(() =>
         {
