@@ -282,6 +282,8 @@ public class BattleController
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.Update(entity, battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.LateUpdate(entity, battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.DoChangeState(entity, battleEntity);
+        PhysicsSystem.PreUpdate(battleEntity);
+        PhysicsSystem.Update(battleEntity);
         foreach (var entity in playerEntities) MoveSystem.TransformLogicUpdate(entity, FixedNumber.MakeFixNum(BattleSetting.BattleInterval, 1000));
     }
     

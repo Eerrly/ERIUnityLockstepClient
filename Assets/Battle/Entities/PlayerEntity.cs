@@ -8,6 +8,7 @@ public class PlayerEntity : BaseEntity
     public readonly StateComponent State = new StateComponent();
     public readonly TransformComponent Transform = new TransformComponent();
     public readonly MoveComponent Movement = new MoveComponent();
+    public readonly PropertyComponent Property = new PropertyComponent();
 
     public override void Init()
     {
@@ -26,6 +27,8 @@ public class PlayerEntity : BaseEntity
 
         Movement.moveSpeed = FixedNumber.MakeFixNum(5, 1);
         Movement.turnSpeed = FixedNumber.MakeFixNum(180, 1);
+        
+        Property.collisionSize = FixedNumber.MakeFixNum(5, 10);
     }
 
     public override void Reset()
@@ -45,6 +48,8 @@ public class PlayerEntity : BaseEntity
 
         Movement.moveSpeed = FixedNumber.MakeFixNum(5, 1);
         Movement.turnSpeed = FixedNumber.MakeFixNum(180, 1);
+        
+        Property.collisionSize = FixedNumber.MakeFixNum(5, 10);
     }
 
     public override void CopyTo(BaseEntity entity)
@@ -55,6 +60,7 @@ public class PlayerEntity : BaseEntity
         State.CopyTo(playerEntity.State);
         Movement.CopyTo(playerEntity.Movement);
         Transform.CopyTo(playerEntity.Transform);
+        Property.CopyTo(playerEntity.Property);
     }
 
     public override void Serialize(BinaryWriter writer)

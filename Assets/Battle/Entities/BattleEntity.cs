@@ -27,12 +27,25 @@ public class BattleEntity: BaseEntity
         PlayerEntities = new List<PlayerEntity>();
     }
 
+    public PlayerEntity FindPlayerEntity(int playerId)
+    {
+        if (playerId >= 0)
+        {
+            for (var i = 0; i < PlayerEntities.Count; i++)
+            {
+                if (PlayerEntities[i].ID == playerId)
+                    return PlayerEntities[i];
+            }
+        }
+        return null;
+    }
+
     public override void CopyTo(BaseEntity entity)
     {
         var battleEntity = entity as BattleEntity;
         battleEntity.Frame = Frame;
         battleEntity.Time = Time;
-        for (int i = 0; i < PlayerEntities.Count; i++)
+        for (var i = 0; i < PlayerEntities.Count; i++)
         {
             if(i >= battleEntity.PlayerEntities.Count) battleEntity.PlayerEntities.Add(new PlayerEntity());
             PlayerEntities[i].CopyTo(battleEntity.PlayerEntities[i]);
