@@ -25,8 +25,7 @@ public class PlayerView : BaseView<PlayerEntity>
     {
         var currentPosition = transform.position;
         var entityPosition = entity.Transform.pos.ToVector3();
-        var moveDelta = entity.Movement.position * entity.Movement.moveSpeed;
-        currentPosition += moveDelta.ToVector3() * deltaTime;
+        currentPosition += entity.Movement.position.ToVector3();
         currentPosition = Vector3.Lerp(currentPosition, entityPosition, 0);
         
         var currentRotation = transform.rotation;

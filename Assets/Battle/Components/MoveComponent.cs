@@ -10,6 +10,7 @@ public class MoveComponent : BaseComponent
         public FixedNumber curYAngle;
         public FixedNumber moveSpeed;
         public FixedNumber turnSpeed;
+        public FixedVector3 direction;
 
         public Common(int no)
         {
@@ -18,6 +19,7 @@ public class MoveComponent : BaseComponent
             curYAngle = default(FixedNumber);
             moveSpeed = default(FixedNumber);
             turnSpeed = default(FixedNumber);
+            direction = default(FixedVector3);
         }
     }
     
@@ -52,6 +54,12 @@ public class MoveComponent : BaseComponent
         get => common.turnSpeed;
         set => common.turnSpeed = value;
     }
+
+    public FixedVector3 direction
+    {
+        get => common.direction;
+        set => common.direction = value;
+    }
     
     public override void CopyTo(BaseComponent component)
     {
@@ -70,6 +78,9 @@ public class MoveComponent : BaseComponent
         writer.Write(common.rotation.w._raw);
         writer.Write(common.moveSpeed._raw);
         writer.Write(common.turnSpeed._raw);
+        writer.Write(common.direction.x._raw);
+        writer.Write(common.direction.y._raw);
+        writer.Write(common.direction.z._raw);
     }
 
     public override void Deserialize(BinaryReader reader)
@@ -78,5 +89,6 @@ public class MoveComponent : BaseComponent
         common.rotation = new FixedQuaternion(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
         common.moveSpeed = new FixedNumber(reader.ReadInt64());
         common.turnSpeed = new FixedNumber(reader.ReadInt64());
+        common.direction = new FixedVector3(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
     }
 }

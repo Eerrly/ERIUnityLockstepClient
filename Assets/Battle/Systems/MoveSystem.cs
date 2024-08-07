@@ -3,14 +3,13 @@
 [EntitySystem]
 public class MoveSystem
 {
-    public static void UpdatePosition(PlayerEntity entity)
+    public static void UpdatePosition(PlayerEntity entity, FixedNumber dt)
     {
-        var position = FixedVector3.Zero;
-        if(!KeySystem.IsYawTypeStop(entity.Input.yaw))
-        {
-            position = FixedMath.FromYawToVector3(entity.Input.yaw).YZero();
-        }
-        entity.Movement.position = position;
+        if (!KeySystem.IsYawTypeStop(entity.Input.yaw))
+            entity.Movement.direction = FixedMath.FromYawToVector3(entity.Input.yaw).YZero();
+        else
+            entity.Movement.direction = FixedVector3.Zero;
+        entity.Movement.position += entity.Movement.direction * entity.Movement.moveSpeed * dt;
     }
 
     public static void UpdateRotation(PlayerEntity entity)
@@ -26,13 +25,7 @@ public class MoveSystem
 
     public static void TransformLogicUpdate(PlayerEntity entity, FixedNumber delta)
     {
-        var currentPosition = entity.Transform.pos;
-        var moveDelta = entity.Movement.position * entity.Movement.moveSpeed;
-        var nextDeltaPosition = currentPosition + moveDelta;
-        if((currentPosition - nextDeltaPosition).sqrMagnitudeLongXZ >= 4)
-        {
-            currentPosition = FixedVector3.Lerp(currentPosition, nextDeltaPosition, delta);
-        }
+        var currentPosition = entity.Transform.pos + entity.Movement.position;
         var currentRotation = entity.Transform.rot;
         var nextDeltaRotation = entity.Movement.rotation;
         if(currentRotation != nextDeltaRotation)
@@ -43,6 +36,8 @@ public class MoveSystem
 
         entity.Transform.pos = currentPosition;
         entity.Transform.rot = currentRotation;
+
+        entity.Movement.position = FixedVector3.Zero;
     }
 
     public static FixedNumber GetForwardAngle(PlayerEntity entity)

@@ -17,8 +17,12 @@ public class FrameEngine
     private Task _netTask;
     private CancellationTokenSource _netCancellationTokenSource;
 
+    private static FixedNumber _frameInterval;
+    public static FixedNumber FrameInterval => _frameInterval;
+
     public void StartFrameEngine(int interval)
     {
+        _frameInterval = FixedNumber.MakeFixNum(interval, 1000);
         _frameCancellationTokenSource = new CancellationTokenSource();
         var frameCancellationToken = _frameCancellationTokenSource.Token;
         _frameTask = Task.Run(async () =>
