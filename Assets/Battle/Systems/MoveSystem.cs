@@ -19,12 +19,8 @@ public class MoveSystem
 
     public static void UpdateRotation(PlayerEntity entity)
     {
-        var rotation = FixedQuaternion.Identity;
         if(!KeySystem.IsYawTypeStop(entity.Input.yaw))
-        {
-            rotation = FixedMath.FromYaw(entity.Input.yaw);
-        }
-        entity.Movement.rotation = rotation;
+            entity.Movement.rotation = FixedMath.FromYaw(entity.Input.yaw);
         entity.Movement.curYAngle = FixedMath.Yaw(entity.Movement.rotation * FixedVector3.Forward);
     }
 
