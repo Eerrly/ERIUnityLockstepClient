@@ -22,4 +22,9 @@ public class PlayerBaseState : BaseState<PlayerEntity>
     {
         entity.State.exitTime = battleEntity.Time;
     }
+
+    public virtual void OnCollision(PlayerEntity source, PlayerEntity target, BattleEntity battleEntity)
+    {
+    }
+    
 }

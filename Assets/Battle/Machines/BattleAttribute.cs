@@ -1,14 +1,14 @@
-﻿public class PlayerStateAttribute : System.Attribute
+﻿public class PlayerState : System.Attribute
 {
     public EPlayerState _state;
 
-    public PlayerStateAttribute(EPlayerState state)
+    public PlayerState(EPlayerState state)
     {
         _state = state;
     }
 }
 
-public class EntitySystemAttribute : System.Attribute
+public class EntitySystem : System.Attribute
 {
     public class Initialize : System.Attribute { }
 

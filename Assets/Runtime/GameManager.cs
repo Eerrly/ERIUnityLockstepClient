@@ -76,7 +76,7 @@ public class GameManager : MManager<GameManager>
 
     private void InitializeEntitySystems()
     {
-        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Initialize), false);
+        Util.InvokeAttributeCall(this, typeof(EntitySystem), false, typeof(EntitySystem.Initialize), false);
     }
 
     public void RenderUpdate(BattleType battleType, float deltaTime)
@@ -138,7 +138,7 @@ public class GameManager : MManager<GameManager>
 
     private void ReleaseEntitySystems()
     {
-        Util.InvokeAttributeCall(this, typeof(EntitySystemAttribute), false, typeof(EntitySystemAttribute.Release), false);
+        Util.InvokeAttributeCall(this, typeof(EntitySystem), false, typeof(EntitySystem.Release), false);
     }
     
 }

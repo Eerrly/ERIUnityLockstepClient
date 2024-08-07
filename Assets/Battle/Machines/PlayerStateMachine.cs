@@ -18,15 +18,15 @@
         stateDic = new BaseState<PlayerEntity>[(int)EPlayerState.Count];
         foreach (var t in types)
         {
-            if (!t.IsDefined(typeof(PlayerStateAttribute), false)) continue;
+            if (!t.IsDefined(typeof(PlayerState), false)) continue;
             
             var state = System.Activator.CreateInstance(t) as PlayerBaseState;
             var attributes = t.GetCustomAttributes(false);
             foreach (var t1 in attributes)
             {
-                if (t1 is PlayerStateAttribute)
+                if (t1 is PlayerState)
                 {
-                    var attr = (t1 as PlayerStateAttribute);
+                    var attr = (t1 as PlayerState);
                     state.StateId = attr._state;
                 }
             }

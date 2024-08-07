@@ -3,6 +3,11 @@
 [EntitySystem]
 public class MoveSystem
 {
+    public void Initialize()
+    {
+        
+    }
+    
     public static void UpdatePosition(PlayerEntity entity, FixedNumber dt)
     {
         if (!KeySystem.IsYawTypeStop(entity.Input.yaw))
