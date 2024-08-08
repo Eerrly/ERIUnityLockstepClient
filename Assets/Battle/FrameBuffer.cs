@@ -39,7 +39,7 @@
         }
 
         /// <summary>
-        /// 玩家ID
+        /// 玩家POS
         /// </summary>
         public byte pos
         {

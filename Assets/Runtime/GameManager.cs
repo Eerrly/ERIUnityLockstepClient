@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 public class GameManager : MManager<GameManager>
 {
@@ -34,7 +35,7 @@ public class GameManager : MManager<GameManager>
         _frameEngine.RegisterFrameUpdateListener(_battleController.LogicUpdate);
         _frameEngine.RegisterReplayUpdateListener(_replayController.ReplayUpdate);
         
-        _battleView = Util.GetOrAddComponent<BattleView>(gameObject);
+        _battleView = Util.GetOrAddComponent<BattleView>(new GameObject("BV"));
     }
 
     public void StartBattle(BattleType battleType)
@@ -140,5 +141,14 @@ public class GameManager : MManager<GameManager>
     {
         Util.InvokeAttributeCall(this, typeof(EntitySystem), false, typeof(EntitySystem.Release), false);
     }
-    
+
+    public override void OnRelease()
+    {
+        if (_frameEngine != null)
+        {
+            _frameEngine.UnRegisterFrameUpdateListener();
+            _frameEngine.UnRegisterNetUpdateListener();
+            _frameEngine.UnRegisterReplayUpdateListener();
+        }
+    }
 }

@@ -19,7 +19,7 @@ public class PlayerMoveState : PlayerBaseState
 
     public override void OnCollision(PlayerEntity source, PlayerEntity target, BattleEntity battleEntity)
     {
-        Logger.Log(LogLevel.Info, $"OnCollision SourceId:{source.ID} TargetId:{target.ID} Frame:{battleEntity.Frame}");
+        Logger.Log(LogLevel.Info, $"PlayerMoveState OnCollision SourceId:{source.ID} TargetId:{target.ID} Frame:{battleEntity.Frame}");
     }
 
     public override void OnExit(PlayerEntity playerEntity, BattleEntity battleEntity)

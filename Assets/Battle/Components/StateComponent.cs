@@ -8,8 +8,8 @@ public class StateComponent : BaseComponent
         public System.Int32 currStateId;
         public System.Int32 nextStateId;
         public System.Int32 prevStateId;
-        public float enteTime;
-        public float exitTime;
+        public FixedNumber enteTime;
+        public FixedNumber exitTime;
         public System.Int32 count;
 
         public Common(int no)
@@ -17,8 +17,8 @@ public class StateComponent : BaseComponent
             currStateId = default(System.Int32);
             nextStateId = default(System.Int32);
             prevStateId = default(System.Int32);
-            enteTime = default(float);
-            exitTime = default(float);
+            enteTime = default(FixedNumber);
+            exitTime = default(FixedNumber);
             count = default(System.Int32);
         }
     }
@@ -43,13 +43,13 @@ public class StateComponent : BaseComponent
         set => common.prevStateId = value;
     }
 
-    public float enteTime
+    public FixedNumber enteTime
     {
         get => common.enteTime;
         set => common.enteTime = value;
     }
 
-    public float exitTime
+    public FixedNumber exitTime
     {
         get => common.exitTime;
         set => common.exitTime = value;
@@ -72,8 +72,8 @@ public class StateComponent : BaseComponent
         writer.Write(common.currStateId);
         writer.Write(common.nextStateId);
         writer.Write(common.prevStateId);
-        writer.Write(common.enteTime);
-        writer.Write(common.exitTime);
+        writer.Write(common.enteTime._raw);
+        writer.Write(common.exitTime._raw);
         writer.Write(common.count);
     }
 
@@ -82,8 +82,8 @@ public class StateComponent : BaseComponent
         common.currStateId = reader.ReadInt32();
         common.nextStateId = reader.ReadInt32();
         common.prevStateId = reader.ReadInt32();
-        common.enteTime = reader.ReadSingle();
-        common.exitTime = reader.ReadSingle();
+        common.enteTime = new FixedNumber(reader.ReadInt64());
+        common.exitTime = new FixedNumber(reader.ReadInt64());
         common.count = reader.ReadInt32();
     }
 }

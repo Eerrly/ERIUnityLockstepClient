@@ -278,6 +278,7 @@ public class BattleController
 
     private void UpdateEntityState(BattleEntity battleEntity)
     {
+        battleEntity.Time += FrameEngine.FrameInterval;
         var playerEntities = battleEntity.PlayerEntities;
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.Update(entity, battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.LateUpdate(entity, battleEntity);
@@ -285,6 +286,7 @@ public class BattleController
         PhysicsSystem.PreUpdate(battleEntity);
         PhysicsSystem.Update(battleEntity);
         foreach (var entity in playerEntities) MoveSystem.TransformLogicUpdate(entity, FixedNumber.MakeFixNum(BattleSetting.BattleInterval, 1000));
+        BattleStateMachine.Instance.Update(battleEntity, null);
     }
     
 

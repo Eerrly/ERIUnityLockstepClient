@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -88,6 +87,7 @@ public class Main : MonoBehaviour
     {
         if (BattleRecordManager.Instance != null) BattleRecordManager.Instance.OnRelease();
         if (GameManager.Instance != null) GameManager.Instance.StopBattle(currBattleType);
+        if (GameManager.Instance != null) GameManager.Instance.OnRelease();
         if (NetworkManager.Instance != null) NetworkManager.Instance.OnRelease();
     }
 }

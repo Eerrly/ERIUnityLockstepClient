@@ -1,10 +1,20 @@
 ﻿public class PlayerState : System.Attribute
 {
-    public EPlayerState _state;
+    public EPlayerState State;
 
     public PlayerState(EPlayerState state)
     {
-        _state = state;
+        State = state;
+    }
+}
+
+public class BattleState : System.Attribute
+{
+    public EBattleState State;
+
+    public BattleState(EBattleState state)
+    {
+        State = state;
     }
 }
 

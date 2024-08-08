@@ -18,5 +18,7 @@ public class BattleSetting
     
     public const string PlayerCharacterPath = "Cube";
     
+    public const string BattleViewPath = "Plane";
+    
     public static readonly Color[] InitPlayerColor = { new Color((float)42/255, (float)100 /255, (float)178 /255), new Color((float)229/255, (float)46 /255, (float)40 /255) };
 }

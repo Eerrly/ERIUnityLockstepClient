@@ -27,7 +27,7 @@
                 if (t1 is PlayerState)
                 {
                     var attr = (t1 as PlayerState);
-                    state.StateId = attr._state;
+                    state.StateId = attr.State;
                 }
             }
 
