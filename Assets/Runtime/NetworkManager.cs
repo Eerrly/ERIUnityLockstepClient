@@ -195,7 +195,7 @@ public class NetworkManager : AManager<NetworkManager>
     public void SendBattleFrameMessage(uint frame, byte data)
     {
         _sendFrameByteArray[0] = data;
-        var c2SMessage = MsgPoolManager.Instance.Require<pb.C2S_FrameMsg>();
+        var c2SMessage = MsgPoolManager.Instance.Require<pb.C2S_FrameMsg>(true);
         c2SMessage.Frame = frame;
         c2SMessage.Datum = ByteString.CopyFrom(_sendFrameByteArray);
         _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgFrame, c2SMessage);
