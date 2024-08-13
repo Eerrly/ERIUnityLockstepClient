@@ -31,9 +31,6 @@ public class PlayerEntity : BaseEntity
     /// </summary>
     public readonly PropertyComponent Property = new PropertyComponent();
 
-    /// <summary>
-    /// 初始化
-    /// </summary>
     public override void Init()
     {
         ID = -1;
@@ -55,9 +52,6 @@ public class PlayerEntity : BaseEntity
         Property.collisionSize = FixedNumber.MakeFixNum(5, 10);
     }
 
-    /// <summary>
-    /// 重置数据
-    /// </summary>
     public override void Reset()
     {
         ID = -1;

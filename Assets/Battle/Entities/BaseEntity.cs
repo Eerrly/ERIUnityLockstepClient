@@ -6,7 +6,7 @@ using System.Reflection;
 public class BaseEntity
 {
     /// <summary>
-    /// 初始化
+    /// 初始化数据
     /// </summary>
     public virtual void Init() {}
 
@@ -18,7 +18,7 @@ public class BaseEntity
     /// <summary>
     /// 拷贝给另一个实体
     /// </summary>
-    /// <param name="entity"></param>
+    /// <param name="entity">目标实体</param>
     public virtual void CopyTo(BaseEntity entity) {}
 
     /// <summary>

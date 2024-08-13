@@ -31,9 +31,6 @@ public class BattleEntity: BaseEntity
     /// </summary>
     public readonly StateComponent State = new StateComponent();
 
-    /// <summary>
-    /// 初始化
-    /// </summary>
     public override void Init()
     {
         Name = "None";
@@ -47,9 +44,6 @@ public class BattleEntity: BaseEntity
         State.count = (int)EBattleState.Count;
     }
 
-    /// <summary>
-    /// 重置数据
-    /// </summary>
     public override void Reset()
     {
         Name = "None";
@@ -81,10 +75,6 @@ public class BattleEntity: BaseEntity
         return null;
     }
 
-    /// <summary>
-    /// 拷贝给另外一个实体
-    /// </summary>
-    /// <param name="entity"></param>
     public override void CopyTo(BaseEntity entity)
     {
         var battleEntity = entity as BattleEntity;
@@ -98,10 +88,6 @@ public class BattleEntity: BaseEntity
         State.CopyTo(battleEntity.State);
     }
 
-    /// <summary>
-    /// 序列号整个实体对象
-    /// </summary>
-    /// <param name="writer"></param>
     public override void Serialize(BinaryWriter writer)
     {
         writer.Write(Frame);
@@ -112,10 +98,6 @@ public class BattleEntity: BaseEntity
         base.Serialize(writer);
     }
 
-    /// <summary>
-    /// 反序列化为整个实体对象
-    /// </summary>
-    /// <param name="reader"></param>
     public override void Deserialize(BinaryReader reader)
     {
         Frame = reader.ReadInt32();

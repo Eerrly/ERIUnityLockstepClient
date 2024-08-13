@@ -6,7 +6,7 @@ public class BaseComponent
     /// <summary>
     /// 拷贝给另一个组件
     /// </summary>
-    /// <param name="component">组件</param>
+    /// <param name="component">目标组件</param>
     public virtual void CopyTo(BaseComponent component) {}
     
     /// <summary>
