@@ -1,5 +1,8 @@
 ﻿using System.IO;
 
+/// <summary>
+/// 属性组件
+/// </summary>
 public class PropertyComponent : BaseComponent
 {
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto, Pack = 4)]
@@ -14,7 +17,10 @@ public class PropertyComponent : BaseComponent
     }
 
     private Common common = new Common(0);
-
+    
+    /// <summary>
+    /// 碰撞半径
+    /// </summary>
     public FixedNumber collisionSize
     {
         get => common.collisionSize;
@@ -22,7 +28,9 @@ public class PropertyComponent : BaseComponent
     }
 
     private int[] _closedPlayerEntityIds = new int[BattleSetting.MaxPlayerInRoomCount];
-
+    /// <summary>
+    /// 与其有碰撞的其他玩家实体
+    /// </summary>
     public int[] closedPlayerEntityIds
     {
         get => _closedPlayerEntityIds;

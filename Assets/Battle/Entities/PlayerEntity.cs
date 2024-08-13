@@ -1,15 +1,39 @@
 using System.IO;
 
+/// <summary>
+/// 玩家实体
+/// </summary>
 public class PlayerEntity : BaseEntity
 {
+    /// <summary>
+    /// 玩家ID
+    /// </summary>
     public int ID;
 
+    /// <summary>
+    /// 输入组件
+    /// </summary>
     public readonly InputComponent Input = new InputComponent();
+    /// <summary>
+    /// 状态组件
+    /// </summary>
     public readonly StateComponent State = new StateComponent();
+    /// <summary>
+    /// 位置组件
+    /// </summary>
     public readonly TransformComponent Transform = new TransformComponent();
+    /// <summary>
+    /// 位移组件
+    /// </summary>
     public readonly MoveComponent Movement = new MoveComponent();
+    /// <summary>
+    /// 属性组件
+    /// </summary>
     public readonly PropertyComponent Property = new PropertyComponent();
 
+    /// <summary>
+    /// 初始化
+    /// </summary>
     public override void Init()
     {
         ID = -1;
@@ -31,6 +55,9 @@ public class PlayerEntity : BaseEntity
         Property.collisionSize = FixedNumber.MakeFixNum(5, 10);
     }
 
+    /// <summary>
+    /// 重置数据
+    /// </summary>
     public override void Reset()
     {
         ID = -1;

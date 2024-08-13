@@ -1,4 +1,7 @@
-﻿[BattleState(EBattleState.Playing)]
+﻿/// <summary>
+/// 战斗进行中状态
+/// </summary>
+[BattleState(EBattleState.Playing)]
 public class BattlePlayingState : BattleBaseState
 {
     public override void OnEnter(BattleEntity entity, BattleEntity _)

@@ -1,7 +1,13 @@
-﻿public class BattleStateMachine : BaseStateMachine<BattleEntity>
+﻿/// <summary>
+/// 战斗实体状态控制
+/// </summary>
+public class BattleStateMachine : BaseStateMachine<BattleEntity>
 {
     private static BattleStateMachine _instance;
 
+    /// <summary>
+    /// 单例
+    /// </summary>
     public static BattleStateMachine Instance
     {
         get
@@ -59,6 +65,11 @@
         }
     }
 
+    /// <summary>
+    /// 是否可以变更状态
+    /// </summary>
+    /// <param name="battleEntity">战斗实体</param>
+    /// <returns>是否可以变更状态</returns>
     private bool CanChangeState(BattleEntity battleEntity)
     {
         if (battleEntity.State.nextStateId != (int)EBattleState.None && battleEntity.State.nextStateId != battleEntity.State.currStateId)
@@ -66,6 +77,11 @@
         return false;
     }
     
+    /// <summary>
+    /// 状态控制轮询
+    /// </summary>
+    /// <param name="battleEntity">战斗实体</param>
+    /// <param name="_"></param>
     public override void Update(BattleEntity battleEntity, BattleEntity _)
     {
         var currStateId = battleEntity.State.currStateId;

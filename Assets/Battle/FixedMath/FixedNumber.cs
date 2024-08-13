@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public partial struct FixedNumber
+public struct FixedNumber
 {
     internal const int FRACTIONAL_BITS = 16;
     internal const int INTEGER_BITS = sizeof(long) * 8 - FRACTIONAL_BITS;
@@ -34,6 +34,12 @@ public partial struct FixedNumber
         _raw = val;
     }
 
+    /// <summary>
+    /// 通过分子分母来创建一个定点数
+    /// </summary>
+    /// <param name="numerator">分子</param>
+    /// <param name="denominator">分母</param>
+    /// <returns>定点数</returns>
     public static FixedNumber MakeFixNum(long numerator, long denominator)
     {
         if (denominator == 0)

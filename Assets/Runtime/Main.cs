@@ -2,6 +2,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 游戏总入口
+/// </summary>
 public class Main : MonoBehaviour
 {
     public InputField AccountInputField;

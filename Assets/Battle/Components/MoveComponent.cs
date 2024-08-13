@@ -1,5 +1,8 @@
 ﻿using System.IO;
 
+/// <summary>
+/// 位移组件
+/// </summary>
 public class MoveComponent : BaseComponent
 {
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto, Pack = 4)]
@@ -25,36 +28,54 @@ public class MoveComponent : BaseComponent
     
     private Common common = new Common(0);
 
+    /// <summary>
+    /// 位移向量
+    /// </summary>
     public FixedVector3 position
     {
         get => common.position;
         set => common.position = value;
     }
 
+    /// <summary>
+    /// 旋转四元数
+    /// </summary>
     public FixedQuaternion rotation
     {
         get => common.rotation;
         set => common.rotation = value;
     }
 
+    /// <summary>
+    /// 当前角度
+    /// </summary>
     public FixedNumber curYAngle
     {
         get => common.curYAngle;
         set => common.curYAngle = value;
     }
 
+    /// <summary>
+    /// 移动速度
+    /// </summary>
     public FixedNumber moveSpeed
     {
         get => common.moveSpeed;
         set => common.moveSpeed = value;
     }
 
+    /// <summary>
+    /// 旋转速度
+    /// </summary>
     public FixedNumber turnSpeed
     {
         get => common.turnSpeed;
         set => common.turnSpeed = value;
     }
 
+    /// <summary>
+    /// 移动方向
+    /// </summary>
     public FixedVector3 direction
     {
         get => common.direction;

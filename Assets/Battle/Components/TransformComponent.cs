@@ -1,5 +1,8 @@
 ﻿using System.IO;
 
+/// <summary>
+/// 位置组件
+/// </summary>
 public class TransformComponent : BaseComponent
 {
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto, Pack = 4)]
@@ -17,12 +20,18 @@ public class TransformComponent : BaseComponent
     
     private Common common = new Common(0);
 
+    /// <summary>
+    /// 当前位置
+    /// </summary>
     public FixedVector3 pos
     {
         get => common.pos;
         set => common.pos = value;
     }
 
+    /// <summary>
+    /// 当前旋转
+    /// </summary>
     public FixedQuaternion rot
     {
         get => common.rot;

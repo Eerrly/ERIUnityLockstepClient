@@ -1,18 +1,39 @@
 using System.Collections.Generic;
 using System.IO;
 
+/// <summary>
+/// 战斗实体
+/// </summary>
 public class BattleEntity: BaseEntity
 {
+    /// <summary>
+    /// 实体名称
+    /// </summary>
     public string Name;
 
+    /// <summary>
+    /// 帧号
+    /// </summary>
     public int Frame;
     
+    /// <summary>
+    /// 时间
+    /// </summary>
     public FixedNumber Time;
 
+    /// <summary>
+    /// 玩家实体列表
+    /// </summary>
     public List<PlayerEntity> PlayerEntities = new List<PlayerEntity>();
     
+    /// <summary>
+    /// 状态组件
+    /// </summary>
     public readonly StateComponent State = new StateComponent();
 
+    /// <summary>
+    /// 初始化
+    /// </summary>
     public override void Init()
     {
         Name = "None";
@@ -26,6 +47,9 @@ public class BattleEntity: BaseEntity
         State.count = (int)EBattleState.Count;
     }
 
+    /// <summary>
+    /// 重置数据
+    /// </summary>
     public override void Reset()
     {
         Name = "None";
@@ -39,6 +63,11 @@ public class BattleEntity: BaseEntity
         State.count = (int)EBattleState.Count;
     }
 
+    /// <summary>
+    /// 通过玩家ID获取玩家实体
+    /// </summary>
+    /// <param name="playerId">玩家ID</param>
+    /// <returns>玩家实体</returns>
     public PlayerEntity FindPlayerEntity(int playerId)
     {
         if (playerId >= 0)
@@ -52,6 +81,10 @@ public class BattleEntity: BaseEntity
         return null;
     }
 
+    /// <summary>
+    /// 拷贝给另外一个实体
+    /// </summary>
+    /// <param name="entity"></param>
     public override void CopyTo(BaseEntity entity)
     {
         var battleEntity = entity as BattleEntity;
@@ -65,6 +98,10 @@ public class BattleEntity: BaseEntity
         State.CopyTo(battleEntity.State);
     }
 
+    /// <summary>
+    /// 序列号整个实体对象
+    /// </summary>
+    /// <param name="writer"></param>
     public override void Serialize(BinaryWriter writer)
     {
         writer.Write(Frame);
@@ -75,6 +112,10 @@ public class BattleEntity: BaseEntity
         base.Serialize(writer);
     }
 
+    /// <summary>
+    /// 反序列化为整个实体对象
+    /// </summary>
+    /// <param name="reader"></param>
     public override void Deserialize(BinaryReader reader)
     {
         Frame = reader.ReadInt32();

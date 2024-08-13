@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 
+/// <summary>
+/// 字节数组池子
+/// </summary>
 public static class BufferPool
 {
     private static object _lockObject = new object();

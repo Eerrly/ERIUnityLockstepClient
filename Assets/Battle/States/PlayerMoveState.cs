@@ -1,4 +1,7 @@
-﻿[PlayerState(EPlayerState.Move)]
+﻿/// <summary>
+/// 玩家移动状态
+/// </summary>
+[PlayerState(EPlayerState.Move)]
 public class PlayerMoveState : PlayerBaseState
 {
     public override void OnEnter(PlayerEntity playerEntity, BattleEntity battleEntity)

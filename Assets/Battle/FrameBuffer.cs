@@ -1,8 +1,11 @@
-﻿public class FrameBuffer
+﻿/// <summary>
+/// 帧数据管理器
+/// </summary>
+public class FrameBuffer
 {
 
     /// <summary>
-    /// 输入
+    /// 操作数据
     /// </summary>
     public struct Input
     {
@@ -62,11 +65,20 @@
             return $"pos:{pos}, raw:{raw}, yaw:{yaw}, btn:{key}";
         }
 
+        /// <summary>
+        /// 原始数据
+        /// </summary>
+        /// <returns>原始数据</returns>
         public byte ToByte()
         {
             return raw;
         }
 
+        /// <summary>
+        /// 比较操作数据是否相同
+        /// </summary>
+        /// <param name="other">操作数据</param>
+        /// <returns>是否相同</returns>
         public bool Compare(Input other)
         {
             return yaw == other.yaw && key == other.key;
@@ -79,12 +91,30 @@
     /// </summary>
     public struct Frame
     {
+        /// <summary>
+        /// 帧号
+        /// </summary>
         public int frame;
+        /// <summary>
+        /// 玩家数量
+        /// </summary>
         public int playerCount;
+        /// <summary>
+        /// 玩家战斗POS:0的操作数据
+        /// </summary>
         public Input i0;
+        /// <summary>
+        /// 玩家战斗POS:1的操作数据
+        /// </summary>
         public Input i1;
 
+        /// <summary>
+        /// 默认操作数据
+        /// </summary>
         public static readonly Input defInput = new Input();
+        /// <summary>
+        /// 默认帧数据
+        /// </summary>
         public static readonly Frame defFrame = new Frame()
         {
             frame = 0,
@@ -93,6 +123,9 @@
             i1 = new Input(1, 0),
         };
 
+        /// <summary>
+        /// 玩家数量
+        /// </summary>
         public int Length => playerCount;
 
         public Input this[int index]
@@ -122,6 +155,11 @@
             }
         }
 
+        /// <summary>
+        /// 通过玩家战斗POS设置对应的操作数据
+        /// </summary>
+        /// <param name="pos">玩家POS</param>
+        /// <param name="result">操作数据</param>
         public void SetInputByPos(int pos, Input result)
         {
             if (i0.pos == pos)
@@ -137,6 +175,12 @@
             Logger.Log(LogLevel.Warning,$"FrameBuffer.SetInputByPos pos not found! {pos},{playerCount},{frame}");
         }
 
+        /// <summary>
+        /// 通过玩家战斗POS获取对应的操作数据
+        /// </summary>
+        /// <param name="pos">战斗POS</param>
+        /// <param name="result">操作数据</param>
+        /// <returns>是否成功获取</returns>
         public bool GetInputByPos(int pos, ref Input result)
         {
             if (i0.pos == pos)
@@ -162,14 +206,34 @@
 
     private int playerCount;
     private int capacity;
+    /// <summary>
+    /// 操作数据的字节长度
+    /// </summary>
     private int inputSize;
+    /// <summary>
+    /// 帧数据的字节长度
+    /// </summary>
     private int frameSize;
+    /// <summary>
+    /// 帧数据缓存数组
+    /// </summary>
     private byte[] buffer;
 
     private Frame _lastGetFrame = Frame.defFrame;
+    /// <summary>
+    /// 最近一次同步的帧号
+    /// </summary>
     private int _lastSetFrameIndex = -1;
+    /// <summary>
+    /// 最近一次同步的帧号
+    /// </summary>
     public int LastSetFrameIndex => _lastSetFrameIndex;
 
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="playerCount">玩家数量</param>
+    /// <param name="capacity">缓存长度</param>
     public FrameBuffer(int playerCount, int capacity = 1000)
     {
         var size = System.Runtime.InteropServices.Marshal.SizeOf(typeof(Input));
@@ -193,12 +257,20 @@
         }
     }
 
+    /// <summary>
+    /// 重置
+    /// </summary>
     public void Reset()
     {
         _lastGetFrame = Frame.defFrame;
         _lastSetFrameIndex = 0;
     }
 
+    /// <summary>
+    /// 是否有某帧的帧数据
+    /// </summary>
+    /// <param name="frame">帧号</param>
+    /// <returns>是否有某帧的帧数据</returns>
     public bool HasFrame(int frame)
     {
         unsafe
@@ -215,7 +287,14 @@
         return true;
     }
 
-    public bool TryGetFrame(int frame, ref Frame result, bool reset = true)
+    /// <summary>
+    /// 尝试获取帧数据
+    /// </summary>
+    /// <param name="frame">帧号</param>
+    /// <param name="result">帧数据</param>
+    /// <param name="remove">是否获取完一个标记一个，避免重复获取</param>
+    /// <returns>是否成功获取到帧数据</returns>
+    public bool TryGetFrame(int frame, ref Frame result, bool remove = true)
     {
         unsafe
         {
@@ -245,8 +324,9 @@
                 {
                     result.i1 = *(Input*)(dest + 4/*(frame)*/ + 1 * inputSize);
                 }
-                if (reset)
+                if (remove)
                 {
+                    // 通过帧号的不匹配检查（if (frame != currentFrame)），在帧号被标记为 -1 后，函数会自动返回 false，从而实现跳过处理这个已经被标记为无效的帧数据的效果。
                     *(int*)dest = -1;
                 }
 
@@ -254,6 +334,7 @@
                 {
                     for (int i = 0; i < result.playerCount; i++)
                     {
+                        // 特殊标记，当帧数据=当前类型的最大值时，说明那个玩家那帧并没有操作，然后得到并保存上一次成功获取的帧数据
                         if (result[i].ToByte() == byte.MaxValue)
                         {
                             result[i] = _lastGetFrame[i];
@@ -268,6 +349,13 @@
         return true;
     }
 
+    /// <summary>
+    /// 同步帧
+    /// </summary>
+    /// <param name="frame">帧号</param>
+    /// <param name="input">输入</param>
+    /// <param name="diff">差值</param>
+    /// <returns>是否成功同步</returns>
     public bool SyncFrame(int frame, ref Frame input, ref int diff)
     {
         unsafe
@@ -278,6 +366,7 @@
             fixed(byte* dest = &buffer[(frame % capacity) * frameSize])
             {
                 diff = frame - _lastSetFrameIndex;
+                // 必须要逐帧同步，否则算失败
                 if(diff > 1)
                 {
                     Logger.Log(LogLevel.Error,$"SyncFrame must frame by frame lastFrame:{_lastSetFrameIndex} currFrame:{frame}");

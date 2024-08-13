@@ -1,11 +1,23 @@
 using UnityEngine;
 
+/// <summary>
+/// 玩家渲染类
+/// </summary>
 public class PlayerView : BaseView<PlayerEntity>
 {
+    /// <summary>
+    /// 玩家ID
+    /// </summary>
     public int ID;
-    
+    /// <summary>
+    /// 修正向量
+    /// </summary>
     private Vector3 _fixV;
     
+    /// <summary>
+    /// 初始化渲染
+    /// </summary>
+    /// <param name="entity">玩家实体</param>
     public override void InitView(PlayerEntity entity)
     {
         ID = entity.ID;
@@ -16,11 +28,21 @@ public class PlayerView : BaseView<PlayerEntity>
             render.material.color = BattleSetting.InitPlayerColor[entity.ID];
     }
 
+    /// <summary>
+    /// 渲染轮询
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="deltaTime"></param>
     public override void RenderUpdate(PlayerEntity entity, float deltaTime)
     {
         TransformUpdate(entity, deltaTime);
     }
 
+    /// <summary>
+    /// 更新位移以及旋转
+    /// </summary>
+    /// <param name="entity">玩家实体</param>
+    /// <param name="deltaTime">增量时间</param>
     private void TransformUpdate(PlayerEntity entity, float deltaTime)
     {
         var currentPosition = transform.position;

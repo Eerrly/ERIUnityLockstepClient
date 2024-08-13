@@ -1,5 +1,8 @@
 ﻿using System.IO;
 
+/// <summary>
+/// 状态组件
+/// </summary>
 public class StateComponent : BaseComponent
 {
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto, Pack = 4)]
@@ -25,36 +28,54 @@ public class StateComponent : BaseComponent
     
     private Common common = new Common(0);
 
+    /// <summary>
+    /// 当前状态ID
+    /// </summary>
     public System.Int32 currStateId
     {
         get => common.currStateId;
         set => common.currStateId = value;
     }
 
+    /// <summary>
+    /// 下一个状态ID
+    /// </summary>
     public System.Int32 nextStateId
     {
         get => common.nextStateId;
         set => common.nextStateId = value;
     }
 
+    /// <summary>
+    /// 上一个状态ID
+    /// </summary>
     public System.Int32 prevStateId
     {
         get => common.prevStateId;
         set => common.prevStateId = value;
     }
 
+    /// <summary>
+    /// 进入状态的时间
+    /// </summary>
     public FixedNumber enteTime
     {
         get => common.enteTime;
         set => common.enteTime = value;
     }
 
+    /// <summary>
+    /// 退出状态的时间
+    /// </summary>
     public FixedNumber exitTime
     {
         get => common.exitTime;
         set => common.exitTime = value;
     }
 
+    /// <summary>
+    /// 状态数量
+    /// </summary>
     public System.Int32 count
     {
         get => common.count;

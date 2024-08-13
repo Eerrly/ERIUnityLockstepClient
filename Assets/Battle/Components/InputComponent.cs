@@ -1,5 +1,8 @@
 using System.IO;
 
+/// <summary>
+/// 输入组件
+/// </summary>
 public class InputComponent: BaseComponent
 {
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto, Pack = 4)]
@@ -17,12 +20,18 @@ public class InputComponent: BaseComponent
 
     private Common common = new Common(0);
 
+    /// <summary>
+    /// 摇杆
+    /// </summary>
     public System.Int32 yaw 
     {
         get => common.yaw;
         set => common.yaw = value;
     }
 
+    /// <summary>
+    /// 按键
+    /// </summary>
     public System.Int32 key
     {
         get => common.key;

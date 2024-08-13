@@ -1,30 +1,70 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// 游戏管理器
+/// </summary>
 public class GameManager : MManager<GameManager>
 {
+    /// <summary>
+    /// 玩家ID
+    /// </summary>
     public uint PlayerId;
+    /// <summary>
+    /// 当前加入的房间信息
+    /// </summary>
     public RoomInfo RoomInfo;
+    /// <summary>
+    /// 当前服务器权威帧
+    /// </summary>
     public int ServerAuthorityFrame = -1;
+    /// <summary>
+    /// 战斗是否已经连接
+    /// </summary>
     public bool IsBattleConnected = false;
+    /// <summary>
+    /// 战斗是否已经开始
+    /// </summary>
     public bool IsBattleStart = false;
 
     private FrameBuffer _frameBuffer;
+    /// <summary>
+    /// 帧缓存对象
+    /// </summary>
     public FrameBuffer FrameBuffer
     {
         get => _frameBuffer;
         set => _frameBuffer = value;
     }
+    /// <summary>
+    /// 帧引擎
+    /// </summary>
     private FrameEngine _frameEngine;
+    /// <summary>
+    /// 战斗控制器
+    /// </summary>
     private BattleController _battleController;
+    /// <summary>
+    /// 回放控制器
+    /// </summary>
     private ReplayController _replayController;
+    /// <summary>
+    /// 战斗显示对象
+    /// </summary>
     private BattleView _battleView;
     
+    /// <summary>
+    /// 获取玩家战斗POS
+    /// </summary>
+    /// <returns>战斗POS</returns>
     public int GetBattlePos()
     {
         return (int)(PlayerId - GameSetting.DefaultPlayerIdBase - 1);
     }
 
+    /// <summary>
+    /// 初始化
+    /// </summary>
     public override void Initialize()
     {
         _battleController = new BattleController();
@@ -38,6 +78,10 @@ public class GameManager : MManager<GameManager>
         _battleView = Util.GetOrAddComponent<BattleView>(new GameObject("BV"));
     }
 
+    /// <summary>
+    /// 开启战斗
+    /// </summary>
+    /// <param name="battleType">战斗类型</param>
     public void StartBattle(BattleType battleType)
     {
         switch (battleType)
@@ -55,6 +99,9 @@ public class GameManager : MManager<GameManager>
         }
     }
 
+    /// <summary>
+    /// 开启多人战斗
+    /// </summary>
     private void StartRemoteBattle()
     {
         _battleController.InitEntities();
@@ -63,9 +110,11 @@ public class GameManager : MManager<GameManager>
         _frameEngine.StartNetEngine(BattleSetting.NetInterval);
         _frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
         LoomManager.Instance.QueueOnMainThread(() => { BattleRecordManager.Instance.StartRecordBattle(GetBattlePos()); });
-        ReplaySystem.Init();
     }
 
+    /// <summary>
+    /// 开启回放
+    /// </summary>
     private void StartReplayBattle()
     {
         _replayController.InitReplay(GetBattlePos());
@@ -75,11 +124,19 @@ public class GameManager : MManager<GameManager>
         _replayController.StartReplayStopwatch();
     }
 
+    /// <summary>
+    /// 初始化实体系统
+    /// </summary>
     private void InitializeEntitySystems()
     {
         Util.InvokeAttributeCall(this, typeof(EntitySystem), false, typeof(EntitySystem.Initialize), false);
     }
 
+    /// <summary>
+    /// 渲染轮询
+    /// </summary>
+    /// <param name="battleType">战斗类型</param>
+    /// <param name="deltaTime">每帧时间</param>
     public void RenderUpdate(BattleType battleType, float deltaTime)
     {
         try
@@ -104,6 +161,10 @@ public class GameManager : MManager<GameManager>
         }
     }
     
+    /// <summary>
+    /// 停止战斗
+    /// </summary>
+    /// <param name="battleType">战斗类型</param>
     public void StopBattle(BattleType battleType)
     {
         switch (battleType)
@@ -121,15 +182,20 @@ public class GameManager : MManager<GameManager>
         }
     }
 
+    /// <summary>
+    /// 停止多人战斗
+    /// </summary>
     private void StopRemoteBattle()
     {
         _frameEngine.StopEngine();
         _battleView.OnRelease(_battleController.DisplayBattleEntity);
         ReleaseEntitySystems();
         NetworkManager.Instance.KcpShutdown();
-        ReplaySystem.Release();
     }
 
+    /// <summary>
+    /// 停止回放
+    /// </summary>
     private void StopReplayBattle()
     {
         _frameEngine.StopReplayEngine();
@@ -137,11 +203,17 @@ public class GameManager : MManager<GameManager>
         ReleaseEntitySystems();
     }
 
+    /// <summary>
+    /// 释放实体系统
+    /// </summary>
     private void ReleaseEntitySystems()
     {
         Util.InvokeAttributeCall(this, typeof(EntitySystem), false, typeof(EntitySystem.Release), false);
     }
 
+    /// <summary>
+    /// 释放
+    /// </summary>
     public override void OnRelease()
     {
         if (_frameEngine != null)
