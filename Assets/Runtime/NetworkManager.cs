@@ -82,6 +82,8 @@ public class NetworkManager : AManager<NetworkManager>
             Logger.Log(LogLevel.Error,$"[KCP] OnKcpDataReceived data.Array == null");
             return;
         }
+
+        var gameManager = GameManager.Instance;
         _kcpClientTransport.OnMessageProcess(data.ToArray(), _memoryStream, cmd => {
             Logger.Log(LogLevel.Info,$"[KCP] OnMessageProcess -> Cmd:{cmd} Length:{data.Count} Channel:{Enum.GetName(typeof(kcp2k.KcpChannel), channel)}");
             switch (cmd)
@@ -91,7 +93,7 @@ public class NetworkManager : AManager<NetworkManager>
                     var s2CMessage = pb.S2C_ConnectMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info,$"[KCP] BattleMsgConnect -> errorCode:{s2CMessage.ErrorCode}");
 
-                    GameManager.Instance.IsBattleConnected = s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
+                    gameManager.IsBattleConnected = s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgReady:
@@ -99,8 +101,8 @@ public class NetworkManager : AManager<NetworkManager>
                     var s2CMessage = pb.S2C_ReadyMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info,$"[KCP] BattleMsgReady -> errorCoe:{s2CMessage.ErrorCode} roomId:{s2CMessage.RoomId} status:{s2CMessage.Status}");
 
-                    if(GameManager.Instance.IsBattleConnected && GameManager.Instance.RoomInfo.RoomId == s2CMessage.RoomId)
-                        GameManager.Instance.RoomInfo.Readies = s2CMessage.Status.ToList();
+                    if(gameManager.IsBattleConnected && gameManager.RoomInfo.RoomId == s2CMessage.RoomId)
+                        gameManager.RoomInfo.Readies = s2CMessage.Status.ToList();
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgStart:
@@ -109,9 +111,9 @@ public class NetworkManager : AManager<NetworkManager>
                     Logger.Log(LogLevel.Info,$"[KCP] BattleMsgStart -> errorCode:{s2CMessage.ErrorCode} frame:{s2CMessage.Frame} timestamp:{s2CMessage.TimeStamp}");
 
                     _serverStopwatch.Start();
-                    GameManager.Instance.IsBattleStart = s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
-                    if (GameManager.Instance.IsBattleStart)
-                        GameManager.Instance.StartBattle(BattleType.Remote);
+                    gameManager.IsBattleStart = s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
+                    if (gameManager.IsBattleStart)
+                        gameManager.StartBattle(BattleType.Remote);
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgHeartbeat:
@@ -148,7 +150,7 @@ public class NetworkManager : AManager<NetworkManager>
                     // 帧差
                     var diff = 0;
                     // 出现无法同步帧的情况一般来说是跳帧了，断开KCP连接
-                    while (!GameManager.Instance.FrameBuffer.SyncFrame(inputFrame.frame, ref inputFrame, ref diff))
+                    while (!gameManager.FrameBuffer.SyncFrame(inputFrame.frame, ref inputFrame, ref diff))
                     {
                         Logger.Log(LogLevel.Error,$"[KCP] BattleMsgFrame Can't SyncFrame frame->{inputFrame.frame} diff->{diff}");
                         KcpShutdown();
@@ -157,7 +159,7 @@ public class NetworkManager : AManager<NetworkManager>
 
                     Logger.Log(LogLevel.Info,$"[KCP] BattleMsgFrame SyncFrame [frame]->{inputFrame.frame}");
                     // 更新服务器权威帧
-                    GameManager.Instance.ServerAuthorityFrame = inputFrame.frame;
+                    gameManager.ServerAuthorityFrame = inputFrame.frame;
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgCheck:
@@ -299,6 +301,7 @@ public class NetworkManager : AManager<NetworkManager>
             return;
         }
         Logger.Log(LogLevel.Info,$"OnTcpDataReceived data.len: {data.Length} read: {read}");
+        var gameManager = GameManager.Instance;
         _tcpClientTransport.OnMessageProcess(data, _memoryStream, cmd => {
             Logger.Log(LogLevel.Info,$"[TCP] OnMessageProcess -> Cmd:{cmd} Length:{data.Length}");
             switch (cmd)
@@ -308,7 +311,7 @@ public class NetworkManager : AManager<NetworkManager>
                     var s2CMessage = pb.S2C_LoginMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info,$"[TCP] LogicMsgLogin -> errorCode:{s2CMessage.ErrorCode} playerId:{s2CMessage.PlayerId}");
 
-                    GameManager.Instance.PlayerId = s2CMessage.PlayerId;
+                    gameManager.PlayerId = s2CMessage.PlayerId;
                     break;
                 }
                 case (byte)pb.LogicMsgID.LogicMsgCreateRoom:
@@ -316,8 +319,8 @@ public class NetworkManager : AManager<NetworkManager>
                     var s2CMessage = pb.S2C_CreateRoomMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info,$"[TCP] LogicMsgCreateRoom -> errorCode:{s2CMessage.ErrorCode} roomId:{s2CMessage.RoomId}");
                     
-                    if (GameManager.Instance.RoomInfo == null)
-                        GameManager.Instance.RoomInfo = new RoomInfo() { RoomId = s2CMessage.RoomId };
+                    if (gameManager.RoomInfo == null)
+                        gameManager.RoomInfo = new RoomInfo() { RoomId = s2CMessage.RoomId };
                     break;
                 }
                 case (byte)pb.LogicMsgID.LogicMsgJoinRoom:
@@ -327,9 +330,9 @@ public class NetworkManager : AManager<NetworkManager>
 
                     foreach (var playerId in s2CMessage.All)
                     {
-                        if (playerId == GameManager.Instance.PlayerId) {
-                            GameManager.Instance.RoomInfo.Gamers.Clear();
-                            GameManager.Instance.RoomInfo.Gamers.AddRange(s2CMessage.All);
+                        if (playerId == gameManager.PlayerId) {
+                            gameManager.RoomInfo.Gamers.Clear();
+                            gameManager.RoomInfo.Gamers.AddRange(s2CMessage.All);
                         }
                     }
                     // 当房间人数到了可以战斗开启的人数时，开启KCP服务器并且开始轮询
