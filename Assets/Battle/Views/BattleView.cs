@@ -46,7 +46,7 @@ public class BattleView : BaseView<BattleEntity>
     public override void RenderUpdate(BattleEntity entity, float deltaTime)
     {
         if (entity != null && _textMesh != null)
-            _textMesh.text = $"BattleEntity Name:{entity.Name} Time:{entity.Time.ToString()}";
+            _textMesh.text = $"Name:{entity.Name} Frame:{entity.Frame} Time:{entity.Time.ToString()}";
 
         if(_playerViews == null || _playerViews.Count != entity.PlayerEntities.Count) return;
         

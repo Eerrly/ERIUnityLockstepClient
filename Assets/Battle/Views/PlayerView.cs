@@ -36,6 +36,11 @@ public class PlayerView : BaseView<PlayerEntity>
     public override void RenderUpdate(PlayerEntity entity, float deltaTime)
     {
         TransformUpdate(entity, deltaTime);
+#if UNITY_EDITOR
+        DebugTextContainer.Instance.SetText(transform, "State", entity.State.currStateId);
+        DebugTextContainer.Instance.SetText(transform, "Yaw", entity.Input.yaw);
+        DebugTextContainer.Instance.SetText(transform, "Key", entity.Input.key);
+#endif
     }
 
     /// <summary>
