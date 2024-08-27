@@ -1,7 +1,13 @@
-﻿public class PlayerStateMachine : BaseStateMachine<PlayerEntity>
+﻿/// <summary>
+/// 玩家实体状态控制
+/// </summary>
+public class PlayerStateMachine : BaseStateMachine<PlayerEntity>
 {
     private static PlayerStateMachine _instance;
 
+    /// <summary>
+    /// 单例
+    /// </summary>
     public static PlayerStateMachine Instance
     {
         get
@@ -18,16 +24,16 @@
         stateDic = new BaseState<PlayerEntity>[(int)EPlayerState.Count];
         foreach (var t in types)
         {
-            if (!t.IsDefined(typeof(PlayerStateAttribute), false)) continue;
+            if (!t.IsDefined(typeof(PlayerState), false)) continue;
             
             var state = System.Activator.CreateInstance(t) as PlayerBaseState;
             var attributes = t.GetCustomAttributes(false);
             foreach (var t1 in attributes)
             {
-                if (t1 is PlayerStateAttribute)
+                if (t1 is PlayerState)
                 {
-                    var attr = (t1 as PlayerStateAttribute);
-                    state.StateId = attr._state;
+                    var attr = (t1 as PlayerState);
+                    state.StateId = attr.State;
                 }
             }
 
@@ -59,18 +65,34 @@
         }
     }
     
+    /// <summary>
+    /// 玩家状态Update
+    /// </summary>
+    /// <param name="playerEntity">玩家实体</param>
+    /// <param name="battleEntity">战斗实体</param>
     public override void Update(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         var curState = stateDic[playerEntity.State.currStateId];
         curState.OnUpdate(playerEntity, battleEntity);
     }
 
+    /// <summary>
+    /// 玩家状态LateUpdate
+    /// </summary>
+    /// <param name="playerEntity">玩家实体</param>
+    /// <param name="battleEntity">战斗实体</param>
     public override void LateUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         var curState = stateDic[playerEntity.State.currStateId];
         curState.OnLateUpdate(playerEntity, battleEntity);
     }
 
+    /// <summary>
+    /// 变更玩家状态
+    /// </summary>
+    /// <param name="entity">玩家实体</param>
+    /// <param name="battleEntity">战斗实体</param>
+    /// <returns>是否成功变更状态</returns>
     public override bool DoChangeState(PlayerEntity entity, BattleEntity battleEntity)
     {
         var nextStateId = entity.State.nextStateId;

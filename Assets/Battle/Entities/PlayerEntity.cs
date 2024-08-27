@@ -1,13 +1,35 @@
 using System.IO;
 
+/// <summary>
+/// 玩家实体
+/// </summary>
 public class PlayerEntity : BaseEntity
 {
+    /// <summary>
+    /// 玩家ID
+    /// </summary>
     public int ID;
 
+    /// <summary>
+    /// 输入组件
+    /// </summary>
     public readonly InputComponent Input = new InputComponent();
+    /// <summary>
+    /// 状态组件
+    /// </summary>
     public readonly StateComponent State = new StateComponent();
+    /// <summary>
+    /// 位置组件
+    /// </summary>
     public readonly TransformComponent Transform = new TransformComponent();
+    /// <summary>
+    /// 位移组件
+    /// </summary>
     public readonly MoveComponent Movement = new MoveComponent();
+    /// <summary>
+    /// 属性组件
+    /// </summary>
+    public readonly PropertyComponent Property = new PropertyComponent();
 
     public override void Init()
     {
@@ -26,6 +48,8 @@ public class PlayerEntity : BaseEntity
 
         Movement.moveSpeed = FixedNumber.MakeFixNum(5, 1);
         Movement.turnSpeed = FixedNumber.MakeFixNum(180, 1);
+        
+        Property.collisionSize = FixedNumber.MakeFixNum(5, 10);
     }
 
     public override void Reset()
@@ -45,6 +69,8 @@ public class PlayerEntity : BaseEntity
 
         Movement.moveSpeed = FixedNumber.MakeFixNum(5, 1);
         Movement.turnSpeed = FixedNumber.MakeFixNum(180, 1);
+        
+        Property.collisionSize = FixedNumber.MakeFixNum(5, 10);
     }
 
     public override void CopyTo(BaseEntity entity)
@@ -55,6 +81,7 @@ public class PlayerEntity : BaseEntity
         State.CopyTo(playerEntity.State);
         Movement.CopyTo(playerEntity.Movement);
         Transform.CopyTo(playerEntity.Transform);
+        Property.CopyTo(playerEntity.Property);
     }
 
     public override void Serialize(BinaryWriter writer)

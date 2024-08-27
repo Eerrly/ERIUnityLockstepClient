@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
+/// <summary>
+/// 线程调度管理器
+/// </summary>
 public class LoomManager : MManager<LoomManager>
 {
     internal struct DelayItem
@@ -49,6 +52,11 @@ public class LoomManager : MManager<LoomManager>
         });
     }
 
+    /// <summary>
+    /// 加入到主线程调用
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="time"></param>
     public void QueueOnMainThread(Action action, float time = 0)
     {
         if (time > 0f)

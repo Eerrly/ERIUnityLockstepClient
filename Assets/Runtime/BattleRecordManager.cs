@@ -4,22 +4,40 @@ using System.IO;
 using System.Threading;
 using UnityEngine;
 
+/// <summary>
+/// 战斗收集管理器
+/// </summary>
 public class BattleRecordManager : AManager<BattleRecordManager>
 {
+    /// <summary>
+    /// 收集文件IO流
+    /// </summary>
     private FileStream _frameFileStream;
     private BinaryWriter _frameBinaryWriter;
     private Thread _writerThread;
+    /// <summary>
+    /// 当前正在手机的战斗实体队列
+    /// </summary>
     private Queue<BattleEntity> _battleEntities;
+    /// <summary>
+    /// 战斗实体缓存集合
+    /// </summary>
     private List<BattleEntity> _unusedBattleEntities;
     
     private static object _writerLock = new object();
 
+    /// <summary>
+    /// 初始化
+    /// </summary>
     public override void Initialize()
     {
         _battleEntities = new Queue<BattleEntity>();
         _unusedBattleEntities = new List<BattleEntity>();
     }
 
+    /// <summary>
+    /// 释放
+    /// </summary>
     public override void OnRelease()
     {
         try
@@ -44,6 +62,10 @@ public class BattleRecordManager : AManager<BattleRecordManager>
         }
     }
 
+    /// <summary>
+    /// 开始战斗收集
+    /// </summary>
+    /// <param name="pos">玩家战斗POS</param>
     public void StartRecordBattle(int pos)
     {
         var battleRecordPath = $"{Application.persistentDataPath}/battle_record_{pos}.log";
@@ -53,6 +75,9 @@ public class BattleRecordManager : AManager<BattleRecordManager>
         _writerThread.Start();
     }
 
+    /// <summary>
+    /// 战斗收集线程
+    /// </summary>
     private void OnRecordBattleThread()
     {
         while (_frameFileStream != null)
@@ -85,6 +110,10 @@ public class BattleRecordManager : AManager<BattleRecordManager>
         }
     }
 
+    /// <summary>
+    /// 收集战斗实体
+    /// </summary>
+    /// <param name="battleEntity">战斗实体</param>
     public void RecordBattleEntity(BattleEntity battleEntity)
     {
         try

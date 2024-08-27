@@ -350,7 +350,15 @@ public class FixedMath
         return r;
     }
 
+    /// <summary>
+    /// 摇杆对应单位向量的缓存数组
+    /// </summary>
     private static FixedVector3[] _cacheYaToVector3 = new FixedVector3[8];
+    /// <summary>
+    /// 将摇杆标记转化为向量
+    /// </summary>
+    /// <param name="yaw">摇杆</param>
+    /// <returns>向量</returns>
     private static FixedVector3 _FromYawToVector3(int yaw)
     {
         switch (yaw)
@@ -364,6 +372,11 @@ public class FixedMath
         return rot * FixedVector3.Forward;
     }
 
+    /// <summary>
+    /// 将摇杆标记转化为向量
+    /// </summary>
+    /// <param name="yaw">摇杆</param>
+    /// <returns>向量</returns>
     public static FixedVector3 FromYawToVector3(int yaw)
     {
         if (yaw < 0)
@@ -385,6 +398,11 @@ public class FixedMath
         return r * FixedVector3.Forward;
     }
 
+    /// <summary>
+    /// 将输入方向转化为8个方向标记中的一个
+    /// </summary>
+    /// <param name="input">输入方向</param>
+    /// <returns>摇杆方向标记</returns>
     public static int Format8DirInput(FixedVector3 input)
     {
         input.y = FixedNumber.Zero;

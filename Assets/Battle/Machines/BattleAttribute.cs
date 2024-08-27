@@ -1,16 +1,35 @@
-﻿public class PlayerStateAttribute : System.Attribute
+﻿public class PlayerState : System.Attribute
 {
-    public EPlayerState _state;
+    public EPlayerState State;
 
-    public PlayerStateAttribute(EPlayerState state)
+    public PlayerState(EPlayerState state)
     {
-        _state = state;
+        State = state;
     }
 }
 
-public class EntitySystemAttribute : System.Attribute
+public class BattleState : System.Attribute
 {
+    public EBattleState State;
+
+    public BattleState(EBattleState state)
+    {
+        State = state;
+    }
+}
+
+/// <summary>
+/// 实体系统
+/// </summary>
+public class EntitySystem : System.Attribute
+{
+    /// <summary>
+    /// 初始化
+    /// </summary>
     public class Initialize : System.Attribute { }
 
+    /// <summary>
+    /// 释放
+    /// </summary>
     public class Release : System.Attribute { }
 }

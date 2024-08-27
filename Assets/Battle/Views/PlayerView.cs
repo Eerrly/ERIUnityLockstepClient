@@ -1,11 +1,23 @@
 using UnityEngine;
 
+/// <summary>
+/// 玩家渲染类
+/// </summary>
 public class PlayerView : BaseView<PlayerEntity>
 {
+    /// <summary>
+    /// 玩家ID
+    /// </summary>
     public int ID;
-    
+    /// <summary>
+    /// 修正向量
+    /// </summary>
     private Vector3 _fixV;
     
+    /// <summary>
+    /// 初始化渲染
+    /// </summary>
+    /// <param name="entity">玩家实体</param>
     public override void InitView(PlayerEntity entity)
     {
         ID = entity.ID;
@@ -16,19 +28,33 @@ public class PlayerView : BaseView<PlayerEntity>
             render.material.color = BattleSetting.InitPlayerColor[entity.ID];
     }
 
+    /// <summary>
+    /// 渲染轮询
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="deltaTime"></param>
     public override void RenderUpdate(PlayerEntity entity, float deltaTime)
     {
         TransformUpdate(entity, deltaTime);
+#if UNITY_EDITOR
+        DebugTextContainer.Instance.SetText(transform, "State", entity.State.currStateId);
+        DebugTextContainer.Instance.SetText(transform, "Yaw", entity.Input.yaw);
+        DebugTextContainer.Instance.SetText(transform, "Key", entity.Input.key);
+#endif
     }
 
+    /// <summary>
+    /// 更新位移以及旋转
+    /// </summary>
+    /// <param name="entity">玩家实体</param>
+    /// <param name="deltaTime">增量时间</param>
     private void TransformUpdate(PlayerEntity entity, float deltaTime)
     {
         var currentPosition = transform.position;
-        var nextDeltaPosition = currentPosition + entity.Movement.position.ToVector3();
-        if((currentPosition - nextDeltaPosition).sqrMagnitude >= 4)
-        {
-            currentPosition = Vector3.Lerp(currentPosition, nextDeltaPosition, deltaTime);
-        }
+        var entityPosition = entity.Transform.pos.ToVector3();
+        currentPosition += entity.Movement.position.ToVector3();
+        currentPosition = Vector3.Lerp(currentPosition, entityPosition, 0);
+        
         var currentRotation = transform.rotation;
         var nextDeltaRotation = entity.Movement.rotation.ToQuaternion();
         if(currentRotation != nextDeltaRotation)
@@ -39,8 +65,8 @@ public class PlayerView : BaseView<PlayerEntity>
             currentRotation = Quaternion.Euler(0f, angle, 0f);
         }
 
-        var offset = entity.Transform.pos.ToVector3() - currentPosition;
-        var dis = 0.4f;
+        var offset = entityPosition - currentPosition;
+        var dis = 0.3f;
         if (offset.magnitude > dis)
         {
             var target = currentPosition + offset.normalized * (offset.magnitude - dis);

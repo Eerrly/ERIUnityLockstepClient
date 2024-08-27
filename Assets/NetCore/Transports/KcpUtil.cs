@@ -1,7 +1,13 @@
 using kcp2k;
 
+/// <summary>
+/// KCP服务器支持
+/// </summary>
 public static class KcpUtil 
 {
+    /// <summary>
+    /// KCP服务器配置
+    /// </summary>
     public static readonly KcpConfig defaultConfig = new KcpConfig(
         DualMode: true,
         NoDelay: true,

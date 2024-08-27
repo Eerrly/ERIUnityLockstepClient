@@ -6,12 +6,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
+/// <summary>
+/// 回放控制器
+/// </summary>
 public class ReplayController
 {
+    /// <summary>
+    /// 当前帧
+    /// </summary>
     private int _frame;
     private readonly Stopwatch _stopwatch;
+    /// <summary>
+    /// 缓存战斗实体列表
+    /// </summary>
     private readonly List<BattleEntity> _battleEntities;
+    
     private readonly BattleEntity _displayBattleEntity;
+    /// <summary>
+    /// 渲染实体
+    /// </summary>
     public BattleEntity DisplayBattleEntity => _displayBattleEntity;
 
     public ReplayController()
@@ -24,13 +37,21 @@ public class ReplayController
         _displayBattleEntity.PlayerEntities.Add(new PlayerEntity(){ ID = 1 });
     }
 
+    /// <summary>
+    /// 开始客户端计时器
+    /// </summary>
     public void StartReplayStopwatch()
     {
         _stopwatch.Start();
     }
 
+    /// <summary>
+    /// 初始化回放数据
+    /// </summary>
+    /// <param name="pos">战斗POS</param>
     public void InitReplay(int pos)
     {
+        // 最近的一次多人战斗记录
         var battleRecordPath = $"{Application.persistentDataPath}/battle_record_{pos}.log";
         if (!File.Exists(battleRecordPath))
         {
@@ -57,6 +78,11 @@ public class ReplayController
         }
     }
 
+    /// <summary>
+    /// 渲染回放
+    /// </summary>
+    /// <param name="cancellationToken">任务取消句柄</param>
+    /// <returns>任务</returns>
     public Task ReplayUpdate(CancellationToken cancellationToken)
     {
         if (_frame < _battleEntities.Count && _stopwatch.ElapsedMilliseconds >= _frame * BattleSetting.BattleInterval)

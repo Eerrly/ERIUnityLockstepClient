@@ -3,6 +3,12 @@ using UnityEngine;
 
 public class Util
 {
+    /// <summary>
+    /// 获取或添加组件
+    /// </summary>
+    /// <param name="go"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     public static T GetOrAddComponent<T>(GameObject go) where T : Component
     {
         T c = null;
@@ -17,6 +23,14 @@ public class Util
         return c;
     }
     
+    /// <summary>
+    /// 执行某一个标记为该特性的所有函数
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <param name="classType">标记了某一个特性的类特性类型</param>
+    /// <param name="inherit">类继承</param>
+    /// <param name="methodType">标记了某一个特性的方法特性类型</param>
+    /// <param name="methodInherit">方法继承</param>
     public static void InvokeAttributeCall(object obj, Type classType, bool inherit, Type methodType, bool methodInherit)
     {
         if (null == obj) return;

@@ -1,4 +1,7 @@
-﻿[PlayerState(EPlayerState.Move)]
+﻿/// <summary>
+/// 玩家移动状态
+/// </summary>
+[PlayerState(EPlayerState.Move)]
 public class PlayerMoveState : PlayerBaseState
 {
     public override void OnEnter(PlayerEntity playerEntity, BattleEntity battleEntity)
@@ -8,19 +11,18 @@ public class PlayerMoveState : PlayerBaseState
 
     public override void OnUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
-        MoveSystem.UpdatePosition(playerEntity);
+        MoveSystem.UpdatePosition(playerEntity, FrameEngine.FrameInterval);
         MoveSystem.UpdateRotation(playerEntity);
     }
 
     public override void OnLateUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
-        // Logger.Log(LogLevel.Info, $"PlayerMoveState OnLateUpdate " +
-        //                           $"battleEntity:{battleEntity}" +
-        //                           $"ID:{playerEntity.ID} " +
-        //                           $"Y:{playerEntity.Input.yaw}" +
-        //                           $"K:{playerEntity.Input.key}" +
-        //                           $"P:{playerEntity.Movement.position} " +
-        //                           $"R:{playerEntity.Movement.rotation}");
+        
+    }
+
+    public override void OnCollision(PlayerEntity source, PlayerEntity target, BattleEntity battleEntity)
+    {
+        Logger.Log(LogLevel.Info, $"PlayerMoveState OnCollision SourceId:{source.ID} TargetId:{target.ID} Frame:{battleEntity.Frame}");
     }
 
     public override void OnExit(PlayerEntity playerEntity, BattleEntity battleEntity)
