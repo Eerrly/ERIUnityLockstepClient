@@ -34,12 +34,23 @@ public class BattleBaseState : BaseState<BattleEntity>
     }
 
     /// <summary>
+    /// 状态轮询
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="_"></param>
+    public override void OnUpdate(BattleEntity entity, BattleEntity _)
+    {
+        entity.State.spanTime = entity.Time - entity.State.enteTime;
+    }
+
+    /// <summary>
     /// 状态退出
     /// </summary>
     /// <param name="entity">战斗实体</param>
     /// <param name="_"></param>
     public override void OnExit(BattleEntity entity, BattleEntity _)
     {
+        entity.State.spanTime = entity.Time - entity.State.enteTime;
         entity.State.exitTime = entity.Time;
     }
     

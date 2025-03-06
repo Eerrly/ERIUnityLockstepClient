@@ -12,6 +12,7 @@ public class StateComponent : BaseComponent
         public System.Int32 nextStateId;
         public System.Int32 prevStateId;
         public FixedNumber enteTime;
+        public FixedNumber spanTime;
         public FixedNumber exitTime;
         public System.Int32 count;
 
@@ -21,6 +22,7 @@ public class StateComponent : BaseComponent
             nextStateId = default(System.Int32);
             prevStateId = default(System.Int32);
             enteTime = default(FixedNumber);
+            spanTime = default(FixedNumber);
             exitTime = default(FixedNumber);
             count = default(System.Int32);
         }
@@ -65,6 +67,15 @@ public class StateComponent : BaseComponent
     }
 
     /// <summary>
+    /// 当前状态的持续时间
+    /// </summary>
+    public FixedNumber spanTime
+    {
+        get => common.spanTime;
+        set => common.spanTime = value;
+    }
+
+    /// <summary>
     /// 退出状态的时间
     /// </summary>
     public FixedNumber exitTime
@@ -94,6 +105,7 @@ public class StateComponent : BaseComponent
         writer.Write(common.nextStateId);
         writer.Write(common.prevStateId);
         writer.Write(common.enteTime._raw);
+        writer.Write(common.spanTime._raw);
         writer.Write(common.exitTime._raw);
         writer.Write(common.count);
     }
@@ -104,6 +116,7 @@ public class StateComponent : BaseComponent
         common.nextStateId = reader.ReadInt32();
         common.prevStateId = reader.ReadInt32();
         common.enteTime = new FixedNumber(reader.ReadInt64());
+        common.spanTime = new FixedNumber(reader.ReadInt64());
         common.exitTime = new FixedNumber(reader.ReadInt64());
         common.count = reader.ReadInt32();
     }
