@@ -338,8 +338,9 @@ public class NetworkManager : AManager<NetworkManager>
                     // 当房间人数到了可以战斗开启的人数时，开启KCP服务器并且开始轮询
                     if (s2CMessage.All.Count == GameSetting.RoomMaxPlayerCount)
                     {
-                        KcpConnect();
-                        KcpUpdate();
+                        // KcpConnect();
+                        // KcpUpdate();
+                        LoomManager.Instance.QueueOnMainThread(GameManager.Instance.OnRoomFull);
                     }
                     break;
                 }

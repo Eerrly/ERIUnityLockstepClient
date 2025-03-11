@@ -9,7 +9,7 @@ public class AreaSystem
     /// <summary>
     /// 场地区域（逻辑层用）
     /// </summary>
-    private static readonly FixedRect Boundary = new FixedRect(
+    public static readonly FixedRect Boundary = new FixedRect(
         FixedNumber.MakeFixNum(-6000, 1000),
         FixedNumber.MakeFixNum(6000, 1000),
         FixedNumber.MakeFixNum(12000, 1000),

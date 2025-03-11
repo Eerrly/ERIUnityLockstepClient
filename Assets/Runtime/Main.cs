@@ -30,6 +30,7 @@ public class Main : MonoBehaviour
         InputManager.Instance.Initialize();
         BattleRecordManager.Instance.Initialize();
         CameraManager.Instance.Initialize();
+        DontDestroyOnLoad(this);
     }
 
     /// <summary>
@@ -47,6 +48,9 @@ public class Main : MonoBehaviour
 
     private void Start()
     {
+        CameraManager.Instance.ToggleUICamera();
+        CameraManager.Instance.SetCanvasUICamera(gameObject);
+        
         AttachBtn.onClick.AddListener(() =>
         {
             NetworkManager.Instance.TcpConnect();

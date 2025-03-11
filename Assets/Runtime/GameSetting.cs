@@ -18,3 +18,13 @@ public class GameSetting
     /// </summary>
     public static readonly uint DefaultRoomIdBase = 10000;
 }
+
+/// <summary>
+/// 场景
+/// </summary>
+public enum EGameScene
+{
+    Main,
+    
+    World,
+}

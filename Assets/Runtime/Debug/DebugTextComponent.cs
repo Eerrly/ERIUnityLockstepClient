@@ -29,8 +29,9 @@ public class DebugTextComponent : MonoBehaviour
     {
         if (Owner != null)
         {
-            if (Camera.main == null) return;
-            var pos = Camera.main.WorldToScreenPoint(Owner.position);
+            if (CameraManager.Instance == null) 
+                return;
+            var pos = CameraManager.Instance.WorldToScreenPoint(Owner.position);
             transform.position = pos;
 
             _sb.Remove(0, _sb.Length);

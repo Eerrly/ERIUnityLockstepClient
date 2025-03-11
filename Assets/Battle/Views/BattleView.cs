@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 战斗渲染类
@@ -10,7 +12,7 @@ public class BattleView : BaseView<BattleEntity>
     /// <summary>
     /// 战斗实体名称
     /// </summary>
-    public string Name;
+    [SerializeField]private string battleViewName;
     /// <summary>
     /// 所有的玩家渲染列表
     /// </summary>
@@ -24,7 +26,8 @@ public class BattleView : BaseView<BattleEntity>
     /// <param name="entity">战斗实体</param>
     public override void InitView(BattleEntity entity)
     {
-        Name = entity.Name;
+        battleViewName = entity.Name;
+        
         var bv = Instantiate(Resources.Load<GameObject>(BattleSetting.BattleViewPath), new Vector3(-12, 0, 0), Quaternion.identity);
         _textMesh = Util.GetOrAddComponent<TextMesh>(bv);
         _textMesh.transform.SetParent(transform);
