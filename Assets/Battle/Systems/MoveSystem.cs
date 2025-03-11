@@ -45,7 +45,7 @@ public class MoveSystem
             currentRotation = FixedQuaternion.Euler(FixedNumber.Zero, angle, FixedNumber.Zero);
         }
 
-        entity.Transform.pos = currentPosition;
+        entity.Transform.pos = AreaSystem.MakeInside(currentPosition);
         entity.Transform.rot = currentRotation;
 
         entity.Movement.position = FixedVector3.Zero;

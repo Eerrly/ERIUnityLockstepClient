@@ -29,8 +29,12 @@ public class Main : MonoBehaviour
         NetworkManager.Instance.Initialize();
         InputManager.Instance.Initialize();
         BattleRecordManager.Instance.Initialize();
+        CameraManager.Instance.Initialize();
     }
 
+    /// <summary>
+    /// 初始化日志打印工具
+    /// </summary>
     private void InitLogger()
     {
         var currentLoggerPath = Path.Combine(Application.persistentDataPath, "game.log");
@@ -66,6 +70,7 @@ public class Main : MonoBehaviour
         ReadyBtn.onClick.AddListener(() =>
         {
             NetworkManager.Instance.SendBattleReadyMessage(GameManager.Instance.RoomInfo.RoomId, GameManager.Instance.PlayerId);
+            CameraManager.Instance.ToggleUICamera();
         });
         ShutdownBtn.onClick.AddListener(() =>
         {

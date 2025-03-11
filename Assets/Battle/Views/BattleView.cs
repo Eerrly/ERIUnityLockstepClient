@@ -34,6 +34,10 @@ public class BattleView : BaseView<BattleEntity>
         {
             var playerView = Util.GetOrAddComponent<PlayerView>(new GameObject($"P-{playerEntity.ID}"));
             playerView.InitView(playerEntity);
+            
+            if (playerEntity.ID == (GameManager.Instance.PlayerId - GameSetting.DefaultPlayerIdBase - 1)) 
+                CameraManager.Instance.InitPlayerView(playerView);
+            
             _playerViews.Add(playerView);
         }
     }

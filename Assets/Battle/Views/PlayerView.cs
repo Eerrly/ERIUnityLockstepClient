@@ -13,6 +13,10 @@ public class PlayerView : BaseView<PlayerEntity>
     /// 修正向量
     /// </summary>
     private Vector3 _fixV;
+    /// <summary>
+    /// 生成的玩家Prefab GameObject
+    /// </summary>
+    private GameObject _instance;
     
     /// <summary>
     /// 初始化渲染
@@ -21,9 +25,9 @@ public class PlayerView : BaseView<PlayerEntity>
     public override void InitView(PlayerEntity entity)
     {
         ID = entity.ID;
-        var character = Instantiate(Resources.Load<GameObject>(BattleSetting.PlayerCharacterPath), Vector3.zero, Quaternion.identity);
-        character.transform.SetParent(transform, false);
-        var meshRenders = character.GetComponentsInChildren<MeshRenderer>();
+        _instance = Instantiate(Resources.Load<GameObject>(BattleSetting.PlayerCharacterPath), Vector3.zero, Quaternion.identity);
+        _instance.transform.SetParent(transform, false);
+        var meshRenders = _instance.GetComponentsInChildren<MeshRenderer>();
         foreach (var render in meshRenders)
             render.material.color = BattleSetting.InitPlayerColor[entity.ID];
     }
@@ -78,7 +82,7 @@ public class PlayerView : BaseView<PlayerEntity>
         }
 
         var transform1 = transform;
-        transform1.position = currentPosition;
+        transform1.position = AreaSystem.MakeInside(currentPosition);
         transform1.rotation = currentRotation;
     }
 }
