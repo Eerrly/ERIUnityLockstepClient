@@ -43,12 +43,12 @@ public class BattleSetting
     /// <summary>
     /// 玩家实体预制体
     /// </summary>
-    public const string PlayerCharacterPath = "Cube";
+    public const string PlayerCharacterPath = "Data/Prefabs/Player";
     
     /// <summary>
     /// 战斗实体预制体
     /// </summary>
-    public const string BattleViewPath = "Plane";
+    public const string BattleViewPath = "Prefabs/Plane";
     
     /// <summary>
     /// 玩家实体预制体初始化颜色

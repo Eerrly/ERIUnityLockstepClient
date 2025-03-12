@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -17,6 +18,17 @@ public class PlayerView : BaseView<PlayerEntity>
     /// 生成的玩家Prefab GameObject
     /// </summary>
     private GameObject _instance;
+    /// <summary>
+    /// 玩家身上的动画状态机
+    /// </summary>
+    private Animator _animator;
+    private static readonly int AnimatorMoveForwardHash = Animator.StringToHash("moveForward");
+    private static readonly int AnimatorTurnHash = Animator.StringToHash("turn");
+    private Vector3 _beforeRotationForward = Vector3.zero;
+    private int _blendTreeParamLerpSpeed = 30;
+
+    private float _animatorMoveForwardValue;
+    private float _animatorTurnValue;
     
     /// <summary>
     /// 初始化渲染
@@ -26,6 +38,7 @@ public class PlayerView : BaseView<PlayerEntity>
     {
         ID = entity.ID;
         _instance = Instantiate(Resources.Load<GameObject>(BattleSetting.PlayerCharacterPath), Vector3.zero, Quaternion.identity);
+        _animator = Util.GetOrAddComponent<Animator>(_instance);
         _instance.transform.SetParent(transform, false);
         var meshRenders = _instance.GetComponentsInChildren<MeshRenderer>();
         foreach (var render in meshRenders)
@@ -39,12 +52,27 @@ public class PlayerView : BaseView<PlayerEntity>
     /// <param name="deltaTime"></param>
     public override void RenderUpdate(PlayerEntity entity, float deltaTime)
     {
+        _beforeRotationForward = transform.forward;
         TransformUpdate(entity, deltaTime);
 #if UNITY_EDITOR
         DebugTextContainer.Instance.SetText(transform, "State", entity.State.currStateId);
         DebugTextContainer.Instance.SetText(transform, "Yaw", entity.Input.yaw);
         DebugTextContainer.Instance.SetText(transform, "Key", entity.Input.key);
 #endif
+    }
+
+    /// <summary>
+    /// 渲染轮询
+    /// </summary>
+    /// <param name="entity"></param>
+    public override void AfterRenderUpdate(PlayerEntity entity)
+    {
+        var angle = Vector3.SignedAngle(_beforeRotationForward, transform.forward, Vector3.up);
+        angle = Mathf.Abs(angle) <= 1 ? 0 : angle;
+        var turn = angle / entity.Movement.turnSpeed.ToFloat();
+
+        SetMoveForward(KeySystem.IsYawTypeStop(entity.Input.yaw) ? 0f : 1.1f);
+        SetTurn(turn);
     }
 
     /// <summary>
@@ -85,4 +113,35 @@ public class PlayerView : BaseView<PlayerEntity>
         transform1.position = AreaSystem.MakeInside(currentPosition);
         transform1.rotation = currentRotation;
     }
+
+    public void SetMoveForward(float value, bool updateImmediately = true)
+    {
+        if (Mathf.Abs(_animatorMoveForwardValue - value) > float.Epsilon)
+        {
+            if (_animatorMoveForwardValue < value)
+                _animatorMoveForwardValue += Mathf.Min(value - _animatorMoveForwardValue, Time.deltaTime * _blendTreeParamLerpSpeed);
+            else
+                _animatorMoveForwardValue -= Mathf.Min(_animatorMoveForwardValue - value, Time.deltaTime * _blendTreeParamLerpSpeed);
+        }
+        if (_animator != null && updateImmediately)
+        {
+            _animator.SetFloat(AnimatorMoveForwardHash, _animatorMoveForwardValue);
+        }
+    }
+
+    public void SetTurn(float value, bool updateImmediately = true)
+    {
+        if (Mathf.Abs(_animatorTurnValue - value) > float.Epsilon)
+        {
+            if (_animatorTurnValue < value)
+                _animatorTurnValue += Mathf.Min(value - _animatorTurnValue, Time.deltaTime * _blendTreeParamLerpSpeed);
+            else
+                _animatorTurnValue -= Mathf.Min(_animatorTurnValue - value, Time.deltaTime * _blendTreeParamLerpSpeed);
+        }
+        if (_animator != null && updateImmediately)
+        {
+            _animator.SetFloat(AnimatorTurnHash, _animatorTurnValue);
+        }
+    }
+    
 }

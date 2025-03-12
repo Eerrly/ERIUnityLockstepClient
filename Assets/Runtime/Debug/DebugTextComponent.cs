@@ -22,6 +22,7 @@ public class DebugTextComponent : MonoBehaviour
     private void Start()
     {
         _text = Util.GetOrAddComponent<Text>(gameObject);
+        _text.color = Color.black;
         _text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
     }
 

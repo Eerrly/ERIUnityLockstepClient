@@ -30,7 +30,7 @@ public class DebugTextContainer : MonoBehaviour
         }
         if (component == null)
         {
-            var go = Instantiate(Resources.Load<GameObject>("DebugText"), transform, true);
+            var go = Instantiate(Resources.Load<GameObject>("Prefabs/DebugText"), transform, true);
             component = Util.GetOrAddComponent<DebugTextComponent>(go);
             component.SetOwner(owner);
         }

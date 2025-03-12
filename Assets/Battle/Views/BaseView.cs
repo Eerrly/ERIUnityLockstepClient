@@ -20,6 +20,12 @@ public class BaseView<T> : MonoBehaviour where T : BaseEntity
     public virtual void RenderUpdate(T entity, float deltaTime){ }
     
     /// <summary>
+    /// 渲染轮询
+    /// </summary>
+    /// <param name="entity"></param>
+    public virtual void AfterRenderUpdate(T entity){ }
+    
+    /// <summary>
     /// 释放
     /// </summary>
     /// <param name="entity">实体</param>

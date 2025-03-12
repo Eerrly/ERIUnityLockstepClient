@@ -60,7 +60,10 @@ public class BattleView : BaseView<BattleEntity>
         foreach (var playerEntity in entity.PlayerEntities)
         {
             foreach (var t in _playerViews.Where(t => t.ID == playerEntity.ID))
+            {
                 t.RenderUpdate(playerEntity, deltaTime);
+                t.AfterRenderUpdate(playerEntity);
+            }
         }
     }
 
