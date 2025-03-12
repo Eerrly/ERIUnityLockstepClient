@@ -809,13 +809,13 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
-  - m_Name: turn
+  - m_Name: Turn
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
-  - m_Name: moveForward
+  - m_Name: MoveForward
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -1151,8 +1151,8 @@ BlendTree:
     m_CycleOffset: 0
     m_DirectBlendParameter: Horizontal
     m_Mirror: 0
-  m_BlendParameter: turn
-  m_BlendParameterY: moveForward
+  m_BlendParameter: Turn
+  m_BlendParameterY: MoveForward
   m_MinThreshold: 1
   m_MaxThreshold: 4
   m_UseAutomaticThresholds: 0
