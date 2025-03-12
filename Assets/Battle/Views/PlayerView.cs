@@ -22,10 +22,8 @@ public class PlayerView : BaseView<PlayerEntity>
     /// 玩家身上的动画状态机
     /// </summary>
     private Animator _animator;
-    private static readonly int AnimatorMoveForwardHash = Animator.StringToHash("moveForward");
-    private static readonly int AnimatorTurnHash = Animator.StringToHash("turn");
     private Vector3 _beforeRotationForward = Vector3.zero;
-    private int _blendTreeParamLerpSpeed = 30;
+    private const int BlendTreeParamLerpSpeed = 30;
 
     private float _animatorMoveForwardValue;
     private float _animatorTurnValue;
@@ -38,7 +36,7 @@ public class PlayerView : BaseView<PlayerEntity>
     {
         ID = entity.ID;
         _instance = Instantiate(Resources.Load<GameObject>(BattleSetting.PlayerCharacterPath), Vector3.zero, Quaternion.identity);
-        _animator = Util.GetOrAddComponent<Animator>(_instance);
+        AnimationManager.Instance.SetPlayerAnimator(entity.ID, Util.GetOrAddComponent<Animator>(_instance));
         _instance.transform.SetParent(transform, false);
         var meshRenders = _instance.GetComponentsInChildren<MeshRenderer>();
         foreach (var render in meshRenders)
@@ -71,8 +69,8 @@ public class PlayerView : BaseView<PlayerEntity>
         angle = Mathf.Abs(angle) <= 1 ? 0 : angle;
         var turn = angle / entity.Movement.turnSpeed.ToFloat();
 
-        SetMoveForward(KeySystem.IsYawTypeStop(entity.Input.yaw) ? 0f : 1.1f);
-        SetTurn(turn);
+        SetMoveForward(entity.ID, KeySystem.IsYawTypeStop(entity.Input.yaw) ? 0f : 1.1f);
+        SetTurn(entity.ID, turn);
     }
 
     /// <summary>
@@ -114,33 +112,39 @@ public class PlayerView : BaseView<PlayerEntity>
         transform1.rotation = currentRotation;
     }
 
-    public void SetMoveForward(float value, bool updateImmediately = true)
+    /// <summary>
+    /// 设置移动动画
+    /// </summary>
+    private void SetMoveForward(int id, float value, bool updateImmediately = true)
     {
         if (Mathf.Abs(_animatorMoveForwardValue - value) > float.Epsilon)
         {
             if (_animatorMoveForwardValue < value)
-                _animatorMoveForwardValue += Mathf.Min(value - _animatorMoveForwardValue, Time.deltaTime * _blendTreeParamLerpSpeed);
+                _animatorMoveForwardValue += Mathf.Min(value - _animatorMoveForwardValue, Time.deltaTime * BlendTreeParamLerpSpeed);
             else
-                _animatorMoveForwardValue -= Mathf.Min(_animatorMoveForwardValue - value, Time.deltaTime * _blendTreeParamLerpSpeed);
+                _animatorMoveForwardValue -= Mathf.Min(_animatorMoveForwardValue - value, Time.deltaTime * BlendTreeParamLerpSpeed);
         }
         if (_animator != null && updateImmediately)
         {
-            _animator.SetFloat(AnimatorMoveForwardHash, _animatorMoveForwardValue);
+            AnimationManager.Instance.SetFloatValue(id, EBlendTreeParam.MoveForward, _animatorMoveForwardValue);
         }
     }
 
-    public void SetTurn(float value, bool updateImmediately = true)
+    /// <summary>
+    /// 设置转向动画
+    /// </summary>
+    private void SetTurn(int id, float value, bool updateImmediately = true)
     {
         if (Mathf.Abs(_animatorTurnValue - value) > float.Epsilon)
         {
             if (_animatorTurnValue < value)
-                _animatorTurnValue += Mathf.Min(value - _animatorTurnValue, Time.deltaTime * _blendTreeParamLerpSpeed);
+                _animatorTurnValue += Mathf.Min(value - _animatorTurnValue, Time.deltaTime * BlendTreeParamLerpSpeed);
             else
-                _animatorTurnValue -= Mathf.Min(_animatorTurnValue - value, Time.deltaTime * _blendTreeParamLerpSpeed);
+                _animatorTurnValue -= Mathf.Min(_animatorTurnValue - value, Time.deltaTime * BlendTreeParamLerpSpeed);
         }
         if (_animator != null && updateImmediately)
         {
-            _animator.SetFloat(AnimatorTurnHash, _animatorTurnValue);
+            AnimationManager.Instance.SetFloatValue(id, EBlendTreeParam.Turn, _animatorTurnValue);
         }
     }
     

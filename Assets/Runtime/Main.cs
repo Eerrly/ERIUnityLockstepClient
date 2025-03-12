@@ -30,6 +30,7 @@ public class Main : MonoBehaviour
         InputManager.Instance.Initialize();
         BattleRecordManager.Instance.Initialize();
         CameraManager.Instance.Initialize();
+        AnimationManager.Instance.Initialize();
         DontDestroyOnLoad(this);
     }
 
