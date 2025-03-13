@@ -50,8 +50,4 @@ public class BattleSetting
     /// </summary>
     public const string BattleViewPath = "Prefabs/Plane";
     
-    /// <summary>
-    /// 玩家实体预制体初始化颜色
-    /// </summary>
-    public static readonly Color[] InitPlayerColor = { new Color((float)42/255, (float)100 /255, (float)178 /255), new Color((float)229/255, (float)46 /255, (float)40 /255) };
 }

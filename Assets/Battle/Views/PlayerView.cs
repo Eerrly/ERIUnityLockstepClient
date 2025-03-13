@@ -42,10 +42,7 @@ public class PlayerView : BaseView<PlayerEntity>
 
         _animator = Util.GetOrAddComponent<Animator>(_instance);
         AnimationManager.Instance.SetPlayerAnimator(entity.ID, _animator);
-        
-        var meshRenders = _instance.GetComponentsInChildren<MeshRenderer>();
-        foreach (var render in meshRenders)
-            render.material.color = BattleSetting.InitPlayerColor[entity.ID];
+
     }
 
     /// <summary>

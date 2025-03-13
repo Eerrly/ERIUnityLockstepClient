@@ -6,7 +6,7 @@ public class NetSetting
     /// <summary>
     /// 地址
     /// </summary>
-    public static readonly string NetAddress = "192.168.16.78";
+    public static readonly string NetAddress = "127.0.0.1";
     /// <summary>
     /// KCP端口
     /// </summary>
