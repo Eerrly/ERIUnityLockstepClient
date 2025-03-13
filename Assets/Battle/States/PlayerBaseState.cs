@@ -34,6 +34,11 @@ public class PlayerBaseState : BaseState<PlayerEntity>
         entity.State.enteTime = battleEntity.Time;
     }
 
+    /// <summary>
+    /// 状态Update
+    /// </summary>
+    /// <param name="entity">玩家实体</param>
+    /// <param name="battleEntity">战斗实体</param>
     public override void OnUpdate(PlayerEntity entity, BattleEntity battleEntity)
     {
         entity.State.spanTime = battleEntity.Time - entity.State.enteTime;

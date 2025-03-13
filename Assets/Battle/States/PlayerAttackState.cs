@@ -12,7 +12,6 @@ public class PlayerAttackState : PlayerBaseState
 
     public override void OnLateUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
-        base.OnLateUpdate(playerEntity, battleEntity);
         if (AnimationSystem.IsTriggerEvent(playerEntity, EAnimationEvent.AnimStart))
         {
             Logger.Log(LogLevel.Info, $"PlayerAttackState IsTriggerEvent AnimStart");
@@ -26,6 +25,8 @@ public class PlayerAttackState : PlayerBaseState
                 if (other.ID == playerEntity.ID)
                     continue;
                 var attackResult = AreaSystem.InAttackArea(playerEntity, other);
+                if (attackResult)
+                    other.State.nextStateId = (int)EPlayerState.Hit;
                 Logger.Log(LogLevel.Info, $"PlayerAttackState InAttackArea source:{playerEntity.ID} other:{other.ID} attackResult:{attackResult}");
             }
         }

@@ -14,7 +14,7 @@ public enum EBlendTreeParam
 }
 
 /// <summary>
-/// 动画事件
+/// 动画事件 (事件触发时间必须从小到大)
 /// </summary>
 public enum EAnimationEvent
 {
@@ -35,7 +35,7 @@ public enum EAnimationEvent
 }
 
 /// <summary>
-/// 动画ID
+/// 动画ID  (每一个动画都必须拥有上面所有的动画事件，循环动画除外)
 /// </summary>
 public enum EAnimationID
 {
@@ -48,4 +48,8 @@ public enum EAnimationID
     /// 攻击
     /// </summary>
     Attack = 1,
+    /// <summary>
+    /// 收击
+    /// </summary>
+    Hit = 2,
 }

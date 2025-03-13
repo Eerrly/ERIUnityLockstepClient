@@ -26,7 +26,7 @@ public class CameraManager : MManager<CameraManager>
         go.AddComponent<StandaloneInputModule>();
         go.transform.SetParent(transform);
 
-        BattleCameraRotationOffset = Quaternion.Euler(15, 0, 0);
+        BattleCameraRotationOffset = Quaternion.Euler(20, 0, 0);
         BattleCameraPositionOffset = new Vector3(0, 2, -5);
         BattleCameraFollowSmoothness = 5f;
     }

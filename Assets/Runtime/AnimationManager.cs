@@ -10,7 +10,10 @@ public class AnimationManager : MManager<AnimationManager>
 
     [Header("Attack Animation Length (MS)")]
     public int attackAnimEndLength = 16000;
-    public int attackFireLength = 10000;
+    public int attackFireLength = 8000;
+    [Header("Hit Animation Length (ms)")] 
+    public int hitAnimEndLength = 12000;
+    public int hitFireLength = 200;
     
     public override void Initialize()
     {
@@ -71,6 +74,18 @@ public class AnimationManager : MManager<AnimationManager>
                     break;
                 case EAnimationEvent.AnimEnd:
                     return FixedNumber.MakeFixNum(attackAnimEndLength, 10000);
+                    break;
+            }
+        }
+        else if (animationId == EAnimationID.Hit)
+        {
+            switch (animationEvent)
+            {
+                case EAnimationEvent.Fire:
+                    return FixedNumber.MakeFixNum(hitFireLength, 10000);
+                    break;
+                case EAnimationEvent.AnimEnd:
+                    return FixedNumber.MakeFixNum(hitAnimEndLength, 10000);
                     break;
             }
         }

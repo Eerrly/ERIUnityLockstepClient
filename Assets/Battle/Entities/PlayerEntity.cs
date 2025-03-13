@@ -50,12 +50,12 @@ public class PlayerEntity : BaseEntity
         Transform.pos = new FixedVector3(AreaSystem.Boundary.center.x, FixedNumber.One, AreaSystem.Boundary.center.y);
         Transform.rot = FixedQuaternion.Identity;
 
-        Movement.moveSpeed = FixedNumber.MakeFixNum(5, 1);
-        Movement.turnSpeed = FixedNumber.MakeFixNum(180, 1);
+        Movement.moveSpeed = PlayerInitPropertyConstants.MoveSpeed;
+        Movement.turnSpeed = PlayerInitPropertyConstants.TurnSpeed;
         
-        Property.collisionSize = FixedNumber.MakeFixNum(4, 10);
-        Property.attackDistance = FixedNumber.One;
-        Property.attackAngle = FixedNumber.MakeFixNum(35, 1);
+        Property.collisionSize = PlayerInitPropertyConstants.CollisionSize;
+        Property.attackDistance = PlayerInitPropertyConstants.AttackDistance;
+        Property.attackAngle = PlayerInitPropertyConstants.AttackAngle;
         
         Animation.animId = EAnimationID.None;
     }
@@ -75,12 +75,12 @@ public class PlayerEntity : BaseEntity
         Transform.pos = FixedVector3.Zero;
         Transform.rot = FixedQuaternion.Identity;
 
-        Movement.moveSpeed = FixedNumber.MakeFixNum(5, 1);
-        Movement.turnSpeed = FixedNumber.MakeFixNum(180, 1);
+        Movement.moveSpeed = PlayerInitPropertyConstants.MoveSpeed;
+        Movement.turnSpeed = PlayerInitPropertyConstants.TurnSpeed;
         
-        Property.collisionSize = FixedNumber.MakeFixNum(4, 10);
-        Property.attackDistance = FixedNumber.One;
-        Property.attackAngle = FixedNumber.MakeFixNum(35, 1);
+        Property.collisionSize = PlayerInitPropertyConstants.CollisionSize;
+        Property.attackDistance = PlayerInitPropertyConstants.AttackDistance;
+        Property.attackAngle = PlayerInitPropertyConstants.AttackAngle;
 
         Animation.animId = EAnimationID.None;
     }
