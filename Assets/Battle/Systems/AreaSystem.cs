@@ -47,5 +47,19 @@ public class AreaSystem
         pos.z = UnityEngine.Mathf.Clamp(pos.z, BoundaryFloat.yMin, BoundaryFloat.yMax);
         return pos;
     }
+
+    /// <summary>
+    /// 是否处在攻击区域内
+    /// </summary>
+    public static bool InAttackArea(PlayerEntity source, PlayerEntity other)
+    {
+        var distanceSqr = (other.Transform.pos - source.Transform.pos).sqrMagnitudeLongXZ;
+        if (distanceSqr > source.Property.attackDistance * source.Property.attackDistance)
+            return false;
+        var angle = FixedVector3.AngleIntSingle(source.Transform.forward, other.Transform.pos - source.Transform.pos);
+        var result = FixedMath.Abs(angle) <= FixedMath.Abs(source.Property.attackAngle);
+        Logger.Log(LogLevel.Info, $"InAttackArea angle:{angle} attackAngle:{source.Property.attackAngle}");
+        return result;
+    }
     
 }

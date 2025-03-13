@@ -9,10 +9,14 @@ public class PropertyComponent : BaseComponent
     internal struct Common
     {
         public FixedNumber collisionSize;
+        public FixedNumber attackDistance;
+        public FixedNumber attackAngle;
 
         public Common(int no)
         {
             collisionSize = default(FixedNumber);
+            attackDistance = default(FixedNumber);
+            attackAngle = default(FixedNumber);
         }
     }
 
@@ -25,6 +29,24 @@ public class PropertyComponent : BaseComponent
     {
         get => common.collisionSize;
         set => common.collisionSize = value;
+    }
+
+    /// <summary>
+    /// 攻击距离
+    /// </summary>
+    public FixedNumber attackDistance
+    {
+        get => common.attackDistance;
+        set => common.attackDistance = value;
+    }
+
+    /// <summary>
+    /// 攻击扇形角度
+    /// </summary>
+    public FixedNumber attackAngle
+    {
+        get => common.attackAngle;
+        set => common.attackAngle = value;
     }
 
     private int[] _closedPlayerEntityIds = new int[BattleSetting.MaxPlayerInRoomCount];
@@ -47,6 +69,8 @@ public class PropertyComponent : BaseComponent
     public override void Serialize(BinaryWriter writer)
     {
         writer.Write(common.collisionSize._raw);
+        writer.Write(common.attackDistance._raw);
+        writer.Write(common.attackAngle._raw);
         writer.Write(_closedPlayerEntityIds.Length);
         for (int i = 0; i < _closedPlayerEntityIds.Length; i++)
             writer.Write(_closedPlayerEntityIds[i]);
@@ -55,6 +79,8 @@ public class PropertyComponent : BaseComponent
     public override void Deserialize(BinaryReader reader)
     {
         common.collisionSize = new FixedNumber(reader.ReadInt64());
+        common.attackDistance = new FixedNumber(reader.ReadInt64());
+        common.attackAngle = new FixedNumber(reader.ReadInt64());
         var _closedPlayerEntityIds_Length = reader.ReadInt32();
         for (int i = 0; i < _closedPlayerEntityIds_Length; i++)
             _closedPlayerEntityIds[i] = reader.ReadInt32();

@@ -10,5 +10,10 @@ public enum EPlayerState
     /// </summary>
     Move = 1,
     
+    /// <summary>
+    /// 攻击
+    /// </summary>
+    Attack = 2,
+    
     Count,
 }

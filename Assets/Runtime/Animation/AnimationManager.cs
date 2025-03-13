@@ -2,23 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// 动画状态机对应参数
-/// </summary>
-public enum EBlendTreeParam
-{
-    MoveForward,
-    Turn,
-}
-
 public class AnimationManager : MManager<AnimationManager>
 {
     private Dictionary<EBlendTreeParam, int> _blendTreeParamHashCacheDic;
+    private Dictionary<EAnimationID, int> _animationHashCacheDic;
     private Dictionary<int, Animator> _playerAnimatorDic;
+
+    [Header("Attack Animation Length (MS)")]
+    public int attackAnimEndLength = 16000;
+    public int attackFireLength = 10000;
     
     public override void Initialize()
     {
         _blendTreeParamHashCacheDic = new Dictionary<EBlendTreeParam, int>();
+        _animationHashCacheDic = new Dictionary<EAnimationID, int>();
         _playerAnimatorDic = new Dictionary<int, Animator>();
     }
 
@@ -58,16 +55,37 @@ public class AnimationManager : MManager<AnimationManager>
     }
 
     /// <summary>
-    /// 播放动画
+    /// 获取动画对应事件长度
     /// </summary>
-    public void Play(int id, string stateName)
+    public FixedNumber GetAnimationLength(EAnimationID animationId, EAnimationEvent animationEvent)
     {
-        _playerAnimatorDic[id].Play(stateName);
+        // 开始帧为0
+        if (animationEvent == EAnimationEvent.AnimStart)
+            return FixedNumber.Zero;
+        if (animationId == EAnimationID.Attack)
+        {
+            switch (animationEvent)
+            {
+                case EAnimationEvent.Fire:
+                    return FixedNumber.MakeFixNum(attackFireLength, 10000);
+                    break;
+                case EAnimationEvent.AnimEnd:
+                    return FixedNumber.MakeFixNum(attackAnimEndLength, 10000);
+                    break;
+            }
+        }
+        return default;
     }
 
-    private void LateUpdate()
+    /// <summary>
+    /// 播放动画
+    /// </summary>
+    public void CrossFadeInFixedTime(int id, EAnimationID animationId, float transitionDuration)
     {
-        
+        if (!_animationHashCacheDic.TryGetValue(animationId, out var animationHash))
+            animationHash = Animator.StringToHash(Enum.GetName(typeof(EAnimationID), animationId));
+        _playerAnimatorDic[id].CrossFadeInFixedTime(animationHash, transitionDuration, 0);
+        _playerAnimatorDic[id].Update(0);
     }
     
 }

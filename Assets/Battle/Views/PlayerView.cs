@@ -27,6 +27,8 @@ public class PlayerView : BaseView<PlayerEntity>
 
     private float _animatorMoveForwardValue;
     private float _animatorTurnValue;
+
+    private EAnimationID _lastAnimationId = EAnimationID.None;
     
     /// <summary>
     /// 初始化渲染
@@ -35,9 +37,12 @@ public class PlayerView : BaseView<PlayerEntity>
     public override void InitView(PlayerEntity entity)
     {
         ID = entity.ID;
-        _instance = Instantiate(Resources.Load<GameObject>(BattleSetting.PlayerCharacterPath), Vector3.zero, Quaternion.identity);
-        AnimationManager.Instance.SetPlayerAnimator(entity.ID, Util.GetOrAddComponent<Animator>(_instance));
+        _instance = Instantiate(Resources.Load<GameObject>(BattleSetting.PlayerCharacterPath + ID), Vector3.zero, Quaternion.identity);
         _instance.transform.SetParent(transform, false);
+
+        _animator = Util.GetOrAddComponent<Animator>(_instance);
+        AnimationManager.Instance.SetPlayerAnimator(entity.ID, _animator);
+        
         var meshRenders = _instance.GetComponentsInChildren<MeshRenderer>();
         foreach (var render in meshRenders)
             render.material.color = BattleSetting.InitPlayerColor[entity.ID];
@@ -52,11 +57,14 @@ public class PlayerView : BaseView<PlayerEntity>
     {
         _beforeRotationForward = transform.forward;
         TransformUpdate(entity, deltaTime);
+        AnimationUpdate(entity);
 #if UNITY_EDITOR
         DebugTextContainer.Instance.SetText(transform, "State", entity.State.currStateId);
         DebugTextContainer.Instance.SetText(transform, "Yaw", entity.Input.yaw);
         DebugTextContainer.Instance.SetText(transform, "Key", entity.Input.key);
+        DebugTextContainer.Instance.SetText(transform, "Anim", (int)entity.Animation.animId);
 #endif
+        
     }
 
     /// <summary>
@@ -71,6 +79,18 @@ public class PlayerView : BaseView<PlayerEntity>
 
         SetMoveForward(entity.ID, KeySystem.IsYawTypeStop(entity.Input.yaw) ? 0f : 1.1f);
         SetTurn(entity.ID, turn);
+    }
+
+    /// <summary>
+    /// 动画轮询
+    /// </summary>
+    private void AnimationUpdate(PlayerEntity entity)
+    {
+        if (_lastAnimationId != entity.Animation.animId)
+        {
+            _lastAnimationId = entity.Animation.animId;
+            AnimationManager.Instance.CrossFadeInFixedTime(entity.ID, entity.Animation.animId, AnimationSystem.DefaultTransitionDuration.ToFloat());
+        }
     }
 
     /// <summary>

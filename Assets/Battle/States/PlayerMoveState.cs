@@ -7,6 +7,7 @@ public class PlayerMoveState : PlayerBaseState
     public override void OnEnter(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         base.OnEnter(playerEntity, battleEntity);
+        AnimationSystem.SetAnimation(playerEntity, battleEntity, EAnimationID.Locomotion, true);
     }
 
     public override void OnUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
@@ -18,6 +19,8 @@ public class PlayerMoveState : PlayerBaseState
 
     public override void OnLateUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
+        if (KeySystem.CheckKeyCodeJDown(playerEntity))
+            playerEntity.State.nextStateId = (int)EPlayerState.Attack;
     }
 
     public override void OnCollision(PlayerEntity source, PlayerEntity target, BattleEntity battleEntity)

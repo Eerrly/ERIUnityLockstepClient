@@ -10,11 +10,13 @@ public class TransformComponent : BaseComponent
     {
         public FixedVector3 pos;
         public FixedQuaternion rot;
+        public FixedVector3 forward;
 
         public Common(int no)
         {
             pos = default(FixedVector3);
             rot = default(FixedQuaternion);
+            forward = default(FixedVector3);
         }
     }
     
@@ -37,6 +39,15 @@ public class TransformComponent : BaseComponent
         get => common.rot;
         set => common.rot = value;
     }
+
+    /// <summary>
+    /// 当前朝向方向
+    /// </summary>
+    public FixedVector3 forward
+    {
+        get => common.forward;
+        set => common.forward = value;
+    }
     
     public override void CopyTo(BaseComponent component)
     {
@@ -53,11 +64,15 @@ public class TransformComponent : BaseComponent
         writer.Write(common.rot.y._raw);
         writer.Write(common.rot.z._raw);
         writer.Write(common.rot.w._raw);
+        writer.Write(common.forward.x._raw);
+        writer.Write(common.forward.y._raw);
+        writer.Write(common.forward.z._raw);
     }
 
     public override void Deserialize(BinaryReader reader)
     {
         common.pos = new FixedVector3(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
         common.rot = new FixedQuaternion(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
+        common.forward = new FixedVector3(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
     }
 }

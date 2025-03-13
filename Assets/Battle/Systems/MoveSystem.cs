@@ -49,6 +49,7 @@ public class MoveSystem
         entity.Transform.rot = currentRotation;
 
         entity.Movement.position = FixedVector3.Zero;
+        entity.Transform.forward = currentRotation * FixedVector3.Forward;
     }
 
     /// <summary>

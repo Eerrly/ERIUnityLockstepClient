@@ -30,6 +30,10 @@ public class PlayerEntity : BaseEntity
     /// 属性组件
     /// </summary>
     public readonly PropertyComponent Property = new PropertyComponent();
+    /// <summary>
+    /// 动画组件
+    /// </summary>
+    public readonly AnimationComponent Animation = new AnimationComponent();
 
     public override void Init()
     {
@@ -49,7 +53,11 @@ public class PlayerEntity : BaseEntity
         Movement.moveSpeed = FixedNumber.MakeFixNum(5, 1);
         Movement.turnSpeed = FixedNumber.MakeFixNum(180, 1);
         
-        Property.collisionSize = FixedNumber.MakeFixNum(5, 10);
+        Property.collisionSize = FixedNumber.MakeFixNum(4, 10);
+        Property.attackDistance = FixedNumber.One;
+        Property.attackAngle = FixedNumber.MakeFixNum(35, 1);
+        
+        Animation.animId = EAnimationID.None;
     }
 
     public override void Reset()
@@ -70,7 +78,11 @@ public class PlayerEntity : BaseEntity
         Movement.moveSpeed = FixedNumber.MakeFixNum(5, 1);
         Movement.turnSpeed = FixedNumber.MakeFixNum(180, 1);
         
-        Property.collisionSize = FixedNumber.MakeFixNum(5, 10);
+        Property.collisionSize = FixedNumber.MakeFixNum(4, 10);
+        Property.attackDistance = FixedNumber.One;
+        Property.attackAngle = FixedNumber.MakeFixNum(35, 1);
+
+        Animation.animId = EAnimationID.None;
     }
 
     public override void CopyTo(BaseEntity entity)
@@ -82,6 +94,7 @@ public class PlayerEntity : BaseEntity
         Movement.CopyTo(playerEntity.Movement);
         Transform.CopyTo(playerEntity.Transform);
         Property.CopyTo(playerEntity.Property);
+        Animation.CopyTo(playerEntity.Animation);
     }
 
     public override void Serialize(BinaryWriter writer)
@@ -104,6 +117,7 @@ public class PlayerEntity : BaseEntity
         sb.Append($"State->(CurrStateId:{State.currStateId} NextStateId:{State.nextStateId} PrevStateId:{State.prevStateId} EnteTime:{State.enteTime} ExitTime:{State.exitTime} Count:{State.count}),");
         sb.Append($"Transform->(Pos:{Transform.pos} Rot:{Transform.rot}),");
         sb.Append($"Movement->(Position:{Movement.position} Rotation:{Movement.rotation} MoveSpeed:{Movement.moveSpeed} TurnSpeed:{Movement.turnSpeed})");
+        sb.Append($"Animation->(AnimationId:{Animation.animId})");
         return sb.ToString();
     }
 

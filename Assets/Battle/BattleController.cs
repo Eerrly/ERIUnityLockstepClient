@@ -418,6 +418,7 @@ public class BattleController
     {
         battleEntity.Time += FrameEngine.FrameInterval;
         var playerEntities = battleEntity.PlayerEntities;
+        AnimationSystem.UpdateEvent(battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.Update(entity, battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.LateUpdate(entity, battleEntity);
         foreach (var entity in playerEntities) PlayerStateMachine.Instance.DoChangeState(entity, battleEntity);
