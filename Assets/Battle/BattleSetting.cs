@@ -48,6 +48,6 @@ public class BattleSetting
     /// <summary>
     /// 战斗实体预制体
     /// </summary>
-    public const string BattleViewPath = "Prefabs/Plane";
+    public const string BattleViewPath = "Data/Prefabs/Plane";
     
 }

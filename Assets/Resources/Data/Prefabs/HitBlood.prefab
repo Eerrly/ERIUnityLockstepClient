@@ -9776,7 +9776,7 @@ GameObject:
   - component: {fileID: 5739739931887995116}
   - component: {fileID: 5739073513559621208}
   m_Layer: 0
-  m_Name: FX_BloodSplat_Red_01
+  m_Name: HitBlood
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

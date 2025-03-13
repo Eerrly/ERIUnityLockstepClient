@@ -11,12 +11,14 @@ public class PropertyComponent : BaseComponent
         public FixedNumber collisionSize;
         public FixedNumber attackDistance;
         public FixedNumber attackAngle;
+        public System.Int32 effect;
 
         public Common(int no)
         {
             collisionSize = default(FixedNumber);
             attackDistance = default(FixedNumber);
             attackAngle = default(FixedNumber);
+            effect = default(System.Int32);
         }
     }
 
@@ -49,6 +51,12 @@ public class PropertyComponent : BaseComponent
         set => common.attackAngle = value;
     }
 
+    public System.Int32 effect
+    {
+        get => common.effect;
+        set => common.effect = value;
+    }
+
     private int[] _closedPlayerEntityIds = new int[BattleSetting.MaxPlayerInRoomCount];
     /// <summary>
     /// 与其有碰撞的其他玩家实体
@@ -71,6 +79,7 @@ public class PropertyComponent : BaseComponent
         writer.Write(common.collisionSize._raw);
         writer.Write(common.attackDistance._raw);
         writer.Write(common.attackAngle._raw);
+        writer.Write(common.effect);
         writer.Write(_closedPlayerEntityIds.Length);
         for (int i = 0; i < _closedPlayerEntityIds.Length; i++)
             writer.Write(_closedPlayerEntityIds[i]);
@@ -81,6 +90,7 @@ public class PropertyComponent : BaseComponent
         common.collisionSize = new FixedNumber(reader.ReadInt64());
         common.attackDistance = new FixedNumber(reader.ReadInt64());
         common.attackAngle = new FixedNumber(reader.ReadInt64());
+        common.effect = reader.ReadInt32();
         var _closedPlayerEntityIds_Length = reader.ReadInt32();
         for (int i = 0; i < _closedPlayerEntityIds_Length; i++)
             _closedPlayerEntityIds[i] = reader.ReadInt32();

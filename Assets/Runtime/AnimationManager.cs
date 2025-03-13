@@ -43,7 +43,10 @@ public class AnimationManager : MManager<AnimationManager>
     public void SetFloatValue(int id, EBlendTreeParam param, float value)
     {
         if (!_blendTreeParamHashCacheDic.TryGetValue(param, out var blendTreeParamHash))
+        {
             blendTreeParamHash = Animator.StringToHash(Enum.GetName(typeof(EBlendTreeParam), param));
+            _blendTreeParamHashCacheDic[param] = blendTreeParamHash;
+        }
         _playerAnimatorDic[id].SetFloat(blendTreeParamHash, value);
     }
 
@@ -53,7 +56,10 @@ public class AnimationManager : MManager<AnimationManager>
     public void SetIntValue(int id, EBlendTreeParam param, int value)
     {
         if (!_blendTreeParamHashCacheDic.TryGetValue(param, out var blendTreeParamHash))
+        {
             blendTreeParamHash = Animator.StringToHash(Enum.GetName(typeof(EBlendTreeParam), param));
+            _blendTreeParamHashCacheDic[param] = blendTreeParamHash;
+        }
         _playerAnimatorDic[id].SetInteger(blendTreeParamHash, value);
     }
 
@@ -98,7 +104,10 @@ public class AnimationManager : MManager<AnimationManager>
     public void CrossFadeInFixedTime(int id, EAnimationID animationId, float transitionDuration)
     {
         if (!_animationHashCacheDic.TryGetValue(animationId, out var animationHash))
+        {
             animationHash = Animator.StringToHash(Enum.GetName(typeof(EAnimationID), animationId));
+            _animationHashCacheDic[animationId] = animationHash;
+        }
         _playerAnimatorDic[id].CrossFadeInFixedTime(animationHash, transitionDuration, 0);
         _playerAnimatorDic[id].Update(0);
     }

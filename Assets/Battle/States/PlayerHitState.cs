@@ -7,6 +7,7 @@ public class PlayerHitState : PlayerBaseState
     public override void OnEnter(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         base.OnEnter(playerEntity, battleEntity);
+        playerEntity.Property.effect = (int)EEffectType.HitBlood;
         AnimationSystem.SetAnimation(playerEntity, battleEntity, EAnimationID.Hit);
     }
 
@@ -19,5 +20,6 @@ public class PlayerHitState : PlayerBaseState
     public override void OnExit(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         base.OnExit(playerEntity, battleEntity);
+        playerEntity.Property.effect = 0;
     }
 }

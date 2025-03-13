@@ -53,3 +53,18 @@ public enum EAnimationID
     /// </summary>
     Hit = 2,
 }
+
+/// <summary>
+/// 特效类型
+/// </summary>
+public enum EEffectType
+{
+    None = 0,
+    
+    /// <summary>
+    /// 收击流血
+    /// </summary>
+    HitBlood = 1,
+    
+    Count,
+}

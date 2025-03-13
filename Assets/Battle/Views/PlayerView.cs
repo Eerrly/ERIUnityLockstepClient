@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -29,6 +30,9 @@ public class PlayerView : BaseView<PlayerEntity>
     private float _animatorTurnValue;
 
     private EAnimationID _lastAnimationId = EAnimationID.None;
+
+    private int _currentEffect;
+    private Dictionary<int, GameObject> _effectCacheDic = new Dictionary<int, GameObject>();
     
     /// <summary>
     /// 初始化渲染
@@ -54,6 +58,7 @@ public class PlayerView : BaseView<PlayerEntity>
     {
         _beforeRotationForward = transform.forward;
         TransformUpdate(entity, deltaTime);
+        EffectUpdate(entity);
         AnimationUpdate(entity);
 #if UNITY_EDITOR
         DebugTextContainer.Instance.SetText(transform, "State", entity.State.currStateId);
@@ -76,6 +81,39 @@ public class PlayerView : BaseView<PlayerEntity>
 
         SetMoveForward(entity.ID, KeySystem.IsYawTypeStop(entity.Input.yaw) ? 0f : 1.1f);
         SetTurn(entity.ID, turn);
+    }
+
+    /// <summary>
+    /// 特效轮询
+    /// </summary>
+    /// <param name="entity"></param>
+    private void EffectUpdate(PlayerEntity entity)
+    {
+        if (entity.Property.effect == 0)
+        {
+            if (_currentEffect != (int)EEffectType.None)
+            {
+                _effectCacheDic[_currentEffect].SetActive(false);
+                _currentEffect = (int)EEffectType.None;
+            }
+            return;
+        }
+
+        if (!_effectCacheDic.TryGetValue(entity.Property.effect, out var effectObj))
+        {
+            var effectTypeName = Enum.GetName(typeof(EEffectType), entity.Property.effect);
+            effectObj = Instantiate(Resources.Load<GameObject>("Data/Prefabs/" + effectTypeName), Vector3.zero, Quaternion.identity);
+            effectObj.transform.SetParent(transform, false);
+
+            effectObj.transform.position += Vector3.up;
+            effectObj.transform.localScale *= 2;
+            
+            _effectCacheDic[entity.Property.effect] = effectObj;
+        }
+        
+        _effectCacheDic[entity.Property.effect].SetActive(true);
+        
+        _currentEffect = entity.Property.effect;
     }
 
     /// <summary>
