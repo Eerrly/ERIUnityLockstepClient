@@ -7,7 +7,10 @@ public class BattlePlayingState : BattleBaseState
     public override void OnEnter(BattleEntity entity, BattleEntity _)
     {
         base.OnEnter(entity, _);
-        Logger.Log(LogLevel.Info, $"BattlePlayingState OnEnter Name:{entity.Name} Frame:{entity.Frame} Time:{entity.Time}");
+        Logger.Log(LogLevel.Info, $"BattlePlayingState OnEnter " +
+                                  $"Type:{System.Enum.GetName(typeof(EBattleEntityType), entity.BattleEntityType)} " +
+                                  $"Frame:{entity.Frame} " +
+                                  $"Time:{entity.Time}");
     }
 
     public override void OnUpdate(BattleEntity entity, BattleEntity _)

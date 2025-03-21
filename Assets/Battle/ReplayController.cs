@@ -66,7 +66,7 @@ public class ReplayController
             {
                 while (fs.Position < fs.Length)
                 {
-                    var entity = new BattleEntity { Name = "Display" };
+                    var entity = new BattleEntity { BattleEntityType = EBattleEntityType.Display };
                     entity.Deserialize(br);
                     _battleEntities.Add(entity);
                 }

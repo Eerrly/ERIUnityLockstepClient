@@ -12,7 +12,7 @@ public class BattleView : BaseView<BattleEntity>
     /// <summary>
     /// 战斗实体名称
     /// </summary>
-    [SerializeField]private string battleViewName;
+    [SerializeField] private EBattleEntityType battleEntityType;
     /// <summary>
     /// 所有的玩家渲染列表
     /// </summary>
@@ -26,7 +26,7 @@ public class BattleView : BaseView<BattleEntity>
     /// <param name="entity">战斗实体</param>
     public override void InitView(BattleEntity entity)
     {
-        battleViewName = entity.Name;
+        battleEntityType = entity.BattleEntityType;
         
         var bv = Instantiate(Resources.Load<GameObject>(PlayerSetting.BattleViewPath), new Vector3(-11, 2.5f, 18), Quaternion.identity);
         _textMesh = Util.GetOrAddComponent<TextMesh>(bv);
@@ -53,7 +53,7 @@ public class BattleView : BaseView<BattleEntity>
     public override void RenderUpdate(BattleEntity entity, float deltaTime)
     {
         if (entity != null && _textMesh != null)
-            _textMesh.text = $"Name:{entity.Name} Frame:{entity.Frame} Time:{entity.Time.ToString()}";
+            _textMesh.text = $"Name:{System.Enum.GetName(typeof(EBattleEntityType), entity.BattleEntityType)} Frame:{entity.Frame} Time:{entity.Time.ToString()}";
 
         if(_playerViews == null || _playerViews.Count != entity.PlayerEntities.Count) return;
         

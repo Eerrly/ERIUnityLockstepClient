@@ -7,9 +7,9 @@ using System.IO;
 public class BattleEntity: BaseEntity
 {
     /// <summary>
-    /// 实体名称
+    /// 实体类型
     /// </summary>
-    public string Name;
+    public EBattleEntityType BattleEntityType;
 
     /// <summary>
     /// 帧号
@@ -33,7 +33,7 @@ public class BattleEntity: BaseEntity
 
     public override void Init()
     {
-        Name = "None";
+        BattleEntityType = EBattleEntityType.None;
         Frame = -1;
         Time = FixedNumber.Zero;
         PlayerEntities = new List<PlayerEntity>();
@@ -46,7 +46,7 @@ public class BattleEntity: BaseEntity
 
     public override void Reset()
     {
-        Name = "None";
+        BattleEntityType = EBattleEntityType.None;
         Frame = -1;
         Time = FixedNumber.Zero;
         PlayerEntities = new List<PlayerEntity>();
@@ -115,7 +115,7 @@ public class BattleEntity: BaseEntity
     {
         var sb = new System.Text.StringBuilder();
         sb.Append("[");
-        sb.Append($"Name:{Name} Frame:{Frame} Time:{Time} ");
+        sb.Append($"Type:{System.Enum.GetName(typeof(EBattleEntityType), BattleEntityType)} Frame:{Frame} Time:{Time} ");
         foreach (var p in PlayerEntities)
             sb.Append($"{p}");
         sb.Append("]");

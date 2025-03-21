@@ -109,11 +109,11 @@ public class BattleController
     {
         _lastSentInput = new FrameBuffer.Input(byte.MaxValue);
         _confirmBattleEntity = new BattleEntity(); _confirmBattleEntity.Init();
-        _confirmBattleEntity.Name = "Confirm";
+        _confirmBattleEntity.BattleEntityType = EBattleEntityType.Confirm;
         _predictBattleEntity = new BattleEntity(); _predictBattleEntity.Init();
-        _predictBattleEntity.Name = "Predict";
+        _predictBattleEntity.BattleEntityType = EBattleEntityType.Predict;
         _displayBattleEntity = new BattleEntity(); _displayBattleEntity.Init();
-        _displayBattleEntity.Name = "Display";
+        _displayBattleEntity.BattleEntityType = EBattleEntityType.Display;
         for (var i = 0; i < GameManager.Instance.RoomInfo.Gamers.Count; i++)
         {
             var playerEntity = new PlayerEntity(); 
@@ -381,7 +381,7 @@ public class BattleController
         UpdateEntityInput(_predictBattleEntity, ref _lastNetworkFrame);
         UpdateEntityState(_predictBattleEntity);
 
-        newEntity.Name = "Predict";
+        newEntity.BattleEntityType = EBattleEntityType.Predict;
         _predictBattleEntity.CopyTo(newEntity);
         _predictBattleEntityQueue.Enqueue(newEntity);
         _predictFrameQueue.Enqueue(_lastNetworkFrame);

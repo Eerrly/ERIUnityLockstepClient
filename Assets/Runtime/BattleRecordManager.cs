@@ -138,7 +138,7 @@ public class BattleRecordManager : AManager<BattleRecordManager>
 
                 if (entity == null) entity = new BattleEntity();
 
-                entity.Name = "Record";
+                entity.BattleEntityType = EBattleEntityType.Record;
                 battleEntity.CopyTo(entity);
                 lock (_writerLock)
                 {
