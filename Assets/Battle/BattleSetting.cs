@@ -40,14 +40,4 @@ public class BattleSetting
     /// </summary>
     public const int MaxPredictFrameCount = 4;
     
-    /// <summary>
-    /// 玩家实体预制体
-    /// </summary>
-    public const string PlayerCharacterPath = "Data/Prefabs/Player";
-    
-    /// <summary>
-    /// 战斗实体预制体
-    /// </summary>
-    public const string BattleViewPath = "Data/Prefabs/Plane";
-    
 }

@@ -28,7 +28,7 @@ public class BattleView : BaseView<BattleEntity>
     {
         battleViewName = entity.Name;
         
-        var bv = Instantiate(Resources.Load<GameObject>(BattleSetting.BattleViewPath), new Vector3(-11, 2.5f, 18), Quaternion.identity);
+        var bv = Instantiate(Resources.Load<GameObject>(PlayerSetting.BattleViewPath), new Vector3(-11, 2.5f, 18), Quaternion.identity);
         _textMesh = Util.GetOrAddComponent<TextMesh>(bv);
         _textMesh.transform.SetParent(transform);
         

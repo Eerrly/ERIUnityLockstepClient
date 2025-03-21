@@ -27,4 +27,9 @@ public class PlayerInitPropertyConstants
     /// 攻击扇形夹角
     /// </summary>
     public static readonly FixedNumber AttackAngle = FixedNumber.MakeFixNum(45, 1);
+
+    /// <summary>
+    /// 攻击间隔时间
+    /// </summary>
+    public static readonly FixedNumber AttackCdTime = FixedNumber.Zero;
 }

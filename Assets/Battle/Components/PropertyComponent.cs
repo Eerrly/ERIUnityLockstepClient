@@ -11,6 +11,7 @@ public class PropertyComponent : BaseComponent
         public FixedNumber collisionSize;
         public FixedNumber attackDistance;
         public FixedNumber attackAngle;
+        public FixedNumber attackCdTime;
         public System.Int32 effect;
 
         public Common(int no)
@@ -18,6 +19,7 @@ public class PropertyComponent : BaseComponent
             collisionSize = default(FixedNumber);
             attackDistance = default(FixedNumber);
             attackAngle = default(FixedNumber);
+            attackCdTime = default(FixedNumber);
             effect = default(System.Int32);
         }
     }
@@ -51,6 +53,18 @@ public class PropertyComponent : BaseComponent
         set => common.attackAngle = value;
     }
 
+    /// <summary>
+    /// 攻击间隔时间
+    /// </summary>
+    public FixedNumber attackCdTime
+    {
+        get => common.attackCdTime;
+        set => common.attackCdTime = value;
+    }
+    
+    /// <summary>
+    /// 特效类型
+    /// </summary>
     public System.Int32 effect
     {
         get => common.effect;

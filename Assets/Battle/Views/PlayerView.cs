@@ -41,7 +41,7 @@ public class PlayerView : BaseView<PlayerEntity>
     public override void InitView(PlayerEntity entity)
     {
         ID = entity.ID;
-        _instance = Instantiate(Resources.Load<GameObject>(BattleSetting.PlayerCharacterPath + ID), Vector3.zero, Quaternion.identity);
+        _instance = Instantiate(Resources.Load<GameObject>(PlayerSetting.PlayerCharacterPath + ID), Vector3.zero, Quaternion.identity);
         _instance.transform.SetParent(transform, false);
 
         _animator = Util.GetOrAddComponent<Animator>(_instance);

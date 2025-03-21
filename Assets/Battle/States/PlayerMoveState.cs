@@ -20,7 +20,15 @@ public class PlayerMoveState : PlayerBaseState
     public override void OnLateUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         if (KeySystem.CheckKeyCodeJDown(playerEntity))
-            playerEntity.State.nextStateId = (int)EPlayerState.Attack;
+        {
+            if (battleEntity.Time >= playerEntity.Property.attackCdTime)
+            {
+                playerEntity.Property.attackCdTime = battleEntity.Time + PlayerSetting.AttackCd;
+                playerEntity.State.nextStateId = (int)EPlayerState.Attack;
+            }
+            else
+                Logger.Log(LogLevel.Info, $"Attack CD attackCdTime:{playerEntity.Property.attackCdTime} time:{battleEntity.Time}");
+        }
     }
 
     public override void OnCollision(PlayerEntity source, PlayerEntity target, BattleEntity battleEntity)
