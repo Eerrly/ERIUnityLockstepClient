@@ -7,6 +7,7 @@
 public class AnimationSystem
 {
     public static readonly FixedNumber DefaultTransitionDuration = FixedNumber.MakeFixNum(2, 30);
+    public static readonly FixedNumber DefaultAnimEndDuration = FixedNumber.MakeFixNum(3333333 * 5, 100000000);
 
     /// <summary>
     /// 设置动画
@@ -38,7 +39,12 @@ public class AnimationSystem
                 continue;
             // 是否达到了触发事件的时间
             var animationEventLength = AnimationManager.Instance.GetAnimationLength(playerEntity.Animation.animId, (EAnimationEvent)index);
-            var condition = battleEntity.Time >= playerEntity.Animation.startTime + animationEventLength;
+            var conditionTime = playerEntity.Animation.startTime + animationEventLength;
+            // 如果是结束，则在减去过渡值
+            if (index == (int)EAnimationEvent.AnimEnd)
+                conditionTime -= DefaultAnimEndDuration;
+            // 满足时间条件
+            var condition = battleEntity.Time >= conditionTime;
             if (!condition)
                 continue;
             // 动画事件索引++

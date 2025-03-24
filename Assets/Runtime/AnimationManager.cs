@@ -8,25 +8,52 @@ public class AnimationManager : MManager<AnimationManager>
     private Dictionary<EAnimationID, int> _animationHashCacheDic;
     private Dictionary<int, Animator> _playerAnimatorDic;
 
-    [Header("Attack Animation Length (MS)")]
-    public int attackAnimEndLength = 16000;
-    public int attackFireLength = 8000;
-    [Header("Hit Animation Length (ms)")] 
-    public int hitAnimEndLength = 12000;
-    public int hitFireLength = 200;
+    private readonly Dictionary<EAnimationID, string> _playerAnimationPathDic = new()
+    {
+        [EAnimationID.Attack] = "Data/AnimationData/zombie_light_attack_02",
+        [EAnimationID.Hit] = "Data/AnimationData/zombie_hit_react_F_01"
+    };
+
+    private Dictionary<EAnimationID, Dictionary<EAnimationEvent, FixedNumber>> _playerAnimationEventLengthCacheDic;
     
     public override void Initialize()
     {
         _blendTreeParamHashCacheDic = new Dictionary<EBlendTreeParam, int>();
         _animationHashCacheDic = new Dictionary<EAnimationID, int>();
         _playerAnimatorDic = new Dictionary<int, Animator>();
+        _playerAnimationEventLengthCacheDic = new Dictionary<EAnimationID, Dictionary<EAnimationEvent, FixedNumber>>();
+        
+        foreach (var playerAnimPathKv in _playerAnimationPathDic)
+        {
+            if (!_playerAnimationEventLengthCacheDic.TryGetValue(playerAnimPathKv.Key, out var animEventLengthDic))
+            {
+                animEventLengthDic = new Dictionary<EAnimationEvent, FixedNumber>();
+                _playerAnimationEventLengthCacheDic[playerAnimPathKv.Key] = animEventLengthDic;
+            }
+
+            var animationData = Resources.Load<AnimationData>(playerAnimPathKv.Value);
+            foreach (var animEvent in animationData.eventList)
+            {
+                animEventLengthDic[(EAnimationEvent)animEvent.type] = FixedNumber.MakeFixNum(3333333 * animEvent.frame, 100000000);
+                Logger.Log(LogLevel.Info, $"Initialize AnimationData " +
+                                          $"EAnimationID: {System.Enum.GetName(typeof(EAnimationID), playerAnimPathKv.Key)} " +
+                                          $"EAnimationEvent: {System.Enum.GetName(typeof(EAnimationEvent), (EAnimationEvent)animEvent.type)} " +
+                                          $"Time: {animEventLengthDic[(EAnimationEvent)animEvent.type]}");
+            }
+            animEventLengthDic[EAnimationEvent.AnimEnd] = FixedNumber.MakeFixNum((long)(animationData.length * 10000), 10000);
+            Logger.Log(LogLevel.Info, $"Initialize AnimationData " +
+                                      $"EAnimationID: {System.Enum.GetName(typeof(EAnimationID), playerAnimPathKv.Key)} " +
+                                      $"EAnimationEvent: {System.Enum.GetName(typeof(EAnimationEvent), EAnimationEvent.AnimEnd)} " +
+                                      $"Time: {animEventLengthDic[EAnimationEvent.AnimEnd]}");
+        }
+
     }
 
     public override void OnRelease()
     {
         _playerAnimatorDic.Clear();
     }
-
+    
     /// <summary>
     /// 设置玩家对应的状态机组件
     /// </summary>
@@ -39,7 +66,7 @@ public class AnimationManager : MManager<AnimationManager>
 
     /// <summary>
     /// 给状态机动画传递参数
-    /// </summary>
+    /// </summary> 
     public void SetFloatValue(int id, EBlendTreeParam param, float value)
     {
         if (!_blendTreeParamHashCacheDic.TryGetValue(param, out var blendTreeParamHash))
@@ -68,33 +95,18 @@ public class AnimationManager : MManager<AnimationManager>
     /// </summary>
     public FixedNumber GetAnimationLength(EAnimationID animationId, EAnimationEvent animationEvent)
     {
-        // 开始帧为0
-        if (animationEvent == EAnimationEvent.AnimStart)
-            return FixedNumber.Zero;
-        if (animationId == EAnimationID.Attack)
+        Logger.Log(LogLevel.Info, $"GetAnimationLength " +
+                                  $"EAnimationID: {System.Enum.GetName(typeof(EAnimationID), animationId)} " +
+                                  $"EAnimationEvent: {System.Enum.GetName(typeof(EAnimationEvent), animationEvent)} ");
+
+        if (_playerAnimationEventLengthCacheDic.TryGetValue(animationId, out var animEventLengthDic))
         {
-            switch (animationEvent)
-            {
-                case EAnimationEvent.Fire:
-                    return FixedNumber.MakeFixNum(attackFireLength, 10000);
-                    break;
-                case EAnimationEvent.AnimEnd:
-                    return FixedNumber.MakeFixNum(attackAnimEndLength, 10000);
-                    break;
-            }
+            if (animEventLengthDic.TryGetValue(animationEvent, out var length))
+                return length;
+            else
+                Logger.Log(LogLevel.Error, $"GetAnimationLength EAnimationEvent: {animationEvent} Not Found!");
         }
-        else if (animationId == EAnimationID.Hit)
-        {
-            switch (animationEvent)
-            {
-                case EAnimationEvent.Fire:
-                    return FixedNumber.MakeFixNum(hitFireLength, 10000);
-                    break;
-                case EAnimationEvent.AnimEnd:
-                    return FixedNumber.MakeFixNum(hitAnimEndLength, 10000);
-                    break;
-            }
-        }
+        
         return default;
     }
 
@@ -108,6 +120,7 @@ public class AnimationManager : MManager<AnimationManager>
             animationHash = Animator.StringToHash(Enum.GetName(typeof(EAnimationID), animationId));
             _animationHashCacheDic[animationId] = animationHash;
         }
+
         _playerAnimatorDic[id].CrossFadeInFixedTime(animationHash, transitionDuration, 0);
         _playerAnimatorDic[id].Update(0);
     }

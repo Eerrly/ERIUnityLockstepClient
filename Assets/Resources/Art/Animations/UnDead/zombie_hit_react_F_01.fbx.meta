@@ -22,7 +22,7 @@ ModelImporter:
     rigImportErrors: 
     rigImportWarnings: "Copied Avatar Rig Configuration mis-match. Inbetween bone
       rotation in copied configuration does not match rotation in animation file:\n\t'Ball_L'
-      : rotation error = 5.605464 deg\n"
+      : rotation error = 5.605487 deg\n"
     animationImportErrors: 
     animationImportWarnings: "\nClip 'zombie_hit_react_F_01' has import animation
       warnings that might lower retargeting quality:\nNote: Activate translation
@@ -105,6 +105,7 @@ ModelImporter:
     secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 4
     useFileScale: 1
+    strictVertexDataChecks: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
