@@ -10,6 +10,12 @@ public class PlayerAttackState : PlayerBaseState
         AnimationSystem.SetAnimation(playerEntity, battleEntity, EAnimationID.Attack);
     }
 
+    public override void OnUpdate(PlayerEntity entity, BattleEntity battleEntity)
+    {
+        base.OnUpdate(entity, battleEntity);
+        // MoveSystem.UpdateAnimation(entity, battleEntity);
+    }
+
     public override void OnLateUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         if (AnimationSystem.IsTriggerEvent(playerEntity, EAnimationEvent.AnimStart))

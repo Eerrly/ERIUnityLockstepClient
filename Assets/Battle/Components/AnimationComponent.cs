@@ -6,16 +6,18 @@ public class AnimationComponent : BaseComponent
     internal struct Common
     {
         public EAnimationID animId;
-        public System.Int32 loop;
         public System.Int32 index;
         public FixedNumber startTime;
+        // public FixedVector3 position;
+        // public FixedQuaternion rotation;
 
         public Common(int no)
         {
             animId = default(EAnimationID);
-            loop = default(System.Int32);
             index = default(System.Int32);
-            startTime = FixedNumber.Zero;
+            startTime = default(FixedNumber);
+            // position = default(FixedVector3);
+            // rotation = default(FixedQuaternion);
         }
     }
     
@@ -28,15 +30,6 @@ public class AnimationComponent : BaseComponent
     {
         get => common.animId;
         set => common.animId = value;
-    }
-
-    /// <summary>
-    /// 是否循环
-    /// </summary>
-    public System.Int32 loop
-    {
-        get => common.loop;
-        set => common.loop = value;
     }
 
     /// <summary>
@@ -56,6 +49,25 @@ public class AnimationComponent : BaseComponent
         get => common.startTime;
         set => common.startTime = value;
     }
+
+    // /// <summary>
+    // /// 动画位移
+    // /// </summary>
+    // public FixedVector3 position
+    // {
+    //     get => common.position;
+    //     set => common.position = value;
+    // }
+    //
+    // /// <summary>
+    // /// 动画旋转
+    // /// </summary>
+    // public FixedQuaternion rotation
+    // {
+    //     get => common.rotation;
+    //     set => common.rotation = value;
+    // }
+    
 
     private System.Collections.Generic.List<EAnimationEvent> _currentEvents = new System.Collections.Generic.List<EAnimationEvent>();
     /// <summary>
@@ -79,9 +91,15 @@ public class AnimationComponent : BaseComponent
     public override void Serialize(BinaryWriter writer)
     {
         writer.Write((int)common.animId);
-        writer.Write(common.loop);
         writer.Write(common.index);
         writer.Write(common.startTime._raw);
+        // writer.Write(common.position.x._raw);
+        // writer.Write(common.position.y._raw);
+        // writer.Write(common.position.z._raw);
+        // writer.Write(common.rotation.x._raw);
+        // writer.Write(common.rotation.y._raw);
+        // writer.Write(common.rotation.z._raw);
+        // writer.Write(common.rotation.w._raw);
         writer.Write(_currentEvents.Count);
         for (int i = 0; i < _currentEvents.Count; i++)
             writer.Write((int)_currentEvents[i]);
@@ -90,9 +108,10 @@ public class AnimationComponent : BaseComponent
     public override void Deserialize(BinaryReader reader)
     {
         common.animId = (EAnimationID)reader.ReadInt32();
-        common.loop = reader.ReadInt32();
         common.index = reader.ReadInt32();
         common.startTime = new FixedNumber(reader.ReadInt64());
+        // common.position = new FixedVector3(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
+        // common.rotation = new FixedQuaternion(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
         var _currentEvents_Count = reader.ReadInt32();
         _currentEvents.Clear();
         for (int i = 0; i < _currentEvents_Count; i++)

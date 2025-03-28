@@ -8,6 +8,7 @@ public class AnimationManager : MManager<AnimationManager>
     private Dictionary<EAnimationID, int> _animationHashCacheDic;
     private Dictionary<int, Animator> _playerAnimatorDic;
 
+    private readonly Dictionary<EAnimationID, AnimationData> _playerAnimationDataDic = new();
     private readonly Dictionary<EAnimationID, string> _playerAnimationPathDic = new()
     {
         [EAnimationID.Attack] = "Data/AnimationData/zombie_light_attack_02",
@@ -32,6 +33,7 @@ public class AnimationManager : MManager<AnimationManager>
             }
 
             var animationData = Resources.Load<AnimationData>(playerAnimPathKv.Value);
+            _playerAnimationDataDic.Add(playerAnimPathKv.Key, animationData);
             foreach (var animEvent in animationData.eventList)
             {
                 animEventLengthDic[(EAnimationEvent)animEvent.type] = FixedNumber.MakeFixNum(3333333 * animEvent.frame, 100000000);
@@ -123,6 +125,25 @@ public class AnimationManager : MManager<AnimationManager>
 
         _playerAnimatorDic[id].CrossFadeInFixedTime(animationHash, transitionDuration, 0);
         _playerAnimatorDic[id].Update(0);
+    }
+
+    /// <summary>
+    /// 检测动画是否不是循环动画
+    /// </summary>
+    public bool CheckAnimationNotLoop(EAnimationID animationId)
+    {
+        return _playerAnimationEventLengthCacheDic.TryGetValue(animationId, out var animEventLengthDic)
+               && animEventLengthDic.Count > 0;
+    }
+
+    /// <summary>
+    /// 获取动画信息
+    /// </summary>
+    public AnimationData GetAnimationData(EAnimationID animationId)
+    {
+        if (_playerAnimationDataDic.TryGetValue(animationId, out var animationData))
+            return animationData;
+        return null;
     }
     
 }

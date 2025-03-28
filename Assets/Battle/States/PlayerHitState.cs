@@ -11,6 +11,12 @@ public class PlayerHitState : PlayerBaseState
         AnimationSystem.SetAnimation(playerEntity, battleEntity, EAnimationID.Hit);
     }
 
+    public override void OnUpdate(PlayerEntity entity, BattleEntity battleEntity)
+    {
+        base.OnUpdate(entity, battleEntity);
+        // MoveSystem.UpdateAnimation(entity, battleEntity);
+    }
+
     public override void OnLateUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         if (AnimationSystem.IsTriggerEvent(playerEntity, EAnimationEvent.AnimEnd))

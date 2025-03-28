@@ -110,6 +110,10 @@ public class AnimationUtil
         modelImporter.animationType = ModelImporterAnimationType.Human;
         modelImporter.animationCompression = ModelImporterAnimationCompression.Optimal;
         modelImporter.resampleCurves = true;
+        // var serializedObj = new SerializedObject(modelImporter);
+        // var serializedPpt = serializedObj.FindProperty("m_HumanDescription.m_RootMotionBoneName");
+        // serializedPpt.stringValue = "Root";
+        // serializedObj.ApplyModifiedProperties();
         AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(modelImporter));
 
         var clip = Object.Instantiate(srcAnimClip);

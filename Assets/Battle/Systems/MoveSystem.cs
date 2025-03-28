@@ -71,5 +71,24 @@ public class MoveSystem
     {
         return entity.Movement.curYAngle > 180 ? -(360 - entity.Movement.curYAngle) : entity.Movement.curYAngle;
     }
+
+    // /// <summary>
+    // /// 轮询动画位移旋转关系
+    // /// </summary>
+    // public static void UpdateAnimation(PlayerEntity playerEntity, BattleEntity battleEntity)
+    // {
+    //     if (playerEntity.Animation.animId == EAnimationID.None || playerEntity.Animation.startTime == FixedNumber.Zero)
+    //         return;
+    //     var relativeTime = battleEntity.Time - playerEntity.Animation.startTime;
+    //     var animationData = AnimationManager.Instance.GetAnimationData(playerEntity.Animation.animId);
+    //     if (animationData == null)
+    //         return;
+    //
+    //     var position = FixedAnimationCurveUtil.HermiteEvaluateVector3(animationData.positionCurve, relativeTime);
+    //     var rotation = FixedAnimationCurveUtil.HermiteEvaluateQuaternion(animationData.rotationCurve, relativeTime);
+    //
+    //     playerEntity.Animation.position = position;
+    //     playerEntity.Animation.rotation = rotation;
+    // }
     
 }

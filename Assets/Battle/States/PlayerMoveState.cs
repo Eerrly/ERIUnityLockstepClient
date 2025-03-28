@@ -7,7 +7,7 @@ public class PlayerMoveState : PlayerBaseState
     public override void OnEnter(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         base.OnEnter(playerEntity, battleEntity);
-        AnimationSystem.SetAnimation(playerEntity, battleEntity, EAnimationID.Locomotion, true);
+        AnimationSystem.SetAnimation(playerEntity, battleEntity, EAnimationID.Locomotion);
     }
 
     public override void OnUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)

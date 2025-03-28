@@ -12,10 +12,9 @@ public class AnimationSystem
     /// <summary>
     /// 设置动画
     /// </summary>
-    public static void SetAnimation(PlayerEntity playerEntity, BattleEntity battleEntity, EAnimationID animationId, bool loop = false)
+    public static void SetAnimation(PlayerEntity playerEntity, BattleEntity battleEntity, EAnimationID animationId)
     {
         playerEntity.Animation.animId = animationId;
-        playerEntity.Animation.loop = loop ? 0 : 1;
         playerEntity.Animation.index = (int)EAnimationEvent.None;
         playerEntity.Animation.startTime = battleEntity.Time;
         playerEntity.Animation.currentEvents.Clear();
@@ -31,7 +30,7 @@ public class AnimationSystem
             var playerEntity = battleEntity.PlayerEntities[i];
             playerEntity.Animation.currentEvents.Clear();
             // 循环动画没有事件
-            if (playerEntity.Animation.animId == EAnimationID.None || playerEntity.Animation.loop == 0)
+            if (playerEntity.Animation.animId == EAnimationID.None || !AnimationManager.Instance.CheckAnimationNotLoop(playerEntity.Animation.animId))
                 continue;
             // 轮询完了所有的事件
             var index = playerEntity.Animation.index + 1;
