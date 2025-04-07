@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,6 +20,8 @@ public class BattleView : BaseView<BattleEntity>
     private List<PlayerView> _playerViews;
 
     private TextMesh _textMesh;
+    private HudView _hudView;
+
 
     /// <summary>
     /// 初始化渲染
@@ -31,6 +34,9 @@ public class BattleView : BaseView<BattleEntity>
         var bv = Instantiate(Resources.Load<GameObject>(PlayerSetting.BattleViewPath), new Vector3(-11, 2.5f, 18), Quaternion.identity);
         _textMesh = Util.GetOrAddComponent<TextMesh>(bv);
         _textMesh.transform.SetParent(transform);
+        
+        _hudView = GetComponentInChildren<HudView>();
+        _hudView.InitView();
         
         _playerViews = new List<PlayerView>();
         foreach (var playerEntity in entity.PlayerEntities)
@@ -65,6 +71,8 @@ public class BattleView : BaseView<BattleEntity>
                 t.AfterRenderUpdate(playerEntity);
             }
         }
+        
+        _hudView.RenderUpdate(entity, this);
     }
 
     /// <summary>
@@ -77,4 +85,15 @@ public class BattleView : BaseView<BattleEntity>
             DestroyImmediate(playerView.gameObject);
         _playerViews.Clear();
     }
+
+    /// <summary>
+    /// 获取玩家渲染
+    /// </summary>
+    /// <param name="id">玩家ID</param>
+    /// <returns>玩家渲染实例</returns>
+    public PlayerView GetPlayerView(int id)
+    {
+        return _playerViews.FirstOrDefault(t => t.ID == id);
+    }
+    
 }

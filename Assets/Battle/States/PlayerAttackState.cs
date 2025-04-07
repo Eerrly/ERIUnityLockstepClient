@@ -32,7 +32,10 @@ public class PlayerAttackState : PlayerBaseState
                     continue;
                 var attackResult = AreaSystem.InAttackArea(playerEntity, other);
                 if (attackResult)
+                {
+                    other.Property.hp = other.Property.hp - playerEntity.Property.attackDamage;
                     other.State.nextStateId = (int)EPlayerState.Hit;
+                }
                 Logger.Log(LogLevel.Info, $"PlayerAttackState InAttackArea source:{playerEntity.ID} other:{other.ID} attackResult:{attackResult}");
             }
         }

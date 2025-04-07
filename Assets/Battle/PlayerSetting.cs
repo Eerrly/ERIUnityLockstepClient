@@ -14,4 +14,5 @@
     /// 攻击CD
     /// </summary>
     public static readonly FixedNumber AttackCd = FixedNumber.MakeFixNum(30000, 10000);
+
 }

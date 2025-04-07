@@ -56,7 +56,9 @@ public class PlayerEntity : BaseEntity
         Property.collisionSize = PlayerInitPropertyConstants.CollisionSize;
         Property.attackDistance = PlayerInitPropertyConstants.AttackDistance;
         Property.attackAngle = PlayerInitPropertyConstants.AttackAngle;
-        Property.attackCdTime = PlayerInitPropertyConstants.AttackCdTime;
+        Property.attackCdTime = FixedNumber.Zero;
+        Property.attackDamage = PlayerInitPropertyConstants.AttackDamage;
+        Property.hp = PlayerInitPropertyConstants.TotalHp;
         
         Animation.animId = EAnimationID.None;
     }
@@ -82,7 +84,9 @@ public class PlayerEntity : BaseEntity
         Property.collisionSize = PlayerInitPropertyConstants.CollisionSize;
         Property.attackDistance = PlayerInitPropertyConstants.AttackDistance;
         Property.attackAngle = PlayerInitPropertyConstants.AttackAngle;
-        Property.attackCdTime = PlayerInitPropertyConstants.AttackCdTime;
+        Property.attackCdTime = FixedNumber.Zero;
+        Property.attackDamage = PlayerInitPropertyConstants.AttackDamage;
+        Property.hp = PlayerInitPropertyConstants.TotalHp;
 
         Animation.animId = EAnimationID.None;
     }

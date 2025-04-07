@@ -37,16 +37,8 @@ public class AnimationManager : MManager<AnimationManager>
             foreach (var animEvent in animationData.eventList)
             {
                 animEventLengthDic[(EAnimationEvent)animEvent.type] = FixedNumber.MakeFixNum(3333333 * animEvent.frame, 100000000);
-                Logger.Log(LogLevel.Info, $"Initialize AnimationData " +
-                                          $"EAnimationID: {System.Enum.GetName(typeof(EAnimationID), playerAnimPathKv.Key)} " +
-                                          $"EAnimationEvent: {System.Enum.GetName(typeof(EAnimationEvent), (EAnimationEvent)animEvent.type)} " +
-                                          $"Time: {animEventLengthDic[(EAnimationEvent)animEvent.type]}");
             }
             animEventLengthDic[EAnimationEvent.AnimEnd] = FixedNumber.MakeFixNum((long)(animationData.length * 10000), 10000);
-            Logger.Log(LogLevel.Info, $"Initialize AnimationData " +
-                                      $"EAnimationID: {System.Enum.GetName(typeof(EAnimationID), playerAnimPathKv.Key)} " +
-                                      $"EAnimationEvent: {System.Enum.GetName(typeof(EAnimationEvent), EAnimationEvent.AnimEnd)} " +
-                                      $"Time: {animEventLengthDic[EAnimationEvent.AnimEnd]}");
         }
 
     }

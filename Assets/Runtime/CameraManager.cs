@@ -74,6 +74,14 @@ public class CameraManager : MManager<CameraManager>
         canvas.planeDistance = 1;
     }
 
+    public void SetCanvasBattleCamera(GameObject obj)
+    {
+        var canvas = Util.GetOrAddComponent<Canvas>(obj);
+        canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        canvas.worldCamera = _battleCamera;
+        canvas.planeDistance = 10;
+    }
+
     /// <summary>
     /// 开关战斗摄像机
     /// </summary>

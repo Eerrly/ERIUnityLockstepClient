@@ -27,9 +27,14 @@ public class PlayerInitPropertyConstants
     /// 攻击扇形夹角
     /// </summary>
     public static readonly FixedNumber AttackAngle = FixedNumber.MakeFixNum(45, 1);
+    
+    /// <summary>
+    /// 攻击掉血
+    /// </summary>
+    public static readonly System.Int32 AttackDamage = 2;
 
     /// <summary>
-    /// 攻击间隔时间
+    /// 初始化总血量
     /// </summary>
-    public static readonly FixedNumber AttackCdTime = FixedNumber.Zero;
+    public static readonly System.Int32 TotalHp = 10;
 }
