@@ -2,9 +2,15 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 战斗HUD视图
+/// </summary>
 public class HudView : MonoBehaviour
 {
-
+    
+    /// <summary>
+    /// HUD节点配置（每个玩家独立的HUD元素）
+    /// </summary>
     [System.Serializable]
     public class Node
     {
@@ -13,8 +19,14 @@ public class HudView : MonoBehaviour
     }
 
     public List<Node> Nodes;
+    /// <summary>
+    /// HUD相对于角色位置的偏移量
+    /// </summary>
     public Vector3 Offset;
 
+    /// <summary>
+    /// 初始化视图，设置画布渲染相机
+    /// </summary>
     public void InitView()
     {
         CameraManager.Instance.SetCanvasBattleCamera(gameObject);

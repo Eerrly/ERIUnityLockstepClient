@@ -2,19 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 动画管理器
+/// </summary>
 public class AnimationManager : MManager<AnimationManager>
 {
+    // 缓存混合树参数哈希值
     private Dictionary<EBlendTreeParam, int> _blendTreeParamHashCacheDic;
+    // 缓存动画状态哈希值
     private Dictionary<EAnimationID, int> _animationHashCacheDic;
+    // 玩家ID到Animator的映射
     private Dictionary<int, Animator> _playerAnimatorDic;
-
+    // 玩家ID到Animator的映射
     private readonly Dictionary<EAnimationID, AnimationData> _playerAnimationDataDic = new();
+    // 预定义的动画资源路径配置
     private readonly Dictionary<EAnimationID, string> _playerAnimationPathDic = new()
     {
         [EAnimationID.Attack] = "Data/AnimationData/zombie_light_attack_02",
         [EAnimationID.Hit] = "Data/AnimationData/zombie_hit_react_F_01"
     };
-
+    // 动画事件时间缓存
     private Dictionary<EAnimationID, Dictionary<EAnimationEvent, FixedNumber>> _playerAnimationEventLengthCacheDic;
     
     public override void Initialize()

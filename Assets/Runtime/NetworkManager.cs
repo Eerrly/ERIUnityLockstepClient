@@ -14,9 +14,18 @@ public class NetworkManager : AManager<NetworkManager>
     private KcpClientTransport _kcpClientTransport;
     private TcpClientTransport _tcpClientTransport;
     private MemoryStream _memoryStream;
+    /// <summary>
+    /// 发送帧字节数组
+    /// </summary>
     private readonly byte[] _sendFrameByteArray = new byte[1];
 
+    /// <summary>
+    /// KCP是否连接
+    /// </summary>
     public bool KcpConnected => _kcpClientTransport.Connected;
+    /// <summary>
+    /// TCP是否连接
+    /// </summary>
     public bool TcpConnected => _tcpClientTransport.Connected;
 
     /// <summary>

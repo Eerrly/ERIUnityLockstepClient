@@ -2,6 +2,9 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// 相机管理器
+/// </summary>
 public class CameraManager : MManager<CameraManager>
 {
     [Header("Target")]
@@ -13,8 +16,17 @@ public class CameraManager : MManager<CameraManager>
     [Header("BattleCamera")]
     [SerializeField] private Camera _battleCamera;
 
+    /// <summary>
+    /// 战斗相机旋转偏移量
+    /// </summary>
     public Quaternion BattleCameraRotationOffset;
+    /// <summary>
+    /// 战斗相机位置偏移量
+    /// </summary>
     public Vector3 BattleCameraPositionOffset;
+    /// <summary>
+    /// 战斗相机平滑度
+    /// </summary>
     public float BattleCameraFollowSmoothness;
 
     private Vector3 _battleCameraVelocity;
@@ -74,6 +86,10 @@ public class CameraManager : MManager<CameraManager>
         canvas.planeDistance = 1;
     }
 
+    /// <summary>
+    /// 给Canvas设置战斗摄像机
+    /// </summary>
+    /// <param name="obj"></param>
     public void SetCanvasBattleCamera(GameObject obj)
     {
         var canvas = Util.GetOrAddComponent<Canvas>(obj);
@@ -132,6 +148,11 @@ public class CameraManager : MManager<CameraManager>
             BattleCameraFollowSmoothness * Time.deltaTime);
     }
 
+    /// <summary>
+    /// 世界坐标转屏幕坐标
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <returns></returns>
     public Vector3 WorldToScreenPoint(Vector3 pos)
     {
         return _battleCamera.WorldToScreenPoint(pos);

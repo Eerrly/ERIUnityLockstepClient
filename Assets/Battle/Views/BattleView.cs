@@ -11,15 +11,16 @@ using UnityEngine.Serialization;
 public class BattleView : BaseView<BattleEntity>
 {
     /// <summary>
-    /// 战斗实体名称
-    /// </summary>
-    [SerializeField] private EBattleEntityType battleEntityType;
-    /// <summary>
     /// 所有的玩家渲染列表
     /// </summary>
     private List<PlayerView> _playerViews;
-
+    /// <summary>
+    /// 文本
+    /// </summary>
     private TextMesh _textMesh;
+    /// <summary>
+    /// 战斗HUD渲染
+    /// </summary>
     private HudView _hudView;
 
 
@@ -29,8 +30,6 @@ public class BattleView : BaseView<BattleEntity>
     /// <param name="entity">战斗实体</param>
     public override void InitView(BattleEntity entity)
     {
-        battleEntityType = entity.BattleEntityType;
-        
         var bv = Instantiate(Resources.Load<GameObject>(PlayerSetting.BattleViewPath), new Vector3(-11, 2.5f, 18), Quaternion.identity);
         _textMesh = Util.GetOrAddComponent<TextMesh>(bv);
         _textMesh.transform.SetParent(transform);

@@ -23,15 +23,33 @@ public class PlayerView : BaseView<PlayerEntity>
     /// 玩家身上的动画状态机
     /// </summary>
     private Animator _animator;
+    /// <summary>
+    /// 玩家移动前的朝向
+    /// </summary>
     private Vector3 _beforeRotationForward = Vector3.zero;
+    /// <summary>
+    /// 动画混合树参数插值速度
+    /// </summary>
     private const int BlendTreeParamLerpSpeed = 30;
-
+    /// <summary>
+    /// 动画混合树参数 移动
+    /// </summary>
     private float _animatorMoveForwardValue;
+    /// <summary>
+    /// 动画混合树参数 转向
+    /// </summary>
     private float _animatorTurnValue;
-
+    /// <summary>
+    /// 上一次的动画ID
+    /// </summary>
     private EAnimationID _lastAnimationId = EAnimationID.None;
-
+    /// <summary>
+    /// 当前的特效ID
+    /// </summary>
     private int _currentEffect;
+    /// <summary>
+    /// 特效缓存字典
+    /// </summary>
     private Dictionary<int, GameObject> _effectCacheDic = new Dictionary<int, GameObject>();
     
     /// <summary>

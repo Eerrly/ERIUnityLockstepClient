@@ -6,7 +6,13 @@
 [EntitySystem]
 public class AnimationSystem
 {
+    /// <summary>
+    /// 默认动画开始过渡时间
+    /// </summary>
     public static readonly FixedNumber DefaultTransitionDuration = FixedNumber.MakeFixNum(2, 30);
+    /// <summary>
+    /// 默认动画结束过渡时间
+    /// </summary>
     public static readonly FixedNumber DefaultAnimEndDuration = FixedNumber.MakeFixNum(3333333 * 5, 100000000);
 
     /// <summary>
