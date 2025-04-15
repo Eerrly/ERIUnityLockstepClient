@@ -14,5 +14,5 @@
 运行 `Main.scene`
 
 ### 引用
-+ [^kcp2k]:kcp2k - <https://github.com/MirrorNetworking/kcp2k>
-+ [^google.protobuf]:google.protobuf - <https://github.com/google/protobuf>
+[^kcp2k]:kcp2k - <https://github.com/MirrorNetworking/kcp2k>
+[^google.protobuf]:google.protobuf - <https://github.com/google/protobuf>
