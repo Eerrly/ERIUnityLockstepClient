@@ -1,6 +1,5 @@
 # ERIUnityLockstepClient
-## 说明
-帧同步客户端DEMO，配合 [帧同步服务器](https://github.com/Eerrly/ERIUnityLockstepServer) 使用
+***帧同步客户端DEMO，配合 [帧同步服务器](https://github.com/Eerrly/ERIUnityLockstepServer) 使用***
 
 ### 介绍
 + 登录、房间等业务逻辑，使用TCP通信
@@ -13,7 +12,7 @@
 ### 设置
 + IP、端口号设置在`NetCore/NetSetting.cs`
 + 战斗帧信息设置在`Battle/BattleSetting.cs`，目前只支持2人
-+ 日志全量打开启宏`DEBUG_MODEL`
++ 日志全量打印开启宏`DEBUG_MODEL`
 
 ### 使用
 1. 先启动服务器
