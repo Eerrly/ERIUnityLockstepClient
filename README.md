@@ -11,7 +11,12 @@
 [Unity官网](https://unity.com/) Unity2019.4.37f1 - Unity2021.3.42f1
 
 ### 使用
-运行 `Main.scene`
+1. 先启动服务器
+2. 运行 `Main.scene` 在界面中输入账号密码
+3. **[Player1]**:`Attach` -> `Login` **[Player2]**:`Attach` -> `Login`
+4. **[Player1]**:`CreateRoom` -> `JoinRoom` **[Player2]**:`JoinRoom`
+5. **[Player1]**:`Connect` -> `Ready` **[Player2]**:`Connect` -> `Ready`
+6. `W`、`A`、`S`、`D`操控方向移动，`J`、`K`、`L`为按键，目前只支持`J`键，为攻击键
 
 ### 引用
 [^kcp2k]:kcp2k - <https://github.com/MirrorNetworking/kcp2k>
