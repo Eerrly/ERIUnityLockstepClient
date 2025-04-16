@@ -1,0 +1,628 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30de5f3e51425824db0cd9ae2aee4e42, type: 3}
+  m_Name: zombie_hit_react_F_01
+  m_EditorClassIdentifier: 
+  length: 1.7
+  eventList:
+  - type: 1
+    frame: 0
+  - type: 2
+    frame: 8
+  positionCurve:
+    x:
+      points:
+      - val: 69
+        time: 0
+        inTan: -1028
+        outTan: -1028
+      - val: 34
+        time: 333
+        inTan: -245
+        outTan: -245
+      - val: 52
+        time: 666
+        inTan: 1046
+        outTan: 1046
+      - val: 104
+        time: 1000
+        inTan: 1401
+        outTan: 1401
+      - val: 146
+        time: 1333
+        inTan: 75
+        outTan: 75
+      - val: 109
+        time: 1666
+        inTan: -2150
+        outTan: -2150
+      - val: 2
+        time: 2000
+        inTan: -2965
+        outTan: -2965
+      - val: -88
+        time: 2333
+        inTan: -1996
+        outTan: -1996
+      - val: -130
+        time: 2666
+        inTan: -363
+        outTan: -363
+      - val: -112
+        time: 3000
+        inTan: 666
+        outTan: 666
+      - val: -85
+        time: 3333
+        inTan: 722
+        outTan: 722
+      - val: -64
+        time: 3666
+        inTan: 674
+        outTan: 674
+      - val: -40
+        time: 4000
+        inTan: 975
+        outTan: 975
+      - val: 0
+        time: 4333
+        inTan: 1503
+        outTan: 1503
+      - val: 59
+        time: 4666
+        inTan: 2110
+        outTan: 2110
+      - val: 141
+        time: 5000
+        inTan: 2147
+        outTan: 2147
+      - val: 202
+        time: 5333
+        inTan: 1421
+        outTan: 1421
+      - val: 236
+        time: 5666
+        inTan: 185
+        outTan: 185
+      - val: 214
+        time: 6000
+        inTan: -490
+        outTan: -490
+      - val: 203
+        time: 6333
+        inTan: 5
+        outTan: 5
+      - val: 215
+        time: 6666
+        inTan: -23
+        outTan: -23
+      - val: 201
+        time: 7000
+        inTan: -994
+        outTan: -994
+      - val: 148
+        time: 7333
+        inTan: -1142
+        outTan: -1142
+      - val: 125
+        time: 7666
+        inTan: -1009
+        outTan: -1009
+      - val: 81
+        time: 8000
+        inTan: -1806
+        outTan: -1806
+      - val: 5
+        time: 8333
+        inTan: -2830
+        outTan: -2830
+      - val: -107
+        time: 8666
+        inTan: -3542
+        outTan: -3542
+      - val: -230
+        time: 9000
+        inTan: -3406
+        outTan: -3406
+      - val: -334
+        time: 9333
+        inTan: -2771
+        outTan: -2771
+      - val: -458
+        time: 10000
+        inTan: -263
+        outTan: -263
+      - val: -433
+        time: 10333
+        inTan: 1749
+        outTan: 1749
+      - val: -218
+        time: 11000
+        inTan: 3896
+        outTan: 3896
+      - val: -82
+        time: 11333
+        inTan: 4145
+        outTan: 4145
+      - val: 58
+        time: 11666
+        inTan: 3986
+        outTan: 3986
+      - val: 288
+        time: 12333
+        inTan: 2705
+        outTan: 2705
+      - val: 458
+        time: 13333
+        inTan: 1167
+        outTan: 1167
+      - val: 518
+        time: 14000
+        inTan: 452
+        outTan: 452
+      - val: 504
+        time: 15333
+        inTan: -248
+        outTan: -248
+      - val: 482
+        time: 17000
+        inTan: -12
+        outTan: -12
+    y:
+      points:
+      - val: 9055
+        time: 0
+        inTan: -861
+        outTan: -861
+      - val: 8770
+        time: 1333
+        inTan: -6003
+        outTan: -6003
+      - val: 8317
+        time: 2333
+        inTan: -1959
+        outTan: -1959
+      - val: 8216
+        time: 4333
+        inTan: -1932
+        outTan: -1932
+      - val: 8410
+        time: 7333
+        inTan: 2834
+        outTan: 2834
+      - val: 8567
+        time: 10666
+        inTan: -903
+        outTan: -903
+      - val: 8886
+        time: 14333
+        inTan: 681
+        outTan: 681
+      - val: 8989
+        time: 17000
+        inTan: 56
+        outTan: 56
+    z:
+      points:
+      - val: -330
+        time: 0
+        inTan: -30246
+        outTan: -30246
+      - val: -1339
+        time: 333
+        inTan: -28634
+        outTan: -28634
+      - val: -2239
+        time: 666
+        inTan: -26385
+        outTan: -26385
+      - val: -3098
+        time: 1000
+        inTan: -31617
+        outTan: -31617
+      - val: -4347
+        time: 1333
+        inTan: -32266
+        outTan: -32266
+      - val: -5249
+        time: 1666
+        inTan: -22995
+        outTan: -22995
+      - val: -5880
+        time: 2000
+        inTan: -19428
+        outTan: -19428
+      - val: -6544
+        time: 2333
+        inTan: -17363
+        outTan: -17363
+      - val: -8228
+        time: 3666
+        inTan: -11149
+        outTan: -11149
+      - val: -9001
+        time: 5000
+        inTan: -1856
+        outTan: -1856
+      - val: -9679
+        time: 7666
+        inTan: -964
+        outTan: -964
+      - val: -9394
+        time: 10333
+        inTan: 817
+        outTan: 817
+      - val: -9317
+        time: 17000
+        inTan: 42
+        outTan: 42
+  rotationCurve:
+    x:
+      points:
+      - val: 278
+        time: 0
+        inTan: -18580
+        outTan: -18580
+      - val: -341
+        time: 333
+        inTan: -16433
+        outTan: -16433
+      - val: -817
+        time: 666
+        inTan: -11597
+        outTan: -11597
+      - val: -1114
+        time: 1000
+        inTan: -6747
+        outTan: -6747
+      - val: -1267
+        time: 1333
+        inTan: -2244
+        outTan: -2244
+      - val: -1263
+        time: 1666
+        inTan: -360
+        outTan: -360
+      - val: -1207
+        time: 2333
+        inTan: 5794
+        outTan: 5794
+      - val: -905
+        time: 2666
+        inTan: 9180
+        outTan: 9180
+      - val: -595
+        time: 3000
+        inTan: 7002
+        outTan: 7002
+      - val: -438
+        time: 3333
+        inTan: 5296
+        outTan: 5296
+      - val: -14
+        time: 4000
+        inTan: 7201
+        outTan: 7201
+      - val: 237
+        time: 4333
+        inTan: 7890
+        outTan: 7890
+      - val: 511
+        time: 4666
+        inTan: 8314
+        outTan: 8314
+      - val: 792
+        time: 5000
+        inTan: 7773
+        outTan: 7773
+      - val: 1029
+        time: 5333
+        inTan: 4892
+        outTan: 4892
+      - val: 1115
+        time: 6000
+        inTan: -311
+        outTan: -311
+      - val: 1049
+        time: 6666
+        inTan: -1701
+        outTan: -1701
+      - val: 984
+        time: 7000
+        inTan: -1397
+        outTan: -1397
+      - val: 956
+        time: 7333
+        inTan: -1749
+        outTan: -1749
+      - val: 867
+        time: 7666
+        inTan: -898
+        outTan: -898
+      - val: 896
+        time: 8000
+        inTan: 1149
+        outTan: 1149
+      - val: 986
+        time: 8666
+        inTan: 1320
+        outTan: 1320
+      - val: 1407
+        time: 11333
+        inTan: 1790
+        outTan: 1790
+      - val: 1827
+        time: 13666
+        inTan: 1005
+        outTan: 1005
+      - val: 2043
+        time: 17000
+        inTan: 399
+        outTan: 399
+    y:
+      points:
+      - val: 116
+        time: 0
+        inTan: -9514
+        outTan: -9514
+      - val: -201
+        time: 333
+        inTan: -8694
+        outTan: -8694
+      - val: -463
+        time: 666
+        inTan: -7568
+        outTan: -7568
+      - val: -705
+        time: 1000
+        inTan: -8310
+        outTan: -8310
+      - val: -1017
+        time: 1333
+        inTan: -2132
+        outTan: -2132
+      - val: -847
+        time: 1666
+        inTan: 6042
+        outTan: 6042
+      - val: -614
+        time: 2000
+        inTan: 3222
+        outTan: 3222
+      - val: -633
+        time: 2333
+        inTan: -129
+        outTan: -129
+      - val: -623
+        time: 2666
+        inTan: 1140
+        outTan: 1140
+      - val: -556
+        time: 3000
+        inTan: 4124
+        outTan: 4124
+      - val: -348
+        time: 3333
+        inTan: 6275
+        outTan: 6275
+      - val: -138
+        time: 3666
+        inTan: 6038
+        outTan: 6038
+      - val: 54
+        time: 4000
+        inTan: 5571
+        outTan: 5571
+      - val: 232
+        time: 4333
+        inTan: 5100
+        outTan: 5100
+      - val: 394
+        time: 4666
+        inTan: 4774
+        outTan: 4774
+      - val: 551
+        time: 5000
+        inTan: 7889
+        outTan: 7889
+      - val: 919
+        time: 5333
+        inTan: 11398
+        outTan: 11398
+      - val: 1310
+        time: 5666
+        inTan: 10066
+        outTan: 10066
+      - val: 1865
+        time: 6333
+        inTan: 9601
+        outTan: 9601
+      - val: 2231
+        time: 6666
+        inTan: 10757
+        outTan: 10757
+      - val: 2583
+        time: 7000
+        inTan: 7300
+        outTan: 7300
+      - val: 2656
+        time: 7666
+        inTan: -3413
+        outTan: -3413
+      - val: 2490
+        time: 8000
+        inTan: -4964
+        outTan: -4964
+      - val: 1580
+        time: 10000
+        inTan: -3420
+        outTan: -3420
+      - val: 1343
+        time: 11666
+        inTan: 474
+        outTan: 474
+      - val: 1372
+        time: 12000
+        inTan: 1872
+        outTan: 1872
+      - val: 1468
+        time: 12333
+        inTan: 2834
+        outTan: 2834
+      - val: 1801
+        time: 13666
+        inTan: 1564
+        outTan: 1564
+      - val: 2106
+        time: 17000
+        inTan: 307
+        outTan: 307
+    z:
+      points:
+      - val: 344
+        time: 0
+        inTan: 1406
+        outTan: 1406
+      - val: 429
+        time: 666
+        inTan: 1069
+        outTan: 1069
+      - val: 543
+        time: 1666
+        inTan: 1363
+        outTan: 1363
+      - val: 591
+        time: 2000
+        inTan: 1844
+        outTan: 1844
+      - val: 666
+        time: 2333
+        inTan: 1538
+        outTan: 1538
+      - val: 673
+        time: 3000
+        inTan: -1208
+        outTan: -1208
+      - val: 613
+        time: 3333
+        inTan: -1964
+        outTan: -1964
+      - val: 343
+        time: 4333
+        inTan: -3775
+        outTan: -3775
+      - val: 205
+        time: 4666
+        inTan: -4500
+        outTan: -4500
+      - val: 43
+        time: 5000
+        inTan: -2756
+        outTan: -2756
+      - val: 21
+        time: 5333
+        inTan: 1297
+        outTan: 1297
+      - val: 130
+        time: 5666
+        inTan: 2730
+        outTan: 2730
+      - val: 203
+        time: 6000
+        inTan: 2008
+        outTan: 2008
+      - val: 264
+        time: 6333
+        inTan: 1387
+        outTan: 1387
+      - val: 295
+        time: 6666
+        inTan: 1298
+        outTan: 1298
+      - val: 350
+        time: 7000
+        inTan: 1841
+        outTan: 1841
+      - val: 418
+        time: 7333
+        inTan: 158
+        outTan: 158
+      - val: 361
+        time: 7666
+        inTan: -1247
+        outTan: -1247
+      - val: 325
+        time: 8333
+        inTan: -123
+        outTan: -123
+      - val: 348
+        time: 9333
+        inTan: 496
+        outTan: 496
+      - val: 367
+        time: 9666
+        inTan: 497
+        outTan: 497
+      - val: 395
+        time: 10333
+        inTan: 381
+        outTan: 381
+      - val: 402
+        time: 11333
+        inTan: -265
+        outTan: -265
+      - val: 374
+        time: 12000
+        inTan: -447
+        outTan: -447
+      - val: 307
+        time: 13333
+        inTan: -252
+        outTan: -252
+      - val: 308
+        time: 14666
+        inTan: 107
+        outTan: 107
+      - val: 321
+        time: 16333
+        inTan: -15
+        outTan: -15
+      - val: 319
+        time: 17000
+        inTan: -34
+        outTan: -34
+    w:
+      points:
+      - val: 9989
+        time: 0
+        inTan: -151
+        outTan: -151
+      - val: 9879
+        time: 2000
+        inTan: 234
+        outTan: 234
+      - val: 9849
+        time: 5666
+        inTan: -1453
+        outTan: -1453
+      - val: 9594
+        time: 7666
+        inTan: 1061
+        outTan: 1061
+      - val: 9703
+        time: 13000
+        inTan: -777
+        outTan: -777
+      - val: 9554
+        time: 17000
+        inTan: -151
+        outTan: -151

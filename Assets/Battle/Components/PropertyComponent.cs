@@ -9,10 +9,22 @@ public class PropertyComponent : BaseComponent
     internal struct Common
     {
         public FixedNumber collisionSize;
+        public FixedNumber attackDistance;
+        public FixedNumber attackAngle;
+        public FixedNumber attackCdTime;
+        public System.Int32 effect;
+        public System.Int32 attackDamage;
+        public System.Int32 hp;
 
         public Common(int no)
         {
             collisionSize = default(FixedNumber);
+            attackDistance = default(FixedNumber);
+            attackAngle = default(FixedNumber);
+            attackCdTime = default(FixedNumber);
+            effect = default(System.Int32);
+            attackDamage = default(System.Int32);
+            hp = default(System.Int32);
         }
     }
 
@@ -25,6 +37,60 @@ public class PropertyComponent : BaseComponent
     {
         get => common.collisionSize;
         set => common.collisionSize = value;
+    }
+
+    /// <summary>
+    /// 攻击距离
+    /// </summary>
+    public FixedNumber attackDistance
+    {
+        get => common.attackDistance;
+        set => common.attackDistance = value;
+    }
+
+    /// <summary>
+    /// 攻击扇形角度
+    /// </summary>
+    public FixedNumber attackAngle
+    {
+        get => common.attackAngle;
+        set => common.attackAngle = value;
+    }
+
+    /// <summary>
+    /// 攻击间隔时间计时器
+    /// </summary>
+    public FixedNumber attackCdTime
+    {
+        get => common.attackCdTime;
+        set => common.attackCdTime = value;
+    }
+
+    /// <summary>
+    /// 攻击掉血
+    /// </summary>
+    public System.Int32 attackDamage
+    {
+        get => common.attackDamage;
+        set => common.attackDamage = value;
+    }
+
+    /// <summary>
+    /// 血量
+    /// </summary>
+    public System.Int32 hp
+    {
+        get => common.hp;
+        set => common.hp = value;
+    }
+    
+    /// <summary>
+    /// 特效类型
+    /// </summary>
+    public System.Int32 effect
+    {
+        get => common.effect;
+        set => common.effect = value;
     }
 
     private int[] _closedPlayerEntityIds = new int[BattleSetting.MaxPlayerInRoomCount];
@@ -47,6 +113,11 @@ public class PropertyComponent : BaseComponent
     public override void Serialize(BinaryWriter writer)
     {
         writer.Write(common.collisionSize._raw);
+        writer.Write(common.attackDistance._raw);
+        writer.Write(common.attackAngle._raw);
+        writer.Write(common.effect);
+        writer.Write(common.attackDamage);
+        writer.Write(common.hp);
         writer.Write(_closedPlayerEntityIds.Length);
         for (int i = 0; i < _closedPlayerEntityIds.Length; i++)
             writer.Write(_closedPlayerEntityIds[i]);
@@ -55,6 +126,11 @@ public class PropertyComponent : BaseComponent
     public override void Deserialize(BinaryReader reader)
     {
         common.collisionSize = new FixedNumber(reader.ReadInt64());
+        common.attackDistance = new FixedNumber(reader.ReadInt64());
+        common.attackAngle = new FixedNumber(reader.ReadInt64());
+        common.effect = reader.ReadInt32();
+        common.attackDamage = reader.ReadInt32();
+        common.hp = reader.ReadInt32();
         var _closedPlayerEntityIds_Length = reader.ReadInt32();
         for (int i = 0; i < _closedPlayerEntityIds_Length; i++)
             _closedPlayerEntityIds[i] = reader.ReadInt32();

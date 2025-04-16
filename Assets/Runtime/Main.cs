@@ -18,8 +18,22 @@ public class Main : MonoBehaviour
     public Button ShutdownBtn;
     public Button ReplayBtn;
 
+    /// <summary>
+    /// 当前战斗类型
+    /// </summary>
     private BattleType currBattleType = BattleType.Remote;
 
+    /// <summary>
+    /// 初始化
+    /// 1. 初始化日志打印工具
+    /// 2. 初始化多线程调度器
+    /// 3. 初始化消息池
+    /// 4. 初始化网络模块
+    /// 5. 初始化输入模块
+    /// 6. 初始化战斗记录模块
+    /// 7. 初始化相机模块
+    /// 8. 初始化动画模块
+    /// </summary>
     private void Awake()
     {
         InitLogger();
@@ -29,13 +43,23 @@ public class Main : MonoBehaviour
         NetworkManager.Instance.Initialize();
         InputManager.Instance.Initialize();
         BattleRecordManager.Instance.Initialize();
+        CameraManager.Instance.Initialize();
+        AnimationManager.Instance.Initialize();
+        DontDestroyOnLoad(this);
     }
 
+    /// <summary>
+    /// 初始化日志打印工具
+    /// </summary>
     private void InitLogger()
     {
         var currentLoggerPath = Path.Combine(Application.persistentDataPath, "game.log");
         Logger.Initialize(currentLoggerPath, new Logger());
+#if DEBUG_MODEL
         Logger.SetLoggerLevel((int)LogLevel.Error | (int)LogLevel.Info | (int)LogLevel.Warning);
+#else
+        Logger.SetLoggerLevel((int)LogLevel.Error);
+#endif
         Logger.log = Debug.Log; 
         Logger.logError = Debug.LogError;
         Logger.logWarning = Debug.LogWarning;
@@ -43,6 +67,9 @@ public class Main : MonoBehaviour
 
     private void Start()
     {
+        CameraManager.Instance.ToggleUICamera();
+        CameraManager.Instance.SetCanvasUICamera(gameObject);
+        
         AttachBtn.onClick.AddListener(() =>
         {
             NetworkManager.Instance.TcpConnect();
@@ -66,6 +93,7 @@ public class Main : MonoBehaviour
         ReadyBtn.onClick.AddListener(() =>
         {
             NetworkManager.Instance.SendBattleReadyMessage(GameManager.Instance.RoomInfo.RoomId, GameManager.Instance.PlayerId);
+            CameraManager.Instance.ToggleUICamera();
         });
         ShutdownBtn.onClick.AddListener(() =>
         {

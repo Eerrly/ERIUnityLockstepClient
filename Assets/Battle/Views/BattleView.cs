@@ -8,15 +8,18 @@ using UnityEngine;
 public class BattleView : BaseView<BattleEntity>
 {
     /// <summary>
-    /// 战斗实体名称
-    /// </summary>
-    public string Name;
-    /// <summary>
     /// 所有的玩家渲染列表
     /// </summary>
     private List<PlayerView> _playerViews;
-
+    /// <summary>
+    /// 文本
+    /// </summary>
     private TextMesh _textMesh;
+    /// <summary>
+    /// 战斗HUD渲染
+    /// </summary>
+    private HudView _hudView;
+
 
     /// <summary>
     /// 初始化渲染
@@ -24,16 +27,22 @@ public class BattleView : BaseView<BattleEntity>
     /// <param name="entity">战斗实体</param>
     public override void InitView(BattleEntity entity)
     {
-        Name = entity.Name;
-        var bv = Instantiate(Resources.Load<GameObject>(BattleSetting.BattleViewPath), new Vector3(-12, 0, 0), Quaternion.identity);
+        var bv = Instantiate(Resources.Load<GameObject>(PlayerSetting.BattleViewPath), new Vector3(-11, 2.5f, 18), Quaternion.identity);
         _textMesh = Util.GetOrAddComponent<TextMesh>(bv);
         _textMesh.transform.SetParent(transform);
+        
+        _hudView = GetComponentInChildren<HudView>();
+        _hudView.InitView();
         
         _playerViews = new List<PlayerView>();
         foreach (var playerEntity in entity.PlayerEntities)
         {
             var playerView = Util.GetOrAddComponent<PlayerView>(new GameObject($"P-{playerEntity.ID}"));
             playerView.InitView(playerEntity);
+            
+            if (playerEntity.ID == (GameManager.Instance.PlayerId - GameSetting.DefaultPlayerIdBase - 1)) 
+                CameraManager.Instance.InitPlayerView(playerView);
+            
             _playerViews.Add(playerView);
         }
     }
@@ -46,15 +55,20 @@ public class BattleView : BaseView<BattleEntity>
     public override void RenderUpdate(BattleEntity entity, float deltaTime)
     {
         if (entity != null && _textMesh != null)
-            _textMesh.text = $"Name:{entity.Name} Frame:{entity.Frame} Time:{entity.Time.ToString()}";
+            _textMesh.text = $"Name:{System.Enum.GetName(typeof(EBattleEntityType), entity.BattleEntityType)} Frame:{entity.Frame} Time:{entity.Time.ToString()}";
 
         if(_playerViews == null || _playerViews.Count != entity.PlayerEntities.Count) return;
         
         foreach (var playerEntity in entity.PlayerEntities)
         {
             foreach (var t in _playerViews.Where(t => t.ID == playerEntity.ID))
+            {
                 t.RenderUpdate(playerEntity, deltaTime);
+                t.AfterRenderUpdate(playerEntity);
+            }
         }
+        
+        _hudView.RenderUpdate(entity, this);
     }
 
     /// <summary>
@@ -67,4 +81,15 @@ public class BattleView : BaseView<BattleEntity>
             DestroyImmediate(playerView.gameObject);
         _playerViews.Clear();
     }
+
+    /// <summary>
+    /// 获取玩家渲染
+    /// </summary>
+    /// <param name="id">玩家ID</param>
+    /// <returns>玩家渲染实例</returns>
+    public PlayerView GetPlayerView(int id)
+    {
+        return _playerViews.FirstOrDefault(t => t.ID == id);
+    }
+    
 }

@@ -35,12 +35,23 @@ public class PlayerBaseState : BaseState<PlayerEntity>
     }
 
     /// <summary>
+    /// 状态Update
+    /// </summary>
+    /// <param name="entity">玩家实体</param>
+    /// <param name="battleEntity">战斗实体</param>
+    public override void OnUpdate(PlayerEntity entity, BattleEntity battleEntity)
+    {
+        entity.State.spanTime = battleEntity.Time - entity.State.enteTime;
+    }
+
+    /// <summary>
     /// 状态退出
     /// </summary>
     /// <param name="entity">玩家状态</param>
     /// <param name="battleEntity">战斗状态</param>
     public override void OnExit(PlayerEntity entity, BattleEntity battleEntity)
     {
+        entity.State.spanTime = battleEntity.Time - entity.State.enteTime;
         entity.State.exitTime = battleEntity.Time;
     }
 

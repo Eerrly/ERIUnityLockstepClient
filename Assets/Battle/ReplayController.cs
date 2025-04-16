@@ -61,15 +61,13 @@ public class ReplayController
 
         try
         {
-            using (var fs = new FileStream(battleRecordPath, FileMode.Open, FileAccess.Read))
-            using (var br = new BinaryReader(fs))
+            using var fs = new FileStream(battleRecordPath, FileMode.Open, FileAccess.Read);
+            using var br = new BinaryReader(fs);
+            while (fs.Position < fs.Length)
             {
-                while (fs.Position < fs.Length)
-                {
-                    var entity = new BattleEntity { Name = "Display" };
-                    entity.Deserialize(br);
-                    _battleEntities.Add(entity);
-                }
+                var entity = new BattleEntity { BattleEntityType = EBattleEntityType.Display };
+                entity.Deserialize(br);
+                _battleEntities.Add(entity);
             }
         }
         catch (Exception ex)

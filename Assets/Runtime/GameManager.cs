@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 游戏管理器
@@ -74,8 +76,6 @@ public class GameManager : MManager<GameManager>
         _frameEngine.RegisterNetUpdateListener(_battleController.NetUpdate);
         _frameEngine.RegisterFrameUpdateListener(_battleController.LogicUpdate);
         _frameEngine.RegisterReplayUpdateListener(_replayController.ReplayUpdate);
-        
-        _battleView = Util.GetOrAddComponent<BattleView>(new GameObject("BV"));
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public class GameManager : MManager<GameManager>
         _frameEngine.StartReplayEngine(BattleSetting.BattleInterval);
         _replayController.StartReplayStopwatch();
     }
-
+    
     /// <summary>
     /// 初始化实体系统
     /// </summary>
@@ -187,6 +187,9 @@ public class GameManager : MManager<GameManager>
     /// </summary>
     private void StopRemoteBattle()
     {
+        if (!IsBattleStart)
+            return;
+        
         _frameEngine.StopEngine();
         _battleView.OnRelease(_battleController.DisplayBattleEntity);
         ReleaseEntitySystems();
@@ -201,6 +204,37 @@ public class GameManager : MManager<GameManager>
         _frameEngine.StopReplayEngine();
         _battleView.OnRelease(_replayController.DisplayBattleEntity);
         ReleaseEntitySystems();
+    }
+
+    private void CreateBattleView()
+    {
+        var go = new GameObject("BattleView");
+        _battleView = Util.GetOrAddComponent<BattleView>(go);
+    }
+
+    /// <summary>
+    /// 房间人满加载战斗场景
+    /// </summary>
+    public void OnRoomFull()
+    {
+        StartCoroutine(OnLoadBattleSceneAsync(() =>
+        {
+            CreateBattleView();
+            CameraManager.Instance.ToggleBattleCamera();
+            NetworkManager.Instance.KcpConnect();
+            NetworkManager.Instance.KcpUpdate();
+        }));
+    }
+
+    /// <summary>
+    /// 加载场景
+    /// </summary>
+    /// <param name="callback"></param>
+    /// <returns></returns>
+    private IEnumerator OnLoadBattleSceneAsync(Action callback)
+    {
+        yield return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync((int)EGameScene.World, LoadSceneMode.Single);
+        callback.Invoke();
     }
 
     /// <summary>

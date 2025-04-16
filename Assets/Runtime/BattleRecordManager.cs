@@ -16,7 +16,7 @@ public class BattleRecordManager : AManager<BattleRecordManager>
     private BinaryWriter _frameBinaryWriter;
     private Thread _writerThread;
     /// <summary>
-    /// 当前正在手机的战斗实体队列
+    /// 当前正在收集的战斗实体队列
     /// </summary>
     private Queue<BattleEntity> _battleEntities;
     /// <summary>
@@ -91,6 +91,7 @@ public class BattleRecordManager : AManager<BattleRecordManager>
                     {
                         entity = _battleEntities.Dequeue();
                     }
+
                     if (entity != null)
                     {
                         entity.Serialize(_frameBinaryWriter);
@@ -105,6 +106,11 @@ public class BattleRecordManager : AManager<BattleRecordManager>
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error, $"{ex.Message}\n{ex.StackTrace}");
+            }
+            finally
+            {
+                _frameFileStream.Dispose();
+                _frameFileStream = null;
             }
             Thread.Sleep(BattleSetting.BattleInterval / 2);
         }
@@ -129,9 +135,10 @@ public class BattleRecordManager : AManager<BattleRecordManager>
                         _unusedBattleEntities.RemoveAt(_unusedBattleEntities.Count - 1);
                     }
                 }
+
                 if (entity == null) entity = new BattleEntity();
 
-                entity.Name = "Record";
+                entity.BattleEntityType = EBattleEntityType.Record;
                 battleEntity.CopyTo(entity);
                 lock (_writerLock)
                 {
@@ -142,6 +149,14 @@ public class BattleRecordManager : AManager<BattleRecordManager>
         catch (Exception ex)
         {
             Logger.Log(LogLevel.Error, $"{ex.Message}\n{ex.StackTrace}");
+        }
+        finally
+        {
+            if (_frameFileStream != null)
+            {
+                _frameFileStream.Dispose();
+                _frameFileStream = null; 
+            }
         }
     }
     

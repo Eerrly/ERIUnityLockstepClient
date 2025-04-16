@@ -45,10 +45,11 @@ public class MoveSystem
             currentRotation = FixedQuaternion.Euler(FixedNumber.Zero, angle, FixedNumber.Zero);
         }
 
-        entity.Transform.pos = currentPosition;
+        entity.Transform.pos = AreaSystem.MakeInside(currentPosition);
         entity.Transform.rot = currentRotation;
 
         entity.Movement.position = FixedVector3.Zero;
+        entity.Transform.forward = currentRotation * FixedVector3.Forward;
     }
 
     /// <summary>
@@ -70,5 +71,24 @@ public class MoveSystem
     {
         return entity.Movement.curYAngle > 180 ? -(360 - entity.Movement.curYAngle) : entity.Movement.curYAngle;
     }
+
+    // /// <summary>
+    // /// 轮询动画位移旋转关系
+    // /// </summary>
+    // public static void UpdateAnimation(PlayerEntity playerEntity, BattleEntity battleEntity)
+    // {
+    //     if (playerEntity.Animation.animId == EAnimationID.None || playerEntity.Animation.startTime == FixedNumber.Zero)
+    //         return;
+    //     var relativeTime = battleEntity.Time - playerEntity.Animation.startTime;
+    //     var animationData = AnimationManager.Instance.GetAnimationData(playerEntity.Animation.animId);
+    //     if (animationData == null)
+    //         return;
+    //
+    //     var position = FixedAnimationCurveUtil.HermiteEvaluateVector3(animationData.positionCurve, relativeTime);
+    //     var rotation = FixedAnimationCurveUtil.HermiteEvaluateQuaternion(animationData.rotationCurve, relativeTime);
+    //
+    //     playerEntity.Animation.position = position;
+    //     playerEntity.Animation.rotation = rotation;
+    // }
     
 }

@@ -14,9 +14,18 @@ public class NetworkManager : AManager<NetworkManager>
     private KcpClientTransport _kcpClientTransport;
     private TcpClientTransport _tcpClientTransport;
     private MemoryStream _memoryStream;
+    /// <summary>
+    /// 发送帧字节数组
+    /// </summary>
     private readonly byte[] _sendFrameByteArray = new byte[1];
 
+    /// <summary>
+    /// KCP是否连接
+    /// </summary>
     public bool KcpConnected => _kcpClientTransport.Connected;
+    /// <summary>
+    /// TCP是否连接
+    /// </summary>
     public bool TcpConnected => _tcpClientTransport.Connected;
 
     /// <summary>
@@ -338,8 +347,9 @@ public class NetworkManager : AManager<NetworkManager>
                     // 当房间人数到了可以战斗开启的人数时，开启KCP服务器并且开始轮询
                     if (s2CMessage.All.Count == GameSetting.RoomMaxPlayerCount)
                     {
-                        KcpConnect();
-                        KcpUpdate();
+                        // KcpConnect();
+                        // KcpUpdate();
+                        LoomManager.Instance.QueueOnMainThread(GameManager.Instance.OnRoomFull);
                     }
                     break;
                 }

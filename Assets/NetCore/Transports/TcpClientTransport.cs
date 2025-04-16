@@ -116,7 +116,6 @@ public class TcpClientTransport : ClientTransport
             var stream = _client.GetStream();
             await stream.WriteAsync(buffer, 0, buffer.Length);
 
-            BufferPool.ReleaseBuff(buffer);
             Logger.Log(LogLevel.Info,$"[TCP] Send -> MsgID:{Enum.GetName(typeof(pb.LogicMsgID), packet._head._cmd)} dataSize:{packet._head._length}");
             OnDataSent?.Invoke(stream, packet);
         }

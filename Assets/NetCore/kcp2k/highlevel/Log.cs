@@ -7,8 +7,8 @@ namespace kcp2k
 {
     public static class Log
     {
-        public static Action<string> Info    = (msg) => { Logger.Log(LogLevel.Info, msg); };
-        public static Action<string> Warning = (msg) => { Logger.Log(LogLevel.Warning, msg); };
-        public static Action<string> Error   = (msg) => { Logger.Log(LogLevel.Error, msg); };
+        public static Action<string> Info    = Console.WriteLine;
+        public static Action<string> Warning = Console.WriteLine;
+        public static Action<string> Error   = Console.Error.WriteLine;
     }
 }
