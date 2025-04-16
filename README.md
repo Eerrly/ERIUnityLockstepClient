@@ -10,6 +10,11 @@
 ### 环境
 [Unity官网](https://unity.com/) Unity2019.4.37f1 - Unity2021.3.42f1
 
+### 设置
++ IP、端口号设置在`NetCore/NetSetting.cs`
++ 战斗帧信息设置在`Battle/BattleSetting.cs`，目前只支持2人
++ 日志全量打开启宏`DEBUG_MODEL`
+
 ### 使用
 1. 先启动服务器
 2. 运行 `Main.scene` 在界面中输入账号密码
