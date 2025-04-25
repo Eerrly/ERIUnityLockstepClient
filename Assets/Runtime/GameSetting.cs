@@ -4,6 +4,11 @@
 public class GameSetting
 {
     /// <summary>
+    /// 渲染帧率
+    /// </summary>
+    public static readonly int TargetFrameRate = 60;
+    
+    /// <summary>
     /// 房间最大人数
     /// </summary>
     public static readonly int RoomMaxPlayerCount = 2;

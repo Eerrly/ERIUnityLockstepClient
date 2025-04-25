@@ -1,11 +1,16 @@
 using System;
 using System.IO;
+using System.Threading;
 
 /// <summary>
 /// 客户端基类
 /// </summary>
 public abstract class ClientTransport
 {
+    /// <summary>
+    /// 取消Token
+    /// </summary>
+    protected readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
     /// <summary>
     /// 是否已连接
     /// </summary>
@@ -26,7 +31,11 @@ public abstract class ClientTransport
     /// <summary>
     /// 断开连接
     /// </summary>
-    public virtual void Disconnect() { }
+    protected virtual void Disconnect()
+    {
+        TokenSource.Cancel();
+        TokenSource.Dispose();
+    }
 
     /// <summary>
     /// 发送消息包

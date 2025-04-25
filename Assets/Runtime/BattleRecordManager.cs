@@ -18,20 +18,17 @@ public class BattleRecordManager : AManager<BattleRecordManager>
     /// <summary>
     /// 当前正在收集的战斗实体队列
     /// </summary>
-    private Queue<BattleEntity> _battleEntities;
+    private readonly RingBuffer<BattleEntity> _battleEntities = new(32);
     /// <summary>
     /// 战斗实体缓存集合
     /// </summary>
     private List<BattleEntity> _unusedBattleEntities;
     
-    private static object _writerLock = new object();
-
     /// <summary>
     /// 初始化
     /// </summary>
     public override void Initialize()
     {
-        _battleEntities = new Queue<BattleEntity>();
         _unusedBattleEntities = new List<BattleEntity>();
     }
 
@@ -84,33 +81,24 @@ public class BattleRecordManager : AManager<BattleRecordManager>
         {
             try
             {
-                while (_battleEntities.Count > 0)
+                while (_battleEntities.TryDequeue(out var entity))
                 {
-                    BattleEntity entity = null;
-                    lock (_writerLock)
-                    {
-                        entity = _battleEntities.Dequeue();
-                    }
-
-                    if (entity != null)
-                    {
-                        entity.Serialize(_frameBinaryWriter);
-                        _frameBinaryWriter.Flush();
-                        lock (_writerLock)
-                        {
-                            _unusedBattleEntities.Add(entity);
-                        }
-                    }
+                    if (entity == null) 
+                        continue;
+                    entity.Serialize(_frameBinaryWriter);
+                    lock (_unusedBattleEntities) _unusedBattleEntities.Add(entity);
                 }
+                _frameBinaryWriter.Flush();
             }
             catch (Exception ex)
             {
+                if (_frameFileStream != null)
+                {
+                    _frameFileStream.Dispose();
+                    _frameFileStream = null;
+                }
                 Logger.Log(LogLevel.Error, $"{ex.Message}\n{ex.StackTrace}");
-            }
-            finally
-            {
-                _frameFileStream.Dispose();
-                _frameFileStream = null;
+                break;
             }
             Thread.Sleep(BattleSetting.BattleInterval / 2);
         }
@@ -124,39 +112,33 @@ public class BattleRecordManager : AManager<BattleRecordManager>
     {
         try
         {
-            if (_frameFileStream != null)
+            if (_frameFileStream == null) 
+                return;
+            
+            BattleEntity entity = null;
+            lock (_unusedBattleEntities)
             {
-                BattleEntity entity = null;
-                lock (_writerLock)
+                if (_unusedBattleEntities.Count > 0)
                 {
-                    if (_unusedBattleEntities.Count > 0)
-                    {
-                        entity = _unusedBattleEntities[_unusedBattleEntities.Count - 1];
-                        _unusedBattleEntities.RemoveAt(_unusedBattleEntities.Count - 1);
-                    }
-                }
-
-                if (entity == null) entity = new BattleEntity();
-
-                entity.BattleEntityType = EBattleEntityType.Record;
-                battleEntity.CopyTo(entity);
-                lock (_writerLock)
-                {
-                    _battleEntities.Enqueue(entity);
+                    entity = _unusedBattleEntities[^1];
+                    _unusedBattleEntities.RemoveAt(_unusedBattleEntities.Count - 1);
                 }
             }
+
+            entity ??= new BattleEntity();
+
+            entity.BattleEntityType = EBattleEntityType.Record;
+            battleEntity.CopyTo(entity);
+            _battleEntities.Enqueue(entity);
         }
         catch (Exception ex)
-        {
-            Logger.Log(LogLevel.Error, $"{ex.Message}\n{ex.StackTrace}");
-        }
-        finally
         {
             if (_frameFileStream != null)
             {
                 _frameFileStream.Dispose();
-                _frameFileStream = null; 
+                _frameFileStream = null;
             }
+            Logger.Log(LogLevel.Error, $"{ex.Message}\n{ex.StackTrace}");
         }
     }
     

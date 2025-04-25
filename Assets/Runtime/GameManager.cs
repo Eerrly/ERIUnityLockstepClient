@@ -69,6 +69,8 @@ public class GameManager : MManager<GameManager>
     /// </summary>
     public override void Initialize()
     {
+        Application.targetFrameRate = GameSetting.TargetFrameRate;
+        
         _battleController = new BattleController();
         _replayController = new ReplayController();
         _frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount, BattleSetting.MaxFrameCount);
@@ -117,11 +119,18 @@ public class GameManager : MManager<GameManager>
     /// </summary>
     private void StartReplayBattle()
     {
-        _replayController.InitReplay(GetBattlePos());
-        LoomManager.Instance.QueueOnMainThread(() => { _battleView.InitView(_replayController.DisplayBattleEntity); });
-        InitializeEntitySystems();
-        _frameEngine.StartReplayEngine(BattleSetting.BattleInterval);
-        _replayController.StartReplayStopwatch();
+        StartCoroutine(OnLoadBattleSceneAsync(() =>
+        {
+            CreateBattleView();
+            CameraManager.Instance.ToggleUICamera();
+            CameraManager.Instance.ToggleBattleCamera();
+            
+            _replayController.InitReplay(GetBattlePos());
+            _battleView.InitView(_replayController.DisplayBattleEntity);
+            InitializeEntitySystems();
+            _frameEngine.StartReplayEngine(BattleSetting.BattleInterval);
+            _replayController.StartReplayStopwatch();
+        }));
     }
     
     /// <summary>
@@ -141,6 +150,9 @@ public class GameManager : MManager<GameManager>
     {
         try
         {
+            if (_battleView == null)
+                return;
+            
             switch (battleType)
             {
                 case BattleType.Remote:

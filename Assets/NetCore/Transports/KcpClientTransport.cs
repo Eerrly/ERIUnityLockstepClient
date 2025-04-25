@@ -24,7 +24,7 @@ public class KcpClientTransport : ClientTransport
     /// <summary>
     /// 需要发送的消息包队列
     /// </summary>
-    private readonly Queue<Packet> _packets;
+    private readonly RingBuffer<Packet> _packets;
 
     /// <summary>
     /// 已连接回调
@@ -58,7 +58,7 @@ public class KcpClientTransport : ClientTransport
             (errorCode, error) => OnError?.Invoke(errorCode, error),
             _config
         );
-        _packets = new Queue<Packet>();
+        _packets = new RingBuffer<Packet>(32);
     }
 
     /// <summary>
@@ -93,8 +93,9 @@ public class KcpClientTransport : ClientTransport
     /// <summary>
     /// 断开连接
     /// </summary>
-    public override void Disconnect()
+    protected override void Disconnect()
     {
+        base.Disconnect();
         _client.Disconnect();
     }
 
@@ -140,12 +141,12 @@ public class KcpClientTransport : ClientTransport
     public override void Update() 
     {
         Task.Run(async () => {
-            while(true){
+            while(!TokenSource.Token.IsCancellationRequested){
                 UpdatePacketInfosSent();
                 _client.Tick();
-                await Task.Delay(TimeSpan.FromMilliseconds(_config.Interval));
+                await Task.Delay(TimeSpan.FromMilliseconds(_config.Interval), TokenSource.Token);
             }
-        });
+        }, TokenSource.Token);
     }
 
     /// <summary>
@@ -153,9 +154,9 @@ public class KcpClientTransport : ClientTransport
     /// </summary>
     private void UpdatePacketInfosSent()
     {
-        if(_packets.Count <= 0) return;
-
-        var packet = _packets.Dequeue();
+        if (!_packets.TryDequeue(out var packet))
+            return;
+        
         var buffer = BufferPool.GetBuffer(packet._head._length + Head.HeadLength);
         try
         {
@@ -183,6 +184,6 @@ public class KcpClientTransport : ClientTransport
     /// <summary>
     /// 断开连接
     /// </summary>
-    public override void Shutdown() => _client.Disconnect();
+    public override void Shutdown() => Disconnect();
 
 }

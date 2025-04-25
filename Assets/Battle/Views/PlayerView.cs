@@ -12,10 +12,6 @@ public class PlayerView : BaseView<PlayerEntity>
     /// </summary>
     public int ID;
     /// <summary>
-    /// 修正向量
-    /// </summary>
-    private Vector3 _fixV;
-    /// <summary>
     /// 生成的玩家Prefab GameObject
     /// </summary>
     private GameObject _instance;
@@ -51,6 +47,19 @@ public class PlayerView : BaseView<PlayerEntity>
     /// 特效缓存字典
     /// </summary>
     private Dictionary<int, GameObject> _effectCacheDic = new Dictionary<int, GameObject>();
+    /// <summary>
+    /// 最近一帧的偏差
+    /// </summary>
+    private float _lastFrameSpeed;
+    /// <summary>
+    /// SmoothDamp 的平滑时间
+    /// </summary>
+    private float _fixTime = 0.1f;
+    /// <summary>
+    /// SmoothDamp 的速度缓存
+    /// </summary>
+    private Vector3 _fixV;
+
     
     /// <summary>
     /// 初始化渲染
@@ -155,34 +164,57 @@ public class PlayerView : BaseView<PlayerEntity>
     {
         var currentPosition = transform.position;
         var entityPosition = entity.Transform.pos.ToVector3();
+
+        // 移动速度叠加 (提前应用逻辑层的 Movement 位移)
         currentPosition += entity.Movement.position.ToVector3();
-        currentPosition = Vector3.Lerp(currentPosition, entityPosition, 0);
-        
+
+        // 平滑角度旋转
         var currentRotation = transform.rotation;
-        var nextDeltaRotation = entity.Movement.rotation.ToQuaternion();
-        if(currentRotation != nextDeltaRotation)
+        var targetRotation = entity.Movement.rotation.ToQuaternion();
+        if (currentRotation != targetRotation)
         {
-            var forward = MoveSystem.GetForwardAngle(entity).ToFloat();
+            var forward = transform.eulerAngles.y;
             var target = MoveSystem.GetTargetAngle(entity).ToFloat();
-            var angle = Mathf.MoveTowardsAngle(forward, target, entity.Movement.turnSpeed.ToFloat() * deltaTime);
+            var turnSpeed = entity.Movement.turnSpeed.ToFloat();
+
+            var angle = Mathf.MoveTowardsAngle(forward, target, turnSpeed * deltaTime);
             currentRotation = Quaternion.Euler(0f, angle, 0f);
         }
 
+        // 位置误差判断处理
         var offset = entityPosition - currentPosition;
-        var dis = 0.3f;
-        if (offset.magnitude > dis)
+        var distance = offset.magnitude;
+
+        switch (distance)
         {
-            var target = currentPosition + offset.normalized * (offset.magnitude - dis);
-            currentPosition = Vector3.SmoothDamp(currentPosition, target, ref _fixV, 0.2f);
-        }
-        else
-        {
-            _fixV = Vector3.zero;
+            case < 0.05f:
+                // 靠近时直接吸附
+                currentPosition = entityPosition;
+                _fixV = Vector3.zero;
+                _fixTime = 0.05f;
+                break;
+            case < 0.5f:
+                // 中等距离：视觉平滑
+                currentPosition = Vector3.Lerp(currentPosition, entityPosition, deltaTime * 10f);
+                break;
+            default:
+                // 远距离：需要追赶，使用 SmoothDamp 动态调整
+                var acceleration = (distance - _lastFrameSpeed) / deltaTime;
+                // 根据追赶加速度调整平滑时间（越远追得越快）
+                _fixTime = Mathf.Clamp(0.05f + acceleration * 0.01f, 0.05f, 0.2f);
+                // 保持一个距离缓冲（0.3f），避免直接吸附造成跳动
+                var target = currentPosition + offset.normalized * (distance - 0.3f);
+                currentPosition = Vector3.SmoothDamp(currentPosition, target, ref _fixV, _fixTime);
+                break;
         }
 
+        _lastFrameSpeed = distance;
+
+        // 应用位置和旋转
         var transform1 = transform;
         transform1.position = AreaSystem.MakeInside(currentPosition);
         transform1.rotation = currentRotation;
+
     }
 
     /// <summary>

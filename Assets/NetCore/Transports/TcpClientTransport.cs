@@ -50,7 +50,13 @@ public class TcpClientTransport : ClientTransport
     {
         _client.BeginConnect(address, _port, OnConnectAsync, _client);
     }
-    
+
+    protected override void Disconnect()
+    {
+        base.Disconnect();
+        _client.Close();
+    }
+
     /// <summary>
     /// 异步连接服务器
     /// </summary>
@@ -65,7 +71,7 @@ public class TcpClientTransport : ClientTransport
         }
         tcpClient.EndConnect(iar);
         Logger.Log(LogLevel.Info,$"[TCP] Connected Server Point: {tcpClient.Client.RemoteEndPoint} Start ReceiveTask Listener");
-        Task.Run(HandleServerCommand);
+        Task.Run(HandleServerCommand, TokenSource.Token);
     }
 
     /// <summary>
@@ -73,7 +79,7 @@ public class TcpClientTransport : ClientTransport
     /// </summary>
     private async void HandleServerCommand()
     {
-        while (true)
+        while (!TokenSource.Token.IsCancellationRequested)
         {
             var stream = _client.GetStream();
             var read = 0;
@@ -147,13 +153,10 @@ public class TcpClientTransport : ClientTransport
         MsgPoolManager.Instance.Release(message);
         Send(packet);
     }
-    
+
     /// <summary>
     /// 断开连接
     /// </summary>
-    public override void Shutdown()
-    {
-        _client.Close();
-    }
+    public override void Shutdown() => Disconnect();
 
 }

@@ -20,6 +20,8 @@ public class BattleView : BaseView<BattleEntity>
     /// </summary>
     private HudView _hudView;
 
+    private float fpsDeltaTime = 0.0f;
+
 
     /// <summary>
     /// 初始化渲染
@@ -54,8 +56,10 @@ public class BattleView : BaseView<BattleEntity>
     /// <param name="deltaTime">增量时间</param>
     public override void RenderUpdate(BattleEntity entity, float deltaTime)
     {
+        fpsDeltaTime += (Time.unscaledDeltaTime - fpsDeltaTime) * 0.1f;
+        
         if (entity != null && _textMesh != null)
-            _textMesh.text = $"Name:{System.Enum.GetName(typeof(EBattleEntityType), entity.BattleEntityType)} Frame:{entity.Frame} Time:{entity.Time.ToString()}";
+            _textMesh.text = $"Name:{System.Enum.GetName(typeof(EBattleEntityType), entity.BattleEntityType)} Frame:{entity.Frame} Time:{entity.Time.ToString()}\nFPS:{(1.0f / fpsDeltaTime):0.}";
 
         if(_playerViews == null || _playerViews.Count != entity.PlayerEntities.Count) return;
         

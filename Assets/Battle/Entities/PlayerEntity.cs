@@ -47,7 +47,7 @@ public class PlayerEntity : BaseEntity
         State.nextStateId = (int)EPlayerState.Move;
         State.count = (int)EPlayerState.Count;
         
-        Transform.pos = new FixedVector3(AreaSystem.Boundary.center.x, FixedNumber.One, AreaSystem.Boundary.center.y);
+        Transform.pos = new FixedVector3(AreaSystem.Boundary.center.x, FixedNumber.Half, AreaSystem.Boundary.center.y);
         Transform.rot = FixedQuaternion.Identity;
 
         Movement.moveSpeed = PlayerInitPropertyConstants.MoveSpeed;
@@ -75,7 +75,7 @@ public class PlayerEntity : BaseEntity
         State.nextStateId = (int)EPlayerState.Move;
         State.count = (int)EPlayerState.Count;
         
-        Transform.pos = FixedVector3.Zero;
+        Transform.pos = new FixedVector3(AreaSystem.Boundary.center.x, FixedNumber.Half, AreaSystem.Boundary.center.y);
         Transform.rot = FixedQuaternion.Identity;
 
         Movement.moveSpeed = PlayerInitPropertyConstants.MoveSpeed;
