@@ -57,10 +57,25 @@ public class FrameEngine
     /// <summary>
     /// 关闭战斗线程
     /// </summary>
-    private void StopFrameEngine()
+    private async void StopFrameEngine()
     {
+        if(_frameCancellationTokenSource == null || _frameCancellationTokenSource.Token.IsCancellationRequested)
+            return;
         _frameCancellationTokenSource.Cancel();
-        _frameTask.Dispose();
+        try
+        {
+            await _frameTask;
+        }
+        catch (Exception e)
+        {
+            Logger.Log(LogLevel.Error, $"Exception {e.Message}\n{e.StackTrace}");
+        }
+        finally
+        {
+            _frameTask.Dispose();
+            _frameCancellationTokenSource.Dispose();
+            _frameCancellationTokenSource = null;
+        }
     }
     
     /// <summary>
@@ -111,10 +126,25 @@ public class FrameEngine
     /// <summary>
     /// 关闭网络线程
     /// </summary>
-    private void StopNetEngine()
+    private async void StopNetEngine()
     {
+        if (_netCancellationTokenSource == null || _netCancellationTokenSource.Token.IsCancellationRequested)
+            return;
         _netCancellationTokenSource.Cancel();
-        _netTask.Dispose();
+        try
+        {
+            await _netTask;
+        }
+        catch (Exception e)
+        {
+            Logger.Log(LogLevel.Error, $"Exception {e.Message}\n{e.StackTrace}");
+        }
+        finally
+        {
+            _netTask.Dispose();
+            _netCancellationTokenSource.Dispose();
+            _netCancellationTokenSource = null;
+        }
     }
 
     /// <summary>

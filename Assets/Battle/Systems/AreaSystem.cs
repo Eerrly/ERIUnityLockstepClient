@@ -32,7 +32,7 @@ public class AreaSystem
     public static FixedVector3 MakeInside(FixedVector3 pos)
     {
         pos.x = FixedMath.Clamp(pos.x, Boundary.xMin, Boundary.xMax);
-        pos.y = FixedMath.Max(FixedNumber.Zero, pos.y);
+        pos.y = FixedMath.Max(FixedNumber.Half, pos.y);
         pos.z = FixedMath.Clamp(pos.z, Boundary.yMin, Boundary.yMax);
         return pos;
     }

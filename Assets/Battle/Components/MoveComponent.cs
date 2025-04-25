@@ -97,6 +97,7 @@ public class MoveComponent : BaseComponent
         writer.Write(common.rotation.y._raw);
         writer.Write(common.rotation.z._raw);
         writer.Write(common.rotation.w._raw);
+        writer.Write(common.curYAngle._raw);
         writer.Write(common.moveSpeed._raw);
         writer.Write(common.turnSpeed._raw);
         writer.Write(common.direction.x._raw);
@@ -108,6 +109,7 @@ public class MoveComponent : BaseComponent
     {
         common.position = new FixedVector3(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
         common.rotation = new FixedQuaternion(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
+        common.curYAngle = new FixedNumber(reader.ReadInt64());
         common.moveSpeed = new FixedNumber(reader.ReadInt64());
         common.turnSpeed = new FixedNumber(reader.ReadInt64());
         common.direction = new FixedVector3(new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()), new FixedNumber(reader.ReadInt64()));
