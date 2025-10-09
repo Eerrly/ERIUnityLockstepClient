@@ -18,6 +18,9 @@ public class Main : MonoBehaviour
     public Button ShutdownBtn;
     public Button ReplayBtn;
 
+    private string[] replayPaths;
+    public Dropdown SelectReplayDropdown;
+
     /// <summary>
     /// 当前战斗类型
     /// </summary>
@@ -99,12 +102,40 @@ public class Main : MonoBehaviour
         {
             GameManager.Instance.StopBattle(currBattleType);
         });
+
+        UpdateReplayDropDownInfo();
         ReplayBtn.onClick.AddListener(() =>
         {
-            currBattleType = BattleType.Replay;
-            GameManager.Instance.StartBattle(currBattleType);
-            GameManager.Instance.IsBattleStart = true;
+            if (replayPaths.Length <= 0)
+                return;
+            var matches = System.Text.RegularExpressions.Regex.Matches(SelectReplayDropdown.options[SelectReplayDropdown.value].text, @"battle_record_(\d+).log");
+            if (uint.TryParse(matches[0].Groups[1].Value, out var pos))
+            {
+                GameManager.Instance.PlayerId = pos + GameSetting.DefaultPlayerIdBase + 1;
+            
+                currBattleType = BattleType.Replay;
+                GameManager.Instance.StartBattle(currBattleType);
+                GameManager.Instance.IsBattleStart = true;
+            }
         });
+    }
+
+    private void UpdateReplayDropDownInfo()
+    {
+        SelectReplayDropdown.options.Clear();
+        replayPaths = Directory.GetFiles(Application.persistentDataPath, "*.log");
+        foreach (var path in replayPaths)
+        {
+            var fileName = Path.GetFileName(path);
+            if (!fileName.StartsWith("battle_record_")) 
+                continue;
+            var tmpData = new Dropdown.OptionData
+            {
+                text = Path.GetFileName(path)
+            };
+            SelectReplayDropdown.options.Add(tmpData);
+        }
+        SelectReplayDropdown.captionText.text = Path.GetFileName(replayPaths[0]);
     }
 
     private void Update()

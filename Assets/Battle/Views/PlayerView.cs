@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -73,7 +74,6 @@ public class PlayerView : BaseView<PlayerEntity>
 
         _animator = Util.GetOrAddComponent<Animator>(_instance);
         AnimationManager.Instance.SetPlayerAnimator(entity.ID, _animator);
-
     }
 
     /// <summary>
@@ -126,20 +126,31 @@ public class PlayerView : BaseView<PlayerEntity>
             return;
         }
 
-        if (!_effectCacheDic.TryGetValue(entity.Property.effect, out var effectObj))
-        {
-            var effectTypeName = Enum.GetName(typeof(EEffectType), entity.Property.effect);
-            effectObj = Instantiate(Resources.Load<GameObject>("Data/Prefabs/" + effectTypeName), Vector3.zero, Quaternion.identity);
-            effectObj.transform.SetParent(transform, false);
+        var effectTypeName = Enum.GetName(typeof(EEffectType), entity.Property.effect);
+        StartCoroutine(LoadEffectAsync(entity, "Data/Prefabs/" + effectTypeName));
+    }
 
-            effectObj.transform.position += Vector3.up;
-            effectObj.transform.localScale *= 2;
-            
-            _effectCacheDic[entity.Property.effect] = effectObj;
+    /// <summary>
+    /// 异步加载特效资源
+    /// </summary>
+    private IEnumerator LoadEffectAsync(PlayerEntity entity, string effectPath)
+    {
+        if (_effectCacheDic.TryGetValue(entity.Property.effect, out var effectObj))
+        {
+            effectObj.SetActive(true);
+            _currentEffect = entity.Property.effect;
+            yield break;
         }
-        
-        _effectCacheDic[entity.Property.effect].SetActive(true);
-        
+        var request = Resources.LoadAsync<GameObject>(effectPath);
+        while (request.isDone == false)
+            yield return null;
+        effectObj = Instantiate(request.asset, Vector3.zero, Quaternion.identity) as GameObject;
+        if (effectObj == null)
+            yield break;
+        effectObj.transform.SetParent(transform, false);
+        effectObj.transform.position += Vector3.up;
+        effectObj.transform.localScale *= 2;
+        _effectCacheDic[_currentEffect] = effectObj;
         _currentEffect = entity.Property.effect;
     }
 
