@@ -116,6 +116,8 @@ public class PlayerView : BaseView<PlayerEntity>
     /// <param name="entity"></param>
     private void EffectUpdate(PlayerEntity entity)
     {
+        if (_currentEffect == entity.Property.effect)
+            return;
         if (entity.Property.effect == 0)
         {
             if (_currentEffect != (int)EEffectType.None)
@@ -126,6 +128,7 @@ public class PlayerView : BaseView<PlayerEntity>
             return;
         }
 
+        _currentEffect = entity.Property.effect;
         var effectTypeName = Enum.GetName(typeof(EEffectType), entity.Property.effect);
         StartCoroutine(LoadEffectAsync(entity, "Data/Prefabs/" + effectTypeName));
     }
@@ -138,7 +141,6 @@ public class PlayerView : BaseView<PlayerEntity>
         if (_effectCacheDic.TryGetValue(entity.Property.effect, out var effectObj))
         {
             effectObj.SetActive(true);
-            _currentEffect = entity.Property.effect;
             yield break;
         }
         var request = Resources.LoadAsync<GameObject>(effectPath);
@@ -151,7 +153,6 @@ public class PlayerView : BaseView<PlayerEntity>
         effectObj.transform.position += Vector3.up;
         effectObj.transform.localScale *= 2;
         _effectCacheDic[_currentEffect] = effectObj;
-        _currentEffect = entity.Property.effect;
     }
 
     /// <summary>

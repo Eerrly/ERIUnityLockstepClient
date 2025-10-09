@@ -20,7 +20,9 @@ public class PlayerHitState : PlayerBaseState
     public override void OnLateUpdate(PlayerEntity playerEntity, BattleEntity battleEntity)
     {
         if (AnimationSystem.IsTriggerEvent(playerEntity, EAnimationEvent.AnimEnd))
+        {
             playerEntity.State.nextStateId = (int)EPlayerState.Move;
+        }
     }
 
     public override void OnExit(PlayerEntity playerEntity, BattleEntity battleEntity)
