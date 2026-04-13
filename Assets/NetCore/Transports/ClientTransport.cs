@@ -7,6 +7,7 @@ using System.Threading;
 /// </summary>
 public abstract class ClientTransport
 {
+    private int _disconnectRequested;
     /// <summary>
     /// 取消Token
     /// </summary>
@@ -33,8 +34,24 @@ public abstract class ClientTransport
     /// </summary>
     protected virtual void Disconnect()
     {
-        TokenSource.Cancel();
-        TokenSource.Dispose();
+        if (Interlocked.Exchange(ref _disconnectRequested, 1) == 1)
+            return;
+
+        try
+        {
+            TokenSource.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+
+        try
+        {
+            TokenSource.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 
     /// <summary>

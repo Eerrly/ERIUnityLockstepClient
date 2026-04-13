@@ -23,7 +23,7 @@ public class DebugTextComponent : MonoBehaviour
     {
         _text = Util.GetOrAddComponent<Text>(gameObject);
         _text.color = Color.black;
-        _text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        _text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
     }
 
     private void Update()

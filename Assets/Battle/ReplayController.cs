@@ -11,10 +11,13 @@ using UnityEngine;
 /// </summary>
 public class ReplayController
 {
+    public event Action OnReplayFinished;
+
     /// <summary>
     /// 当前帧
     /// </summary>
     private int _frame;
+    private bool _isReplayFinished;
     private readonly Stopwatch _stopwatch;
     /// <summary>
     /// 缓存战斗实体列表
@@ -30,6 +33,7 @@ public class ReplayController
     public ReplayController()
     {
         _frame = 0;
+        _isReplayFinished = false;
         _stopwatch = new Stopwatch();
         _battleEntities = new List<BattleEntity>();
         _displayBattleEntity = new BattleEntity();
@@ -42,6 +46,7 @@ public class ReplayController
     /// </summary>
     public void StartReplayStopwatch()
     {
+        _stopwatch.Reset();
         _stopwatch.Start();
     }
 
@@ -51,6 +56,11 @@ public class ReplayController
     /// <param name="pos">战斗POS</param>
     public void InitReplay(int pos)
     {
+        _frame = 0;
+        _isReplayFinished = false;
+        _battleEntities.Clear();
+        _stopwatch.Reset();
+
         // 最近的一次多人战斗记录
         var battleRecordPath = $"{Application.persistentDataPath}/battle_record_{pos}.log";
         if (!File.Exists(battleRecordPath))
@@ -88,6 +98,13 @@ public class ReplayController
             _battleEntities[_frame].CopyTo(_displayBattleEntity);
             _frame++;
         }
+
+        if (!_isReplayFinished && _battleEntities.Count > 0 && _frame >= _battleEntities.Count)
+        {
+            _isReplayFinished = true;
+            OnReplayFinished?.Invoke();
+        }
+
         return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
     }
     

@@ -64,7 +64,11 @@ public class FrameEngine
         _frameCancellationTokenSource.Cancel();
         try
         {
-            await _frameTask;
+            if (_frameTask != null)
+                await _frameTask;
+        }
+        catch (OperationCanceledException)
+        {
         }
         catch (Exception e)
         {
@@ -72,7 +76,8 @@ public class FrameEngine
         }
         finally
         {
-            _frameTask.Dispose();
+            _frameTask?.Dispose();
+            _frameTask = null;
             _frameCancellationTokenSource.Dispose();
             _frameCancellationTokenSource = null;
         }
@@ -99,10 +104,31 @@ public class FrameEngine
     /// <summary>
     /// 关闭回放线程
     /// </summary>
-    public void StopReplayEngine()
+    public async void StopReplayEngine()
     {
+        if (_replayCancellationTokenSource == null || _replayCancellationTokenSource.IsCancellationRequested)
+            return;
+
         _replayCancellationTokenSource.Cancel();
-        _replayTask.Dispose();
+        try
+        {
+            if (_replayTask != null)
+                await _replayTask;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception e)
+        {
+            Logger.Log(LogLevel.Error, $"Exception {e.Message}\n{e.StackTrace}");
+        }
+        finally
+        {
+            _replayTask?.Dispose();
+            _replayTask = null;
+            _replayCancellationTokenSource.Dispose();
+            _replayCancellationTokenSource = null;
+        }
     }
 
     /// <summary>
@@ -133,7 +159,11 @@ public class FrameEngine
         _netCancellationTokenSource.Cancel();
         try
         {
-            await _netTask;
+            if (_netTask != null)
+                await _netTask;
+        }
+        catch (OperationCanceledException)
+        {
         }
         catch (Exception e)
         {
@@ -141,7 +171,8 @@ public class FrameEngine
         }
         finally
         {
-            _netTask.Dispose();
+            _netTask?.Dispose();
+            _netTask = null;
             _netCancellationTokenSource.Dispose();
             _netCancellationTokenSource = null;
         }
