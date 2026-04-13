@@ -52,6 +52,10 @@ public enum EAnimationID
     /// 收击
     /// </summary>
     Hit = 2,
+    /// <summary>
+    /// 死亡
+    /// </summary>
+    Dead = 3,
 }
 
 /// <summary>

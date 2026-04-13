@@ -20,5 +20,10 @@ public enum EPlayerState
     /// </summary>
     Hit = 3,
     
+    /// <summary>
+    /// 死亡
+    /// </summary>
+    Dead = 4,
+    
     Count,
 }

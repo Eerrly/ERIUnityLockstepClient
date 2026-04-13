@@ -31,10 +31,10 @@ public class PlayerInitPropertyConstants
     /// <summary>
     /// 攻击掉血
     /// </summary>
-    public static readonly System.Int32 AttackDamage = 2;
+    public static readonly System.Int32 AttackDamage = 1;
 
     /// <summary>
     /// 初始化总血量
     /// </summary>
-    public static readonly System.Int32 TotalHp = 10;
+    public static readonly System.Int32 TotalHp = 2;
 }

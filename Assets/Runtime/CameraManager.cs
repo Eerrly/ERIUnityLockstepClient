@@ -59,6 +59,8 @@ public class CameraManager : MManager<CameraManager>
             go.transform.SetParent(transform);
         
             _uiCamera = Util.GetOrAddComponent<Camera>(go);
+            if (FindObjectOfType<AudioListener>() == null)
+                Util.GetOrAddComponent<AudioListener>(go);
             _uiCamera.clearFlags = CameraClearFlags.Depth;
             _uiCamera.cullingMask = 1 << 5;
             _uiCamera.orthographic = true;
