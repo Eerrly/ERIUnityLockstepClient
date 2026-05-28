@@ -1,0 +1,21 @@
+# Codex project workflow configuration.
+# Keep this file process-only. Project-specific feature content belongs in OpenSpec changes.
+
+model_reasoning_effort = "medium"
+sandbox_mode = "danger-full-access"
+
+[agents]
+max_threads = 5
+max_depth = 1
+job_max_runtime_seconds = 1800
+
+[features]
+hooks = true
+goals = true
+
+# Optional Unity MCP HTTP endpoint. Keep the URL local and environment-neutral.
+[mcp_servers.unityMCP]
+command = "C:\\Users\\gy\\.local\\bin\\uvx.exe"
+args = [ "--from", "mcpforunityserver==9.7.1", "mcp-for-unity", "--transport", "stdio" ]
+startup_timeout_sec = 60
+env = { SystemRoot = "C:\\WINDOWS" }
