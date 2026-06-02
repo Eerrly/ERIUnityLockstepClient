@@ -11,12 +11,13 @@ public class AnimationDataEventEditorWindow : EditorWindow
     private const int DataConvertScale = 10000;
     private const string DefaultOutputFolder = "Assets/Resources/Data/AnimationData";
     private const string StylePath = "Assets/Editor/AnimationDataToolStyles.uss";
+    private const int RuntimeEventFrameRate = 30;
 
     private AnimationClip _clip;
     private GameObject _previewTarget;
     private string _outputFolder = DefaultOutputFolder;
     private int _currentFrame;
-    private int _frameRate = 30;
+    private int _frameRate = RuntimeEventFrameRate;
     private EAnimationEvent _eventToAdd = EAnimationEvent.Fire;
     private bool _relativePositionToFirstFrame = true;
     private bool _includeRotationCurve = true;
@@ -177,14 +178,10 @@ public class AnimationDataEventEditorWindow : EditorWindow
         _frameReadout = new Label();
         _frameReadout.AddToClassList("adt-frame-readout");
 
-        _frameRateField = new IntegerField("Event FPS") { value = _frameRate };
+        _frameRateField = new IntegerField("Runtime Event FPS") { value = _frameRate };
+        _frameRateField.tooltip = "AnimationManager converts event frames as 30fps runtime frames, so exported events stay on this scale regardless of clip sample rate.";
         _frameRateField.AddToClassList("adt-field");
-        _frameRateField.RegisterValueChangedCallback(evt =>
-        {
-            _frameRate = Mathf.Max(1, evt.newValue);
-            RefreshUi();
-            RepaintPreview();
-        });
+        _frameRateField.SetEnabled(false);
 
         panel.Add(_previewContainer);
         panel.Add(_previewHint);
@@ -479,8 +476,7 @@ public class AnimationDataEventEditorWindow : EditorWindow
     {
         _events.Clear();
         _currentFrame = 0;
-        if (_clip != null)
-            _frameRate = Mathf.Max(1, Mathf.RoundToInt(_clip.frameRate));
+        _frameRate = RuntimeEventFrameRate;
         if (_frameRateField != null)
             _frameRateField.SetValueWithoutNotify(_frameRate);
         AutoLoadExistingAsset();
