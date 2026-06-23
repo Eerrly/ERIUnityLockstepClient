@@ -116,7 +116,6 @@ public class UIRootManager : MManager<UIRootManager>
         if (prefab == null)
         {
             Logger.Log(LogLevel.Error, $"UIRoot prefab not found: Resources/{path}");
-            _roots[rootType] = null;
             return null;
         }
 

@@ -8,6 +8,8 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class GameManager : MManager<GameManager>
 {
+    private const float ReconnectTimeoutSeconds = 10f;
+
     public event Action OnReplayFinished;
     public event Action<string> OnStatusMessage;
     public event Action<ReconnectLoadingStatus, string> OnReconnectLoadingStatusChanged;
@@ -42,6 +44,7 @@ public class GameManager : MManager<GameManager>
     private Coroutine _remoteExitCoroutine;
     private Coroutine _replayExitCoroutine;
     private Coroutine _reconnectCoroutine;
+    private Coroutine _reconnectTimeoutCoroutine;
     private bool _reconnectCompletionTriggered;
     private bool _reconnectFailureTriggered;
 
@@ -244,11 +247,17 @@ public class GameManager : MManager<GameManager>
         ReconnectSessionInfo.Reset();
         ReconnectSessionInfo.RoomId = loginMsg.ReconnectRoomId;
         ReconnectSessionInfo.PlayerId = PlayerId;
-        ReconnectSessionInfo.AuthoritativeFrame = 0;
-        ReconnectSessionInfo.LastReceivedFrame = (int)loginMsg.ReconnectFrame;
+        ReconnectSessionInfo.AuthoritativeFrame = (int)loginMsg.ReconnectFrame;
+        ReconnectSessionInfo.LastReceivedFrame = 0;
         ReconnectSessionInfo.PlayerPos = (int)loginMsg.ReconnectPlayerPos;
         foreach (var gamer in loginMsg.ReconnectGamers)
             ReconnectSessionInfo.Gamers.Add(gamer);
+
+        if (ReconnectSessionInfo.Gamers.Count <= 0 || !ReconnectSessionInfo.Gamers.Contains(PlayerId))
+        {
+            HandleBattleReconnectFailed("重连房间信息无效");
+            return;
+        }
 
         if (RoomInfo == null)
             RoomInfo = new RoomInfo();
@@ -257,6 +266,7 @@ public class GameManager : MManager<GameManager>
         RoomInfo.Gamers.Clear();
         RoomInfo.Gamers.AddRange(ReconnectSessionInfo.Gamers);
 
+        CurrentBattleType = BattleType.Remote;
         _reconnectCoroutine = StartCoroutine(BeginReconnectRoutine());
     }
 
@@ -317,6 +327,7 @@ public class GameManager : MManager<GameManager>
             return;
 
         _reconnectCompletionTriggered = true;
+        StopReconnectTimeout();
         UpdateReconnectStatus(ReconnectLoadingStatus.EnteringBattle, "同步完成，正在进入战斗");
 
         var targetFrame = ReconnectSessionInfo.AuthoritativeFrame;
@@ -357,6 +368,7 @@ public class GameManager : MManager<GameManager>
             return;
 
         _reconnectFailureTriggered = true;
+        StopReconnectTimeout();
         if (ReconnectSessionInfo != null)
             ReconnectSessionInfo.FailureReason = string.IsNullOrEmpty(reason) ? "重连失败" : reason;
 
@@ -420,6 +432,7 @@ public class GameManager : MManager<GameManager>
         IsBattleStart = false;
         ServerAuthorityFrame = -1;
         UpdateReconnectStatus(ReconnectLoadingStatus.Preparing, "准备重连");
+        StartReconnectTimeout();
 
         if (CurrentBattleType == BattleType.Replay)
         {
@@ -430,7 +443,7 @@ public class GameManager : MManager<GameManager>
             StopRemoteBattle();
         }
 
-        FrameBuffer.ResetForReconnect(GetReconnectLastReceivedFrame());
+        FrameBuffer.ResetForReconnect(0);
         _battleController.ResetRuntimeState();
 
         UIRootManager.Instance.HideAllRoots();
@@ -468,6 +481,28 @@ public class GameManager : MManager<GameManager>
         _reconnectFailureTriggered = false;
         _reconnectCompletionTriggered = false;
         _reconnectCoroutine = null;
+    }
+
+    private IEnumerator ReconnectTimeoutRoutine()
+    {
+        yield return new WaitForSeconds(ReconnectTimeoutSeconds);
+        _reconnectTimeoutCoroutine = null;
+        HandleBattleReconnectFailed("重连超时");
+    }
+
+    private void StartReconnectTimeout()
+    {
+        StopReconnectTimeout();
+        _reconnectTimeoutCoroutine = StartCoroutine(ReconnectTimeoutRoutine());
+    }
+
+    private void StopReconnectTimeout()
+    {
+        if (_reconnectTimeoutCoroutine == null)
+            return;
+
+        StopCoroutine(_reconnectTimeoutCoroutine);
+        _reconnectTimeoutCoroutine = null;
     }
 
     private void CreateBattleView()
@@ -519,6 +554,7 @@ public class GameManager : MManager<GameManager>
 
     public override void OnRelease()
     {
+        StopReconnectTimeout();
         if (_frameEngine != null)
         {
             _frameEngine.UnRegisterFrameUpdateListener();

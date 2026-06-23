@@ -41,12 +41,12 @@ public class NetworkManager : AManager<NetworkManager>
     public Uri TcpUri => _tcpClientTransport.Uri();
 
     /// <summary>
-    /// 最小Ping
+    /// 最小 Ping
     /// </summary>
     public long MinPing;
 
     /// <summary>
-    /// 当前Ping
+    /// 当前 Ping
     /// </summary>
     public long RealPing;
 
@@ -71,7 +71,7 @@ public class NetworkManager : AManager<NetworkManager>
     }
 
     /// <summary>
-    /// KCP连接回调
+    /// KCP 连接回调
     /// </summary>
     private void OnKcpConnected()
     {
@@ -88,7 +88,7 @@ public class NetworkManager : AManager<NetworkManager>
     }
 
     /// <summary>
-    /// 收到KCP消息
+    /// 收到 KCP 消息
     /// </summary>
     private void OnKcpDataReceived(ArraySegment<byte> data, kcp2k.KcpChannel channel)
     {
@@ -247,23 +247,27 @@ public class NetworkManager : AManager<NetworkManager>
     }
 
     /// <summary>
-    /// KCP断开回调
+    /// KCP 断开回调
     /// </summary>
     private void OnKcpDisconnected()
     {
         Logger.Log(LogLevel.Info, "OnKcpDisconnected");
+        if (GameManager.Instance.IsReconnecting)
+            LoomManager.Instance.QueueOnMainThread(() => GameManager.Instance.HandleBattleReconnectFailed("重连连接已断开"));
     }
 
     /// <summary>
-    /// KCP错误回调
+    /// KCP 错误回调
     /// </summary>
     private void OnKcpError(kcp2k.ErrorCode errorCode, string error)
     {
         Logger.Log(LogLevel.Error, $"OnKcpError errorCode: {errorCode} error: {error}");
+        if (GameManager.Instance.IsReconnecting)
+            LoomManager.Instance.QueueOnMainThread(() => GameManager.Instance.HandleBattleReconnectFailed("重连网络错误"));
     }
 
     /// <summary>
-    /// KCP连接
+    /// KCP 连接
     /// </summary>
     public void KcpConnect()
     {
@@ -271,7 +275,7 @@ public class NetworkManager : AManager<NetworkManager>
     }
 
     /// <summary>
-    /// KCP轮询
+    /// KCP 轮询
     /// </summary>
     public void KcpUpdate()
     {
@@ -279,7 +283,7 @@ public class NetworkManager : AManager<NetworkManager>
     }
 
     /// <summary>
-    /// 断开KCP连接
+    /// 断开 KCP 连接
     /// </summary>
     public void KcpShutdown()
     {
@@ -317,7 +321,7 @@ public class NetworkManager : AManager<NetworkManager>
         var c2SMessage = MsgPoolManager.Instance.Require<pb.C2S_BattleReconnectMsg>();
         c2SMessage.RoomId = roomId;
         c2SMessage.PlayerId = playerId;
-        c2SMessage.LastReceivedFrame = (uint)Math.Max(0, lastReceivedFrame);
+        c2SMessage.LastReceivedFrame = 0;
         _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgReconnect, c2SMessage);
     }
 
@@ -368,7 +372,7 @@ public class NetworkManager : AManager<NetworkManager>
     }
 
     /// <summary>
-    /// 收到TCP消息
+    /// 收到 TCP 消息
     /// </summary>
     private void OnTcpDataReceived(byte[] data, int read, NetworkStream stream)
     {
@@ -427,7 +431,7 @@ public class NetworkManager : AManager<NetworkManager>
     }
 
     /// <summary>
-    /// TCP连接
+    /// TCP 连接
     /// </summary>
     public void TcpConnect()
     {
@@ -435,7 +439,7 @@ public class NetworkManager : AManager<NetworkManager>
     }
 
     /// <summary>
-    /// 断开TCP连接
+    /// 断开 TCP 连接
     /// </summary>
     public void TcpShutdown()
     {
