@@ -18,7 +18,7 @@ public class ReconnectSessionInfo
         RoomId = 0;
         PlayerId = 0;
         AuthoritativeFrame = 0;
-        LastReceivedFrame = 0;
+        LastReceivedFrame = -1;
         PlayerPos = 0;
         FailureReason = string.Empty;
         Gamers.Clear();

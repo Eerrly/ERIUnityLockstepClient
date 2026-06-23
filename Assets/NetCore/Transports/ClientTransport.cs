@@ -11,7 +11,7 @@ public abstract class ClientTransport
     /// <summary>
     /// 取消Token
     /// </summary>
-    protected readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
+    protected CancellationTokenSource TokenSource { get; private set; } = new CancellationTokenSource();
     /// <summary>
     /// 是否已连接
     /// </summary>
@@ -28,6 +28,17 @@ public abstract class ClientTransport
     /// </summary>
     /// <param name="address">服务器地址</param>
     public virtual void Connect(string address) { }
+
+    /// <summary>
+    /// 复用传输对象重连前，重建已释放的取消句柄。
+    /// </summary>
+    protected void PrepareForConnect()
+    {
+        if (Interlocked.Exchange(ref _disconnectRequested, 0) == 0 && !TokenSource.IsCancellationRequested)
+            return;
+
+        TokenSource = new CancellationTokenSource();
+    }
 
     /// <summary>
     /// 断开连接

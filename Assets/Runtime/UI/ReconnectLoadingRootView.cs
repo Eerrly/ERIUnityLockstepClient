@@ -12,8 +12,10 @@ public class ReconnectLoadingRootView : MonoBehaviour
     public Text TitleText;
     public Text StatusText;
     public Text ProgressText;
+    public Image ProgressFillImage;
 
     private GameManager _gameManager;
+    private RectTransform _progressFillRect;
 
     private void OnEnable()
     {
@@ -43,6 +45,7 @@ public class ReconnectLoadingRootView : MonoBehaviour
             StatusText.text = GetStatusText(status);
         if (ProgressText != null)
             ProgressText.text = string.IsNullOrEmpty(progress) ? DefaultProgressText : progress;
+        RefreshProgressBar(_gameManager == null ? 0f : _gameManager.ReconnectProgress01);
     }
 
     private string GetStatusText(ReconnectLoadingStatus status)
@@ -75,6 +78,20 @@ public class ReconnectLoadingRootView : MonoBehaviour
         TitleText ??= FindChildComponent<Text>("TitleText");
         StatusText ??= FindChildComponent<Text>("StatusText");
         ProgressText ??= FindChildComponent<Text>("ProgressText");
+        ProgressFillImage ??= FindChildComponent<Image>("ProgressGlow");
+        _progressFillRect = ProgressFillImage == null ? null : ProgressFillImage.rectTransform;
+    }
+
+    private void RefreshProgressBar(float progress01)
+    {
+        if (_progressFillRect == null)
+            return;
+
+        var anchorMax = _progressFillRect.anchorMax;
+        anchorMax.x = Mathf.Clamp01(progress01);
+        _progressFillRect.anchorMax = anchorMax;
+        _progressFillRect.offsetMin = Vector2.zero;
+        _progressFillRect.offsetMax = Vector2.zero;
     }
 
     private T FindChildComponent<T>(string childName) where T : Component

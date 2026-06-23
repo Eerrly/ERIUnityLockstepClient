@@ -335,7 +335,7 @@ public class NetworkManager : AManager<NetworkManager>
         var c2SMessage = MsgPoolManager.Instance.Require<pb.C2S_BattleReconnectMsg>();
         c2SMessage.RoomId = roomId;
         c2SMessage.PlayerId = playerId;
-        c2SMessage.LastReceivedFrame = 0;
+        c2SMessage.LastReceivedFrame = (uint)Math.Max(0, lastReceivedFrame);
         _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgReconnect, c2SMessage);
     }
 

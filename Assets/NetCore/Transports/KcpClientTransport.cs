@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using kcp2k;
 using Google.Protobuf;
@@ -25,6 +26,7 @@ public class KcpClientTransport : ClientTransport
     /// 需要发送的消息包队列
     /// </summary>
     private readonly RingBuffer<Packet> _packets;
+    private int _updateRunning;
 
     /// <summary>
     /// 已连接回调
@@ -87,6 +89,8 @@ public class KcpClientTransport : ClientTransport
     /// <param name="address">地址</param>
     public override void Connect(string address)
     {
+        PrepareForConnect();
+        Interlocked.Exchange(ref _updateRunning, 0);
         _client.Connect(address, _port);
     }
 
@@ -140,13 +144,32 @@ public class KcpClientTransport : ClientTransport
     /// </summary>
     public override void Update() 
     {
-        Task.Run(async () => {
-            while(!TokenSource.Token.IsCancellationRequested){
-                UpdatePacketInfosSent();
-                _client.Tick();
-                await Task.Delay(TimeSpan.FromMilliseconds(_config.Interval), TokenSource.Token);
+        if (Interlocked.Exchange(ref _updateRunning, 1) == 1)
+            return;
+
+        var tokenSource = TokenSource;
+        Task.Run(async () =>
+        {
+            try
+            {
+                while (!tokenSource.Token.IsCancellationRequested)
+                {
+                    UpdatePacketInfosSent();
+                    _client.Tick();
+                    await Task.Delay(TimeSpan.FromMilliseconds(_config.Interval), tokenSource.Token);
+                }
             }
-        }, TokenSource.Token);
+            catch (OperationCanceledException)
+            {
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _updateRunning, 0);
+            }
+        }, tokenSource.Token);
     }
 
     /// <summary>
