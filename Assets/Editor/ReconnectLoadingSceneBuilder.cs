@@ -85,9 +85,8 @@ public static class ReconnectLoadingSceneBuilder
 
         var canvasObject = new GameObject("ReconnectLoadingCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         var canvas = canvasObject.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        canvas.renderMode = RenderMode.WorldSpace;
         canvas.worldCamera = camera;
-        canvas.planeDistance = 2f;
         canvas.sortingOrder = 100;
 
         var scaler = canvasObject.GetComponent<CanvasScaler>();
@@ -99,10 +98,18 @@ public static class ReconnectLoadingSceneBuilder
         {
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
             instance.transform.SetParent(canvasObject.transform, false);
+            instance.transform.localPosition = Vector3.zero;
+            instance.transform.localRotation = Quaternion.identity;
+            instance.transform.localScale = Vector3.one;
             SetStretch(instance.GetComponent<RectTransform>());
         }
 
         new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+
+        ConfigureRootCanvasRect(canvasObject.GetComponent<RectTransform>());
+        Canvas.ForceUpdateCanvases();
+        EditorUtility.SetDirty(canvasObject);
+        EditorSceneManager.MarkSceneDirty(scene);
 
         EditorSceneManager.SaveScene(scene, ScenePath);
     }
@@ -183,6 +190,24 @@ public static class ReconnectLoadingSceneBuilder
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
         rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.localPosition = Vector3.zero;
+        rect.localRotation = Quaternion.identity;
+        rect.localScale = Vector3.one;
+    }
+
+    private static void ConfigureRootCanvasRect(RectTransform rect)
+    {
+        rect.anchorMin = StretchMin();
+        rect.anchorMax = StretchMax();
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(1920f, 1080f);
+        rect.localPosition = Vector3.zero;
+        rect.localRotation = Quaternion.identity;
+        rect.localScale = Vector3.one * 0.01f;
     }
 
     private static Vector2 StretchMin()
