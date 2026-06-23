@@ -20,6 +20,16 @@ public abstract class AManager<T> : IManager where T:new()
             return _instance;
         }
     }
+
+    /// <summary>
+    /// 单例是否已存在，不触发创建
+    /// </summary>
+    public static bool HasInstance => _instance != null;
+
+    /// <summary>
+    /// 获取已存在的单例，不触发创建
+    /// </summary>
+    public static T InstanceOrNull => _instance;
     
     /// <summary>
     /// 初始化

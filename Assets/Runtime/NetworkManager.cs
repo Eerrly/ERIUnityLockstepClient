@@ -122,7 +122,7 @@ public class NetworkManager : AManager<NetworkManager>
                     _serverStopwatch.Start();
                     gameManager.IsBattleStart = s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
                     if (gameManager.IsBattleStart)
-                        gameManager.StartBattle(BattleType.Remote);
+                        LoomManager.Instance.QueueOnMainThread(() => gameManager.StartBattle(BattleType.Remote));
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgHeartbeat:
@@ -178,6 +178,28 @@ public class NetworkManager : AManager<NetworkManager>
                     
                     if (s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrDiff)
                         Logger.Log(LogLevel.Error, $"[KCP] BattleMsgCheck -> frame:{s2CMessage.Frame} out of sync!");
+                    break;
+                }
+                case (byte)pb.BattleMsgID.BattleMsgExit:
+                {
+                    var s2CMessage = pb.S2C_BattleExitMsg.Parser.ParseFrom(_memoryStream);
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgExit -> errorCode:{s2CMessage.ErrorCode} roomId:{s2CMessage.RoomId} operatorPlayerId:{s2CMessage.OperatorPlayerId} reason:{s2CMessage.Reason}");
+
+                    if (s2CMessage.ErrorCode != pb.BattleErrorCode.BattleErrBattleOk &&
+                        s2CMessage.ErrorCode != pb.BattleErrorCode.BattleErrTimeout)
+                    {
+                        Logger.Log(LogLevel.Warning, $"[KCP] BattleMsgExit ignored because errorCode:{s2CMessage.ErrorCode}");
+                        break;
+                    }
+
+                    if (gameManager.RoomInfo == null || gameManager.RoomInfo.RoomId != s2CMessage.RoomId)
+                    {
+                        Logger.Log(LogLevel.Warning, $"[KCP] BattleMsgExit ignored because room mismatch. local:{gameManager.RoomInfo?.RoomId.ToString() ?? "null"} message:{s2CMessage.RoomId}");
+                        break;
+                    }
+
+                    var reason = string.IsNullOrEmpty(s2CMessage.Reason) ? "战斗已退出" : s2CMessage.Reason;
+                    LoomManager.Instance.QueueOnMainThread(() => gameManager.HandleRemoteBattleExit(reason));
                     break;
                 }
             }
@@ -251,6 +273,19 @@ public class NetworkManager : AManager<NetworkManager>
         c2SMessage.RoomId = roomId;
         c2SMessage.PlayerId = playerId;
         _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgReady, c2SMessage);
+    }
+
+    /// <summary>
+    /// 发送战斗退出消息
+    /// </summary>
+    /// <param name="roomId">房间ID</param>
+    /// <param name="playerId">玩家ID</param>
+    public void SendBattleExitMessage(uint roomId, uint playerId)
+    {
+        var c2SMessage = MsgPoolManager.Instance.Require<pb.C2S_BattleExitMsg>();
+        c2SMessage.RoomId = roomId;
+        c2SMessage.PlayerId = playerId;
+        _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgExit, c2SMessage);
     }
 
     /// <summary>

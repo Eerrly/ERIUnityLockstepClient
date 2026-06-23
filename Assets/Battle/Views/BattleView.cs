@@ -81,8 +81,20 @@ public class BattleView : BaseView<BattleEntity>
     /// <param name="entity"></param>
     public override void OnRelease(BattleEntity entity)
     {
+        if (_playerViews == null)
+            return;
+
         foreach (var playerView in _playerViews)
-            DestroyImmediate(playerView.gameObject);
+        {
+            if (playerView == null)
+                continue;
+
+            if (Application.isPlaying)
+                Destroy(playerView.gameObject);
+            else
+                DestroyImmediate(playerView.gameObject);
+        }
+
         _playerViews.Clear();
     }
 
