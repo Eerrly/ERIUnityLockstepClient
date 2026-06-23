@@ -6,6 +6,9 @@ using UnityEngine.UI;
 /// </summary>
 public class ReconnectLoadingRootView : MonoBehaviour
 {
+    private const string DefaultStatusText = "准备重连";
+    private const string DefaultProgressText = "等待战斗状态同步";
+
     public Text TitleText;
     public Text StatusText;
     public Text ProgressText;
@@ -39,15 +42,17 @@ public class ReconnectLoadingRootView : MonoBehaviour
         if (StatusText != null)
             StatusText.text = GetStatusText(status);
         if (ProgressText != null)
-            ProgressText.text = string.IsNullOrEmpty(progress) ? string.Empty : progress;
+            ProgressText.text = string.IsNullOrEmpty(progress) ? DefaultProgressText : progress;
     }
 
     private string GetStatusText(ReconnectLoadingStatus status)
     {
         switch (status)
         {
+            case ReconnectLoadingStatus.None:
+                return DefaultStatusText;
             case ReconnectLoadingStatus.Preparing:
-                return "准备重连";
+                return DefaultStatusText;
             case ReconnectLoadingStatus.LoadingBattleScene:
                 return "加载战斗场景";
             case ReconnectLoadingStatus.ConnectingServer:
