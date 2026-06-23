@@ -253,7 +253,14 @@ public class NetworkManager : AManager<NetworkManager>
     {
         Logger.Log(LogLevel.Info, "OnKcpDisconnected");
         if (GameManager.Instance.IsReconnecting)
+        {
+            if (GameManager.Instance.ShouldIgnoreReconnectDisconnectFailure)
+            {
+                Logger.Log(LogLevel.Info, "[KCP] Ignore reconnect disconnect during cleanup.");
+                return;
+            }
             LoomManager.Instance.QueueOnMainThread(() => GameManager.Instance.HandleBattleReconnectFailed("重连连接已断开"));
+        }
     }
 
     /// <summary>
@@ -263,7 +270,14 @@ public class NetworkManager : AManager<NetworkManager>
     {
         Logger.Log(LogLevel.Error, $"OnKcpError errorCode: {errorCode} error: {error}");
         if (GameManager.Instance.IsReconnecting)
+        {
+            if (GameManager.Instance.ShouldIgnoreReconnectDisconnectFailure)
+            {
+                Logger.Log(LogLevel.Info, "[KCP] Ignore reconnect error during cleanup.");
+                return;
+            }
             LoomManager.Instance.QueueOnMainThread(() => GameManager.Instance.HandleBattleReconnectFailed("重连网络错误"));
+        }
     }
 
     /// <summary>

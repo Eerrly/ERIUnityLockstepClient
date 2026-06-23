@@ -20,6 +20,7 @@ public class GameManager : MManager<GameManager>
     public bool IsBattleConnected = false;
     public bool IsBattleStart = false;
     public bool IsReconnecting { get; private set; }
+    public bool ShouldIgnoreReconnectDisconnectFailure => _suppressReconnectDisconnectFailure;
     public ReconnectLoadingStatus ReconnectStatus { get; private set; } = ReconnectLoadingStatus.None;
     public string ReconnectProgressText { get; private set; } = string.Empty;
     public ReconnectSessionInfo ReconnectSessionInfo { get; private set; }
@@ -47,6 +48,7 @@ public class GameManager : MManager<GameManager>
     private Coroutine _reconnectTimeoutCoroutine;
     private bool _reconnectCompletionTriggered;
     private bool _reconnectFailureTriggered;
+    private bool _suppressReconnectDisconnectFailure;
 
     public int GetBattlePos()
     {
@@ -253,7 +255,10 @@ public class GameManager : MManager<GameManager>
         foreach (var gamer in loginMsg.ReconnectGamers)
             ReconnectSessionInfo.Gamers.Add(gamer);
 
-        if (ReconnectSessionInfo.Gamers.Count <= 0 || !ReconnectSessionInfo.Gamers.Contains(PlayerId))
+        if (ReconnectSessionInfo.Gamers.Count != GameSetting.RoomMaxPlayerCount ||
+            ReconnectSessionInfo.PlayerPos < 0 ||
+            ReconnectSessionInfo.PlayerPos >= GameSetting.RoomMaxPlayerCount ||
+            !ReconnectSessionInfo.Gamers.Contains(PlayerId))
         {
             HandleBattleReconnectFailed("重连房间信息无效");
             return;
@@ -440,7 +445,7 @@ public class GameManager : MManager<GameManager>
         }
         else if (_battleView != null || IsBattleStart)
         {
-            StopRemoteBattle();
+            CleanupRemoteBattleForReconnect();
         }
 
         FrameBuffer.ResetForReconnect(0);
@@ -467,7 +472,7 @@ public class GameManager : MManager<GameManager>
     {
         yield return new WaitForSeconds(1f);
 
-        StopRemoteBattle();
+        CleanupRemoteBattleForReconnect();
         IsReconnecting = false;
         IsBattleConnected = false;
         IsBattleStart = false;
@@ -503,6 +508,19 @@ public class GameManager : MManager<GameManager>
 
         StopCoroutine(_reconnectTimeoutCoroutine);
         _reconnectTimeoutCoroutine = null;
+    }
+
+    private void CleanupRemoteBattleForReconnect()
+    {
+        _suppressReconnectDisconnectFailure = true;
+        try
+        {
+            StopRemoteBattle();
+        }
+        finally
+        {
+            _suppressReconnectDisconnectFailure = false;
+        }
     }
 
     private void CreateBattleView()
