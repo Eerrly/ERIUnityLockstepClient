@@ -10,6 +10,7 @@ public class UIRootManager : MManager<UIRootManager>
     private const string ModernRootPath = "UI/ModernUIRoot";
     private const string BattleRootPath = "UI/BattleUIRoot";
     private const string ReplayRootPath = "UI/ReplayUIRoot";
+    private const string ReconnectLoadingRootPath = "UI/ReconnectLoadingUIRoot";
     private const string UILayerName = "UI";
 
     private readonly Dictionary<UIRootType, GameObject> _roots = new Dictionary<UIRootType, GameObject>();
@@ -24,6 +25,7 @@ public class UIRootManager : MManager<UIRootManager>
         EnsureRoot(UIRootType.Modern);
         EnsureRoot(UIRootType.Battle);
         EnsureRoot(UIRootType.Replay);
+        EnsureRoot(UIRootType.ReconnectLoading);
         HideAllRoots();
     }
 
@@ -149,6 +151,8 @@ public class UIRootManager : MManager<UIRootManager>
                 return BattleRootPath;
             case UIRootType.Replay:
                 return ReplayRootPath;
+            case UIRootType.ReconnectLoading:
+                return ReconnectLoadingRootPath;
             default:
                 return string.Empty;
         }
@@ -166,6 +170,9 @@ public class UIRootManager : MManager<UIRootManager>
                 break;
             case UIRootType.Replay:
                 Util.GetOrAddComponent<ReplayUIRootView>(root);
+                break;
+            case UIRootType.ReconnectLoading:
+                Util.GetOrAddComponent<ReconnectLoadingRootView>(root);
                 break;
         }
     }

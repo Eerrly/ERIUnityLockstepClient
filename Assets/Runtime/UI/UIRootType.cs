@@ -7,4 +7,5 @@ public enum UIRootType
     Modern,
     Battle,
     Replay,
+    ReconnectLoading,
 }

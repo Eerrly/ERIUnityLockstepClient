@@ -29,7 +29,9 @@ public class GameSetting
 /// </summary>
 public enum EGameScene
 {
-    Main,
-    
-    World,
+    Main = 0,
+
+    World = 1,
+
+    ReconnectLoading = 2,
 }

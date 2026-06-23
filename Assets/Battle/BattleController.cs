@@ -126,6 +126,75 @@ public class BattleController
     }
 
     /// <summary>
+    /// 重置运行时状态
+    /// </summary>
+    public void ResetRuntimeState()
+    {
+        _timeOffset = 0;
+        _stopwatch.Reset();
+        while (_predictBattleEntityQueue.Count > 0)
+        {
+            _battleEntityPool.Enqueue(_predictBattleEntityQueue.Dequeue());
+        }
+
+        _predictFrameQueue.Clear();
+        _serverFrameQueue.Clear();
+        _willSentFrame = 0;
+        _lastSentFrame = 0;
+        _lastSentInput = new FrameBuffer.Input(byte.MaxValue);
+        _lastNetworkFrame = FrameBuffer.Frame.defFrame;
+        _lastProcessFrameTime = 0;
+        _lastHeartbeatTime = 0;
+        _lostFrameCount = 0;
+        _lastLostFrame = 0;
+    }
+
+    /// <summary>
+    /// 快速追帧到目标帧
+    /// </summary>
+    /// <param name="targetFrame">目标帧</param>
+    /// <returns>是否成功</returns>
+    public bool FastForwardToFrame(int targetFrame)
+    {
+        if (_confirmBattleEntity == null || _predictBattleEntity == null || _displayBattleEntity == null)
+            return false;
+
+        if (targetFrame < _confirmBattleEntity.Frame)
+        {
+            Logger.Log(LogLevel.Warning, $"FastForwardToFrame ignored. current:{_confirmBattleEntity.Frame} target:{targetFrame}");
+            _confirmBattleEntity.CopyTo(_predictBattleEntity);
+            _confirmBattleEntity.CopyTo(_displayBattleEntity);
+            if (!_stopwatch.IsRunning)
+                _stopwatch.Start();
+            return true;
+        }
+
+        GameManager.Instance.FrameBuffer.ResetReadCursor(_confirmBattleEntity.Frame);
+
+        var inputFrame = FrameBuffer.Frame.defFrame;
+        while (_confirmBattleEntity.Frame < targetFrame)
+        {
+            var nextFrame = _confirmBattleEntity.Frame + 1;
+            if (!GameManager.Instance.FrameBuffer.TryGetFrame(nextFrame, ref inputFrame))
+            {
+                Logger.Log(LogLevel.Error, $"FastForwardToFrame failed. current:{_confirmBattleEntity.Frame} next:{nextFrame} target:{targetFrame}");
+                return false;
+            }
+
+            UpdateEntityInput(_confirmBattleEntity, ref inputFrame);
+            _confirmBattleEntity.Frame++;
+            UpdateEntityState(_confirmBattleEntity);
+            _lastNetworkFrame = inputFrame;
+        }
+
+        _confirmBattleEntity.CopyTo(_predictBattleEntity);
+        _confirmBattleEntity.CopyTo(_displayBattleEntity);
+        if (!_stopwatch.IsRunning)
+            _stopwatch.Start();
+        return true;
+    }
+
+    /// <summary>
     /// 战斗网络轮询
     /// </summary>
     /// <param name="cancellationToken">任务取消句柄</param>

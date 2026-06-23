@@ -262,8 +262,27 @@ public class FrameBuffer
     /// </summary>
     public void Reset()
     {
+        ResetForReconnect(0);
+    }
+
+    /// <summary>
+    /// 重置重连同步状态
+    /// </summary>
+    /// <param name="lastSyncedFrame">最后已同步帧</param>
+    public void ResetForReconnect(int lastSyncedFrame)
+    {
+        ResetReadCursor(lastSyncedFrame);
+        _lastSetFrameIndex = lastSyncedFrame;
+    }
+
+    /// <summary>
+    /// 仅重置读取游标
+    /// </summary>
+    /// <param name="lastReadFrame">最后已读取帧</param>
+    public void ResetReadCursor(int lastReadFrame)
+    {
         _lastGetFrame = Frame.defFrame;
-        _lastSetFrameIndex = 0;
+        _lastGetFrame.frame = lastReadFrame;
     }
 
     /// <summary>
