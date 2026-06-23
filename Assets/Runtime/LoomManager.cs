@@ -8,6 +8,9 @@ using UnityEngine;
 /// </summary>
 public class LoomManager : MManager<LoomManager>
 {
+    private const int ThreadPoolMaxWorkerThreads = 16;
+    private const int ThreadPoolMinWorkerThreads = 8;
+
     internal struct DelayItem
     {
         public float _time;
@@ -25,6 +28,7 @@ public class LoomManager : MManager<LoomManager>
 
     private int _maxThreads = 8;
     private int _threadsCount = 0;
+    private readonly WaitCallback _runActionCallback;
 
     // main thread -> main thread
     private Queue<Action> _waitingAsyncActions = new Queue<Action>();
@@ -33,12 +37,17 @@ public class LoomManager : MManager<LoomManager>
     private Queue<Action> _actions = new Queue<Action>();
     private List<DelayItem> _delayed = new List<DelayItem>();
 
+    public LoomManager()
+    {
+        _runActionCallback = RunAction;
+    }
+
     public override void Initialize()
     {
         if (Application.isPlaying)
         {
-            ThreadPool.SetMaxThreads(16, 16);
-            ThreadPool.SetMinThreads(8, 8);
+            ThreadPool.SetMaxThreads(ThreadPoolMaxWorkerThreads, ThreadPoolMaxWorkerThreads);
+            ThreadPool.SetMinThreads(ThreadPoolMinWorkerThreads, ThreadPoolMinWorkerThreads);
         }
     }
 
@@ -84,11 +93,14 @@ public class LoomManager : MManager<LoomManager>
         if (_threadsCount < _maxThreads)
         {
             Interlocked.Increment(ref _threadsCount);
-            ThreadPool.QueueUserWorkItem(new WaitCallback(RunAction), action);
+            ThreadPool.QueueUserWorkItem(_runActionCallback, action);
         }
         else
         {
-            _waitingAsyncActions.Enqueue(action);
+            lock (_waitingAsyncActions)
+            {
+                _waitingAsyncActions.Enqueue(action);
+            }
         }
     }
 
@@ -116,11 +128,23 @@ public class LoomManager : MManager<LoomManager>
 
     private void Update()
     {
-        if (_waitingAsyncActions.Count > 0 && _threadsCount < _maxThreads)
+        Action waitingAction = null;
+        lock (_waitingAsyncActions)
+        {
+            if (_waitingAsyncActions.Count > 0 && _threadsCount < _maxThreads)
+            {
+                waitingAction = _waitingAsyncActions.Dequeue();
+            }
+        }
+
+        if (waitingAction != null)
         {
             Interlocked.Increment(ref _threadsCount);
-            ThreadPool.QueueUserWorkItem(new WaitCallback(RunAction), _waitingAsyncActions.Dequeue());
+            ThreadPool.QueueUserWorkItem(_runActionCallback, waitingAction);
         }
+
+        var now = Time.unscaledTime;
+        var frameCount = Time.frameCount;
 
         lock (_actions)
         {
@@ -136,7 +160,7 @@ public class LoomManager : MManager<LoomManager>
             {
                 var delayed = _delayed[i];
 
-                if (delayed._time < Time.unscaledTime)
+                if (delayed._time < now)
                 {
                     delayed._action.Invoke();
                     _delayed.RemoveAt(i);
@@ -148,9 +172,9 @@ public class LoomManager : MManager<LoomManager>
         {
             var delayed = _frameDelayed[i];
 
-            if (delayed._frameCount != Time.frameCount)
+            if (delayed._frameCount != frameCount)
             {
-                if (delayed._time < Time.unscaledTime)
+                if (delayed._time < now)
                 {
                     delayed._action.Invoke();
                     _frameDelayed.RemoveAt(i);
