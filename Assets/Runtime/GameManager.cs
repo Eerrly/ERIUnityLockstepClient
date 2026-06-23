@@ -9,6 +9,8 @@ using UnityEngine.SceneManagement;
 public class GameManager : MManager<GameManager>
 {
     private const float ReconnectTimeoutSeconds = 10f;
+    public const string ReconnectCatchUpRoundCompleteReason = "CatchUpRoundComplete";
+    public const string ReconnectCompleteReason = "ReconnectComplete";
 
     public event Action OnReplayFinished;
     public event Action<string> OnStatusMessage;
@@ -19,7 +21,7 @@ public class GameManager : MManager<GameManager>
     public int ServerAuthorityFrame = -1;
     public bool IsBattleConnected = false;
     public bool IsBattleStart = false;
-    public bool IsReconnecting { get; private set; }
+    public bool IsReconnecting => CurrentBattleType == BattleType.Reconnect;
     public bool ShouldIgnoreReconnectDisconnectFailure => _suppressReconnectDisconnectFailure;
     public ReconnectLoadingStatus ReconnectStatus { get; private set; } = ReconnectLoadingStatus.None;
     public string ReconnectProgressText { get; private set; } = string.Empty;
@@ -53,10 +55,9 @@ public class GameManager : MManager<GameManager>
 
     public int GetBattlePos()
     {
-        if (CurrentBattleType == BattleType.Remote &&
-            ReconnectSessionInfo != null &&
+        if (ReconnectSessionInfo != null &&
             ReconnectSessionInfo.RoomId != 0 &&
-            (IsReconnecting || IsBattleStart))
+            (CurrentBattleType == BattleType.Reconnect || (CurrentBattleType == BattleType.Remote && IsBattleStart)))
         {
             return ReconnectSessionInfo.PlayerPos;
         }
@@ -81,8 +82,8 @@ public class GameManager : MManager<GameManager>
 
     public void StartBattle(BattleType battleType)
     {
+        var previousBattleType = CurrentBattleType;
         CurrentBattleType = battleType;
-        IsBattleStart = true;
 
         switch (battleType)
         {
@@ -92,11 +93,15 @@ public class GameManager : MManager<GameManager>
             case BattleType.Replay:
                 StartReplayBattle();
                 break;
+            case BattleType.Reconnect:
+                StartReconnectBattle(previousBattleType);
+                break;
         }
     }
 
     private void StartRemoteBattle()
     {
+        IsBattleStart = true;
         CameraManager.Instance.ApplyBattleCameraState();
         UIRootManager.Instance.ShowRoot(UIRootType.Battle);
 
@@ -114,6 +119,7 @@ public class GameManager : MManager<GameManager>
 
     private void StartReplayBattle()
     {
+        IsBattleStart = true;
         StartCoroutine(OnLoadBattleSceneAsync(() =>
         {
             CreateBattleView();
@@ -166,6 +172,9 @@ public class GameManager : MManager<GameManager>
                 break;
             case BattleType.Replay:
                 StopReplayBattle();
+                break;
+            case BattleType.Reconnect:
+                StopReconnectBattle();
                 break;
         }
     }
@@ -247,14 +256,17 @@ public class GameManager : MManager<GameManager>
         if (_reconnectCoroutine != null)
             StopCoroutine(_reconnectCoroutine);
 
+        var serverReconnectFrame = (int)loginMsg.ReconnectFrame;
+        var localLastReceivedFrame = -1;
         ReconnectSessionInfo.Reset();
         ReconnectSessionInfo.RoomId = loginMsg.ReconnectRoomId;
         ReconnectSessionInfo.PlayerId = PlayerId;
-        ReconnectSessionInfo.AuthoritativeFrame = (int)loginMsg.ReconnectFrame;
-        ReconnectSessionInfo.LastReceivedFrame = -1;
+        ReconnectSessionInfo.AuthoritativeFrame = serverReconnectFrame;
+        ReconnectSessionInfo.LastReceivedFrame = localLastReceivedFrame;
         ReconnectSessionInfo.PlayerPos = (int)loginMsg.ReconnectPlayerPos;
         foreach (var gamer in loginMsg.ReconnectGamers)
             ReconnectSessionInfo.Gamers.Add(gamer);
+        Logger.Log(LogLevel.Info, $"[Reconnect] Begin from login room:{ReconnectSessionInfo.RoomId} player:{PlayerId} serverFrame:{serverReconnectFrame} localLastReceived:{localLastReceivedFrame}");
 
         if (ReconnectSessionInfo.Gamers.Count != GameSetting.RoomMaxPlayerCount ||
             ReconnectSessionInfo.PlayerPos < 0 ||
@@ -272,8 +284,7 @@ public class GameManager : MManager<GameManager>
         RoomInfo.Gamers.Clear();
         RoomInfo.Gamers.AddRange(ReconnectSessionInfo.Gamers);
 
-        CurrentBattleType = BattleType.Remote;
-        _reconnectCoroutine = StartCoroutine(BeginReconnectRoutine());
+        StartBattle(BattleType.Reconnect);
     }
 
     public uint GetReconnectRoomId()
@@ -299,20 +310,29 @@ public class GameManager : MManager<GameManager>
             0f);
     }
 
-    public void HandleBattleReconnectAccepted(int authoritativeFrame)
+    public void HandleBattleReconnectAccepted(int authoritativeFrame, bool isCatchUpRoundComplete, bool isReconnectComplete)
     {
         if (!IsReconnecting || ReconnectSessionInfo == null || _reconnectFailureTriggered)
             return;
 
-        ReconnectSessionInfo.AuthoritativeFrame = authoritativeFrame;
-        var progress = CalculateReconnectProgress01(ReconnectSessionInfo.LastReceivedFrame, authoritativeFrame);
+        StartReconnectTimeout();
+        if (isCatchUpRoundComplete && !isReconnectComplete)
+        {
+            ReconnectSessionInfo.AuthoritativeFrame = authoritativeFrame;
+        }
+        else
+        {
+            ReconnectSessionInfo.AuthoritativeFrame = Math.Max(ReconnectSessionInfo.AuthoritativeFrame, authoritativeFrame);
+        }
+        ReconnectSessionInfo.IsCatchUpRoundComplete |= isCatchUpRoundComplete;
+        ReconnectSessionInfo.IsReconnectComplete |= isReconnectComplete;
+        var progress = CalculateReconnectProgress01(ReconnectSessionInfo.LastReceivedFrame, ReconnectSessionInfo.AuthoritativeFrame);
         UpdateReconnectStatus(
             ReconnectLoadingStatus.SyncingBattleProgress,
-            BuildReconnectProgressText(ReconnectSessionInfo.LastReceivedFrame, authoritativeFrame),
+            BuildReconnectProgressText(ReconnectSessionInfo.LastReceivedFrame, ReconnectSessionInfo.AuthoritativeFrame),
             progress);
 
-        if (authoritativeFrame <= ReconnectSessionInfo.LastReceivedFrame)
-            CompleteReconnectCatchUp();
+        TryCompleteReconnectCatchUp();
     }
 
     public void NotifyReconnectFrameSynced(int frame)
@@ -320,7 +340,9 @@ public class GameManager : MManager<GameManager>
         if (!IsReconnecting || ReconnectSessionInfo == null || _reconnectFailureTriggered)
             return;
 
+        StartReconnectTimeout();
         ReconnectSessionInfo.LastReceivedFrame = Math.Max(ReconnectSessionInfo.LastReceivedFrame, frame);
+        ReconnectSessionInfo.AuthoritativeFrame = Math.Max(ReconnectSessionInfo.AuthoritativeFrame, frame);
         var targetFrame = ReconnectSessionInfo.AuthoritativeFrame;
         var progress = CalculateReconnectProgress01(ReconnectSessionInfo.LastReceivedFrame, targetFrame);
         UpdateReconnectStatus(
@@ -328,8 +350,49 @@ public class GameManager : MManager<GameManager>
             BuildReconnectProgressText(ReconnectSessionInfo.LastReceivedFrame, targetFrame),
             progress);
 
-        if (targetFrame <= ReconnectSessionInfo.LastReceivedFrame)
+        TryCompleteReconnectCatchUp();
+    }
+
+    private void TryCompleteReconnectCatchUp()
+    {
+        if (!IsReconnecting || ReconnectSessionInfo == null || _reconnectCompletionTriggered || _reconnectFailureTriggered)
+            return;
+
+        if (!ReconnectSessionInfo.IsCatchUpRoundComplete && !ReconnectSessionInfo.IsReconnectComplete)
+            return;
+
+        if (ReconnectSessionInfo.LastReceivedFrame < ReconnectSessionInfo.AuthoritativeFrame)
+            return;
+
+        if (ReconnectSessionInfo.IsReconnectComplete)
+        {
             CompleteReconnectCatchUp();
+            return;
+        }
+
+        AcknowledgeReconnectCatchUp();
+    }
+
+    private void AcknowledgeReconnectCatchUp()
+    {
+        if (!IsReconnecting || ReconnectSessionInfo == null || _reconnectCompletionTriggered || _reconnectFailureTriggered)
+            return;
+
+        var targetFrame = ReconnectSessionInfo.AuthoritativeFrame;
+        if (ReconnectSessionInfo.LastAckedFrame >= targetFrame)
+            return;
+
+        ReconnectSessionInfo.LastAckedFrame = targetFrame;
+        ReconnectSessionInfo.IsCatchUpRoundComplete = false;
+        UpdateReconnectStatus(
+            ReconnectLoadingStatus.SyncingBattleProgress,
+            "等待服务器确认同步",
+            CalculateReconnectProgress01(ReconnectSessionInfo.LastReceivedFrame, targetFrame));
+
+        NetworkManager.Instance.SendBattleReconnectMessage(
+            ReconnectSessionInfo.RoomId,
+            ReconnectSessionInfo.PlayerId,
+            targetFrame);
     }
 
     public void CompleteReconnectCatchUp()
@@ -342,18 +405,29 @@ public class GameManager : MManager<GameManager>
         UpdateReconnectStatus(ReconnectLoadingStatus.EnteringBattle, "同步完成，正在进入战斗", 1f);
 
         var targetFrame = ReconnectSessionInfo.AuthoritativeFrame;
-        if (!_battleController.FastForwardToFrame(targetFrame))
+        try
         {
+            FrameEngine.SetFrameInterval(BattleSetting.BattleInterval);
+            if (!_battleController.FastForwardToFrame(targetFrame))
+            {
+                _reconnectCompletionTriggered = false;
+                HandleBattleReconnectFailed("追帧失败");
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Log(LogLevel.Error, $"[Reconnect] FastForwardToFrame exception ->\n{ex.Message}\n{ex.StackTrace}");
             _reconnectCompletionTriggered = false;
             HandleBattleReconnectFailed("追帧失败");
             return;
         }
 
         CurrentBattleType = BattleType.Remote;
-        IsReconnecting = false;
         IsBattleStart = true;
         IsBattleConnected = true;
         ServerAuthorityFrame = targetFrame;
+        _battleController.AlignServerTimeToFrame(targetFrame);
         ReconnectSessionInfo.LastReceivedFrame = Math.Max(ReconnectSessionInfo.LastReceivedFrame, targetFrame);
         ReconnectSessionInfo.FailureReason = string.Empty;
 
@@ -363,7 +437,6 @@ public class GameManager : MManager<GameManager>
 
         _battleView.InitView(_battleController.DisplayBattleEntity);
         _battleViewInitialized = true;
-        InitializeEntitySystems();
         UIRootManager.Instance.ShowRoot(UIRootType.Battle);
         _frameEngine.StartNetEngine(BattleSetting.NetInterval);
         _frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
@@ -435,27 +508,36 @@ public class GameManager : MManager<GameManager>
         _remoteExitCoroutine = null;
     }
 
-    private IEnumerator BeginReconnectRoutine()
+    private void StartReconnectBattle(BattleType previousBattleType)
+    {
+        if (_reconnectCoroutine != null)
+            StopCoroutine(_reconnectCoroutine);
+
+        _reconnectCoroutine = StartCoroutine(BeginReconnectRoutine(previousBattleType));
+    }
+
+    private IEnumerator BeginReconnectRoutine(BattleType previousBattleType)
     {
         _reconnectCompletionTriggered = false;
         _reconnectFailureTriggered = false;
-        IsReconnecting = true;
-        IsBattleConnected = false;
-        IsBattleStart = false;
-        ServerAuthorityFrame = -1;
         UpdateReconnectStatus(ReconnectLoadingStatus.Preparing, "准备重连", 0f);
         StartReconnectTimeout();
 
-        if (CurrentBattleType == BattleType.Replay)
+        var wasBattleStart = IsBattleStart;
+        if (previousBattleType == BattleType.Replay)
         {
             StopReplayBattle();
         }
-        else if (_battleView != null || IsBattleStart)
+        else if (_battleView != null || wasBattleStart)
         {
             CleanupRemoteBattleForReconnect();
         }
 
-        FrameBuffer.ResetForReconnect(ReconnectSessionInfo == null ? -1 : ReconnectSessionInfo.LastReceivedFrame);
+        IsBattleConnected = false;
+        IsBattleStart = false;
+        ServerAuthorityFrame = -1;
+
+        FrameBuffer.ResetForReconnect(-1);
         _battleController.ResetRuntimeState();
 
         UIRootManager.Instance.HideAllRoots();
@@ -468,6 +550,7 @@ public class GameManager : MManager<GameManager>
         CreateBattleView();
         CameraManager.Instance.ApplyBattleCameraState();
         _battleController.InitEntities();
+        InitializeEntitySystems();
 
         UpdateReconnectStatus(ReconnectLoadingStatus.ConnectingServer, "连接服务器", 0f);
         NetworkManager.Instance.KcpConnect();
@@ -480,7 +563,7 @@ public class GameManager : MManager<GameManager>
         yield return new WaitForSeconds(1f);
 
         CleanupRemoteBattleForReconnect();
-        IsReconnecting = false;
+        CurrentBattleType = BattleType.Remote;
         IsBattleConnected = false;
         IsBattleStart = false;
         ServerAuthorityFrame = -1;
@@ -493,6 +576,24 @@ public class GameManager : MManager<GameManager>
         _reconnectFailureTriggered = false;
         _reconnectCompletionTriggered = false;
         _reconnectCoroutine = null;
+    }
+
+    private void StopReconnectBattle()
+    {
+        StopReconnectTimeout();
+        if (_reconnectCoroutine != null)
+        {
+            StopCoroutine(_reconnectCoroutine);
+            _reconnectCoroutine = null;
+        }
+
+        CleanupRemoteBattleForReconnect();
+        CurrentBattleType = BattleType.Remote;
+        IsBattleConnected = false;
+        IsBattleStart = false;
+        ServerAuthorityFrame = -1;
+        _reconnectCompletionTriggered = false;
+        _reconnectFailureTriggered = false;
     }
 
     private IEnumerator ReconnectTimeoutRoutine()

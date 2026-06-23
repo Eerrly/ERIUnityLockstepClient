@@ -5,11 +5,19 @@ using System.Threading.Tasks;
 using kcp2k;
 using Google.Protobuf;
 
+public struct KcpClientPacketInfo
+{
+    public Packet Packet;
+    public KcpChannel Channel;
+}
+
 /// <summary>
 /// KCP客户端
 /// </summary>
 public class KcpClientTransport : ClientTransport
 {
+    private const int MaxPacketsPerTick = 256;
+
     /// <summary>
     /// 端口号
     /// </summary>
@@ -25,7 +33,7 @@ public class KcpClientTransport : ClientTransport
     /// <summary>
     /// 需要发送的消息包队列
     /// </summary>
-    private readonly RingBuffer<Packet> _packets;
+    private readonly RingBuffer<KcpClientPacketInfo> _packets;
     private int _updateRunning;
 
     /// <summary>
@@ -60,7 +68,7 @@ public class KcpClientTransport : ClientTransport
             (errorCode, error) => OnError?.Invoke(errorCode, error),
             _config
         );
-        _packets = new RingBuffer<Packet>(32);
+        _packets = new RingBuffer<KcpClientPacketInfo>(32);
     }
 
     /// <summary>
@@ -109,9 +117,14 @@ public class KcpClientTransport : ClientTransport
     /// <param name="packet">消息包</param>
     public override void Send(Packet packet)
     {
+        Send(packet, KcpChannel.Unreliable);
+    }
+
+    public void Send(Packet packet, KcpChannel channel)
+    {
         try
         {
-            _packets.Enqueue(packet);
+            _packets.Enqueue(new KcpClientPacketInfo { Packet = packet, Channel = channel });
         }
         catch (Exception ex)
         {
@@ -126,7 +139,7 @@ public class KcpClientTransport : ClientTransport
     /// <param name="battleMsgID">消息ID</param>
     /// <param name="message">消息体</param>
     /// <typeparam name="T">消息类型</typeparam>
-    public void SendMessage<T>(pb.BattleMsgID battleMsgID, T message) where T : IMessage
+    public void SendMessage<T>(pb.BattleMsgID battleMsgID, T message, KcpChannel channel = KcpChannel.Unreliable) where T : IMessage
     {
         if (!Connected)
         {
@@ -136,7 +149,7 @@ public class KcpClientTransport : ClientTransport
         var head = new Head() { _cmd = (byte)battleMsgID, _length = message.CalculateSize() };
         var packet = new Packet() { _data = message.ToByteArray(), _head = head };
         MsgPoolManager.Instance.Release(message);
-        Send(packet);
+        Send(packet, channel);
     }
 
     /// <summary>
@@ -177,30 +190,35 @@ public class KcpClientTransport : ClientTransport
     /// </summary>
     private void UpdatePacketInfosSent()
     {
-        if (!_packets.TryDequeue(out var packet))
-            return;
-        
-        var buffer = BufferPool.GetBuffer(packet._head._length + Head.HeadLength);
-        try
+        for (var sentCount = 0; sentCount < MaxPacketsPerTick; sentCount++)
         {
-            unsafe
-            {
-                fixed (byte* src = buffer) *((Head*)src) = packet._head;
-            }
-            Array.Copy(packet._data, 0, buffer, Head.HeadLength, packet._head._length);
-            _client.Send(new ArraySegment<byte>(buffer), KcpChannel.Unreliable);
+            if (!_packets.TryDequeue(out var packetInfo))
+                return;
 
-            Logger.Log(LogLevel.Info,$"[KCP] Send -> MsgID:{Enum.GetName(typeof(pb.BattleMsgID), packet._head._cmd)} dataSize:{packet._head._length}");
-            OnDataSent?.Invoke(packet);
-        }
-        catch (Exception ex)
-        {
-            Logger.Log(LogLevel.Error,$"[KCP] Exception ->\n{ex.Message}\n{ex.StackTrace}");
-            Shutdown();
-        }
-        finally
-        {
-            BufferPool.ReleaseBuff(buffer);
+            var packet = packetInfo.Packet;
+
+            var buffer = BufferPool.GetBuffer(packet._head._length + Head.HeadLength);
+            try
+            {
+                unsafe
+                {
+                    fixed (byte* src = buffer) *((Head*)src) = packet._head;
+                }
+                Array.Copy(packet._data, 0, buffer, Head.HeadLength, packet._head._length);
+                _client.Send(new ArraySegment<byte>(buffer), packetInfo.Channel);
+
+                Logger.Log(LogLevel.Info,$"[KCP] Send -> MsgID:{Enum.GetName(typeof(pb.BattleMsgID), packet._head._cmd)} dataSize:{packet._head._length} Channel:{Enum.GetName(typeof(KcpChannel), packetInfo.Channel)}");
+                OnDataSent?.Invoke(packet);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error,$"[KCP] Exception ->\n{ex.Message}\n{ex.StackTrace}");
+                Shutdown();
+            }
+            finally
+            {
+                BufferPool.ReleaseBuff(buffer);
+            }
         }
     }
 

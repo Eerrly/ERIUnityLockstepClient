@@ -77,7 +77,7 @@ public class NetworkManager : AManager<NetworkManager>
     {
         Logger.Log(LogLevel.Info, "OnKcpConnected");
         var gameManager = GameManager.Instance;
-        if (gameManager.IsReconnecting)
+        if (gameManager.CurrentBattleType == BattleType.Reconnect)
         {
             SendBattleReconnectMessage(
                 gameManager.GetReconnectRoomId(),
@@ -148,7 +148,9 @@ public class NetworkManager : AManager<NetworkManager>
                     {
                         if (gameManager.ReconnectSessionInfo != null)
                             gameManager.ReconnectSessionInfo.PlayerPos = (int)s2CMessage.PlayerPos;
-                        LoomManager.Instance.QueueOnMainThread(() => gameManager.HandleBattleReconnectAccepted((int)s2CMessage.AuthoritativeFrame));
+                        var isCatchUpRoundComplete = s2CMessage.Reason == GameManager.ReconnectCatchUpRoundCompleteReason;
+                        var isReconnectComplete = s2CMessage.Reason == GameManager.ReconnectCompleteReason;
+                        LoomManager.Instance.QueueOnMainThread(() => gameManager.HandleBattleReconnectAccepted((int)s2CMessage.AuthoritativeFrame, isCatchUpRoundComplete, isReconnectComplete));
                     }
                     else
                     {
@@ -194,7 +196,7 @@ public class NetworkManager : AManager<NetworkManager>
                     if (!gameManager.FrameBuffer.SyncFrame(inputFrame.frame, ref inputFrame, ref diff))
                     {
                         Logger.Log(LogLevel.Error, $"[KCP] BattleMsgFrame Can't SyncFrame frame->{inputFrame.frame} diff->{diff}");
-                        if (gameManager.IsReconnecting)
+                        if (gameManager.CurrentBattleType == BattleType.Reconnect)
                         {
                             LoomManager.Instance.QueueOnMainThread(() => gameManager.HandleBattleReconnectFailed("补帧不同步"));
                         }
@@ -205,10 +207,11 @@ public class NetworkManager : AManager<NetworkManager>
                         break;
                     }
 
-                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame SyncFrame [frame]->{inputFrame.frame}");
-                    gameManager.ServerAuthorityFrame = inputFrame.frame;
-                    if (gameManager.IsReconnecting)
-                        LoomManager.Instance.QueueOnMainThread(() => gameManager.NotifyReconnectFrameSynced(inputFrame.frame));
+                    var contiguousFrame = gameManager.FrameBuffer.LastSetFrameIndex;
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame SyncFrame [frame]->{inputFrame.frame} contiguous:{contiguousFrame}");
+                    gameManager.ServerAuthorityFrame = contiguousFrame;
+                    if (gameManager.CurrentBattleType == BattleType.Reconnect)
+                        LoomManager.Instance.QueueOnMainThread(() => gameManager.NotifyReconnectFrameSynced(contiguousFrame));
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgCheck:
@@ -252,7 +255,7 @@ public class NetworkManager : AManager<NetworkManager>
     private void OnKcpDisconnected()
     {
         Logger.Log(LogLevel.Info, "OnKcpDisconnected");
-        if (GameManager.Instance.IsReconnecting)
+        if (GameManager.Instance.CurrentBattleType == BattleType.Reconnect)
         {
             if (GameManager.Instance.ShouldIgnoreReconnectDisconnectFailure)
             {
@@ -269,7 +272,7 @@ public class NetworkManager : AManager<NetworkManager>
     private void OnKcpError(kcp2k.ErrorCode errorCode, string error)
     {
         Logger.Log(LogLevel.Error, $"OnKcpError errorCode: {errorCode} error: {error}");
-        if (GameManager.Instance.IsReconnecting)
+        if (GameManager.Instance.CurrentBattleType == BattleType.Reconnect)
         {
             if (GameManager.Instance.ShouldIgnoreReconnectDisconnectFailure)
             {
@@ -336,7 +339,7 @@ public class NetworkManager : AManager<NetworkManager>
         c2SMessage.RoomId = roomId;
         c2SMessage.PlayerId = playerId;
         c2SMessage.LastReceivedFrame = (uint)Math.Max(0, lastReceivedFrame);
-        _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgReconnect, c2SMessage);
+        _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgReconnect, c2SMessage, kcp2k.KcpChannel.Reliable);
     }
 
     /// <summary>
@@ -370,7 +373,7 @@ public class NetworkManager : AManager<NetworkManager>
         var c2SMessage = MsgPoolManager.Instance.Require<pb.C2S_FrameMsg>(true);
         c2SMessage.Frame = frame;
         c2SMessage.Datum = ByteString.CopyFrom(_sendFrameByteArray);
-        _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgFrame, c2SMessage);
+        _kcpClientTransport.SendMessage(pb.BattleMsgID.BattleMsgFrame, c2SMessage, kcp2k.KcpChannel.Reliable);
     }
 
     /// <summary>

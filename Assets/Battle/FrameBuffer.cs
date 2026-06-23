@@ -262,7 +262,7 @@ public class FrameBuffer
     /// </summary>
     public void Reset()
     {
-        ResetForReconnect(0);
+        ResetForReconnect(-1);
     }
 
     /// <summary>
@@ -271,8 +271,23 @@ public class FrameBuffer
     /// <param name="lastSyncedFrame">最后已同步帧</param>
     public void ResetForReconnect(int lastSyncedFrame)
     {
+        ClearFrameMarkers();
         ResetReadCursor(lastSyncedFrame);
         _lastSetFrameIndex = lastSyncedFrame;
+    }
+
+    private void ClearFrameMarkers()
+    {
+        unsafe
+        {
+            for (int i = 0; i < capacity; i++)
+            {
+                fixed(byte* dest = &buffer[i * frameSize])
+                {
+                    *(int*)dest = -1;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -377,20 +392,15 @@ public class FrameBuffer
     /// <returns>是否成功同步</returns>
     public bool SyncFrame(int frame, ref Frame input, ref int diff)
     {
+        var lastContiguousFrame = _lastSetFrameIndex;
+        diff = frame - lastContiguousFrame;
+        if(frame <= lastContiguousFrame)
+            return true;
+
         unsafe
         {
-            if(frame <= _lastSetFrameIndex)
-                return true;
-
             fixed(byte* dest = &buffer[(frame % capacity) * frameSize])
             {
-                diff = frame - _lastSetFrameIndex;
-                // 必须要逐帧同步，否则算失败
-                if(diff > 1)
-                {
-                    Logger.Log(LogLevel.Error,$"SyncFrame must frame by frame lastFrame:{_lastSetFrameIndex} currFrame:{frame}");
-                    return false;
-                }
                 if(playerCount > 0)
                 {
                     *(Input*)(dest + 4/*(frame)*/ + 0 * inputSize) = input.i0;
@@ -400,9 +410,15 @@ public class FrameBuffer
                     *(Input*)(dest + 4/*(frame)*/ + 1 * inputSize) = input.i1;
                 }
                 *(int*)dest = frame;
-                _lastSetFrameIndex = frame;
             }
         }
+
+        while(HasFrame(_lastSetFrameIndex + 1))
+            _lastSetFrameIndex++;
+
+        if(diff > 1)
+            Logger.Log(LogLevel.Info,$"SyncFrame buffered future frame lastFrame:{lastContiguousFrame} currFrame:{frame} diff:{diff} contiguous:{_lastSetFrameIndex}");
+
         return true;
     }
 

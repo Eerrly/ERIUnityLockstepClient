@@ -95,8 +95,23 @@ public class InputManager : MManager<InputManager>
     /// <returns>操作数据</returns>
     public FrameBuffer.Input GetInput(int pos)
     {
-        var input = playerInput.GetPlayerInput(pos);
+        if (!TryGetInput(pos, out var input))
+            return new FrameBuffer.Input(byte.MaxValue);
+
         return input;
+    }
+
+    /// <summary>
+    /// 尝试获取当前输入，不触发任何单例或 GameObject 创建
+    /// </summary>
+    public bool TryGetInput(int pos, out FrameBuffer.Input input)
+    {
+        input = new FrameBuffer.Input(byte.MaxValue);
+        if (playerInput == null)
+            return false;
+
+        input = playerInput.GetPlayerInput(pos);
+        return true;
     }
 
     /// <summary>

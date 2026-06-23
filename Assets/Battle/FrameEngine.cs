@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,21 +36,39 @@ public class FrameEngine
     /// </summary>
     public static FixedNumber FrameInterval => _frameInterval;
 
+    public static void SetFrameInterval(int interval)
+    {
+        _frameInterval = FixedNumber.MakeFixNum(interval, 1000);
+    }
+
     /// <summary>
     /// 开启战斗线程
     /// </summary>
     /// <param name="interval">多少秒一轮询</param>
     public void StartFrameEngine(int interval)
     {
-        _frameInterval = FixedNumber.MakeFixNum(interval, 1000);
+        SetFrameInterval(interval);
         _frameCancellationTokenSource = new CancellationTokenSource();
         var frameCancellationToken = _frameCancellationTokenSource.Token;
         _frameTask = Task.Run(async () =>
         {
+            var stopwatch = Stopwatch.StartNew();
+            var nextTick = stopwatch.ElapsedMilliseconds;
             while (!frameCancellationToken.IsCancellationRequested)
             {
+                nextTick += interval;
                 if (_frameUpdateListeners != null) await _frameUpdateListeners(frameCancellationToken);
-                await Task.Delay(interval, frameCancellationToken);
+                var delay = nextTick - stopwatch.ElapsedMilliseconds;
+                if (delay > 0)
+                {
+                    await Task.Delay((int)delay, frameCancellationToken);
+                }
+                else
+                {
+                    if (-delay > interval)
+                        nextTick = stopwatch.ElapsedMilliseconds;
+                    await Task.Yield();
+                }
             }
         }, frameCancellationToken);
     }
@@ -93,10 +112,23 @@ public class FrameEngine
         var replayCancellationToken = _replayCancellationTokenSource.Token;
         _replayTask = Task.Run(async () =>
         {
+            var stopwatch = Stopwatch.StartNew();
+            var nextTick = stopwatch.ElapsedMilliseconds;
             while (!replayCancellationToken.IsCancellationRequested)
             {
+                nextTick += interval;
                 if (_replayUpdateListeners != null) await _replayUpdateListeners(replayCancellationToken);
-                await Task.Delay(interval, replayCancellationToken);
+                var delay = nextTick - stopwatch.ElapsedMilliseconds;
+                if (delay > 0)
+                {
+                    await Task.Delay((int)delay, replayCancellationToken);
+                }
+                else
+                {
+                    if (-delay > interval)
+                        nextTick = stopwatch.ElapsedMilliseconds;
+                    await Task.Yield();
+                }
             }
         }, replayCancellationToken);
     }
@@ -141,10 +173,23 @@ public class FrameEngine
         var netCancellationToken = _netCancellationTokenSource.Token;
         _netTask = Task.Run(async () =>
         {
+            var stopwatch = Stopwatch.StartNew();
+            var nextTick = stopwatch.ElapsedMilliseconds;
             while (!_netCancellationTokenSource.IsCancellationRequested)
             {
+                nextTick += interval;
                 if (_netUpdateListeners != null) await _netUpdateListeners(netCancellationToken);
-                await Task.Delay(interval, netCancellationToken);
+                var delay = nextTick - stopwatch.ElapsedMilliseconds;
+                if (delay > 0)
+                {
+                    await Task.Delay((int)delay, netCancellationToken);
+                }
+                else
+                {
+                    if (-delay > interval)
+                        nextTick = stopwatch.ElapsedMilliseconds;
+                    await Task.Yield();
+                }
             }
         }, netCancellationToken);
     }
@@ -214,6 +259,6 @@ public class FrameEngine
 
     public void UnRegisterNetUpdateListener()
     {
-        _netUpdateListeners -= null;
+        _netUpdateListeners = null;
     }
 }

@@ -10,6 +10,9 @@ public class ReconnectSessionInfo
     public int AuthoritativeFrame;
     public int LastReceivedFrame;
     public int PlayerPos;
+    public bool IsCatchUpRoundComplete;
+    public bool IsReconnectComplete;
+    public int LastAckedFrame = -1;
     public string FailureReason;
     public List<uint> Gamers = new List<uint>();
 
@@ -20,6 +23,9 @@ public class ReconnectSessionInfo
         AuthoritativeFrame = 0;
         LastReceivedFrame = -1;
         PlayerPos = 0;
+        IsCatchUpRoundComplete = false;
+        IsReconnectComplete = false;
+        LastAckedFrame = -1;
         FailureReason = string.Empty;
         Gamers.Clear();
     }

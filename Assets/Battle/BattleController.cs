@@ -149,6 +149,16 @@ public class BattleController
         _lastLostFrame = 0;
     }
 
+    public void AlignServerTimeToFrame(int frame)
+    {
+        if (!_stopwatch.IsRunning)
+            _stopwatch.Start();
+
+        _timeOffset = _stopwatch.ElapsedMilliseconds - (long)frame * BattleSetting.BattleInterval;
+        _lastProcessFrameTime = _stopwatch.ElapsedMilliseconds;
+        Logger.Log(LogLevel.Info, $"AlignServerTimeToFrame frame:{frame} timeOffset:{_timeOffset} elapsed:{_stopwatch.ElapsedMilliseconds}");
+    }
+
     /// <summary>
     /// 快速追帧到目标帧
     /// </summary>
@@ -201,18 +211,27 @@ public class BattleController
     /// <returns>任务</returns>
     public Task NetUpdate(CancellationToken cancellationToken)
     {
-        var input = InputManager.Instance.GetInput(GameManager.Instance.GetBattlePos());
-        if (_willSentFrame != default && !input.Compare(_lastSentInput) && _lastSentFrame != _willSentFrame)
+        var gameManager = GameManager.InstanceOrNull;
+        var networkManager = NetworkManager.InstanceOrNull;
+        if (gameManager == null || networkManager == null)
+            return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
+
+        var inputManager = InputManager.InstanceOrNull;
+        if (inputManager != null &&
+            inputManager.TryGetInput(gameManager.GetBattlePos(), out var input) &&
+            _willSentFrame != default &&
+            !input.Compare(_lastSentInput) &&
+            _lastSentFrame != _willSentFrame)
         {
             Logger.Log(LogLevel.Info, $"NetUpdate SendFrame Frame:{_willSentFrame} Input:{input}");
-            NetworkManager.Instance.SendBattleFrameMessage(_willSentFrame, input.ToByte());
+            networkManager.SendBattleFrameMessage(_willSentFrame, input.ToByte());
             _lastSentFrame = _willSentFrame;
             _lastSentInput = input;
         }
         if (_stopwatch.ElapsedMilliseconds - _lastHeartbeatTime >= BattleSetting.HeartbeatTime)
         {
             _lastHeartbeatTime = _stopwatch.ElapsedMilliseconds;
-            NetworkManager.Instance.SendBattleHeartBeatMessage(GameManager.Instance.PlayerId, (ulong)_stopwatch.ElapsedMilliseconds);
+            networkManager.SendBattleHeartBeatMessage(gameManager.PlayerId, (ulong)_stopwatch.ElapsedMilliseconds);
         }
         return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.CompletedTask;
     }

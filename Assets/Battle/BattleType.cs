@@ -11,4 +11,8 @@ public enum BattleType
     /// 回放
     /// </summary>
     Replay,
+    /// <summary>
+    /// 断线重连
+    /// </summary>
+    Reconnect,
 }
