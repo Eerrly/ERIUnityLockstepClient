@@ -14,6 +14,8 @@ public class NetworkManager : AManager<NetworkManager>
     private KcpClientTransport _kcpClientTransport;
     private TcpClientTransport _tcpClientTransport;
     private MemoryStream _memoryStream;
+    private BattleFrameMessageHandler _battleFrameMessageHandler;
+    private BattleReconnectMessageHandler _battleReconnectMessageHandler;
 
     /// <summary>
     /// 发送帧字节数组
@@ -68,6 +70,8 @@ public class NetworkManager : AManager<NetworkManager>
         {
             OnDataReceived = OnTcpDataReceived
         };
+        _battleFrameMessageHandler = new BattleFrameMessageHandler(GameManager.Instance.FrameBuffer);
+        _battleReconnectMessageHandler = new BattleReconnectMessageHandler();
     }
 
     /// <summary>
@@ -144,17 +148,19 @@ public class NetworkManager : AManager<NetworkManager>
                     var s2CMessage = pb.S2C_BattleReconnectMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgReconnect -> errorCode:{s2CMessage.ErrorCode} roomId:{s2CMessage.RoomId} authoritativeFrame:{s2CMessage.AuthoritativeFrame} playerPos:{s2CMessage.PlayerPos} reason:{s2CMessage.Reason}");
 
-                    if (s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk)
+                    var result = _battleReconnectMessageHandler.Handle(s2CMessage);
+                    if (result.Success)
                     {
                         if (gameManager.ReconnectSessionInfo != null)
-                            gameManager.ReconnectSessionInfo.PlayerPos = (int)s2CMessage.PlayerPos;
-                        var isCatchUpRoundComplete = s2CMessage.Reason == GameManager.ReconnectCatchUpRoundCompleteReason;
-                        var isReconnectComplete = s2CMessage.Reason == GameManager.ReconnectCompleteReason;
-                        LoomManager.Instance.QueueOnMainThread(() => gameManager.HandleBattleReconnectAccepted((int)s2CMessage.AuthoritativeFrame, isCatchUpRoundComplete, isReconnectComplete));
+                            gameManager.ReconnectSessionInfo.PlayerPos = result.PlayerPos;
+                        LoomManager.Instance.QueueOnMainThread(() => gameManager.HandleBattleReconnectAccepted(
+                            result.AuthoritativeFrame,
+                            result.IsCatchUpRoundComplete,
+                            result.IsReconnectComplete));
                     }
                     else
                     {
-                        var reason = string.IsNullOrEmpty(s2CMessage.Reason) ? "重连失败" : s2CMessage.Reason;
+                        var reason = string.IsNullOrEmpty(result.Reason) ? "重连失败" : result.Reason;
                         LoomManager.Instance.QueueOnMainThread(() => gameManager.HandleBattleReconnectFailed(reason));
                     }
                     break;
@@ -175,27 +181,12 @@ public class NetworkManager : AManager<NetworkManager>
                     var s2CMessage = pb.S2C_FrameMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame -> errorCode:{s2CMessage.ErrorCode} frame:{s2CMessage.Frame} playerCount:{s2CMessage.PlayerCount} inputCount:{s2CMessage.InputCount} datumCount:{s2CMessage.Datum.Count()}");
 
-                    var inputFrame = FrameBuffer.Frame.defFrame;
-                    inputFrame.frame = (int)s2CMessage.Frame;
-                    inputFrame.playerCount = (int)s2CMessage.PlayerCount;
+                    var result = _battleFrameMessageHandler.Handle(s2CMessage);
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame frame:{result.Frame} B0:[{result.RawInput0}] B1:[{result.RawInput1}] D0:[{result.InputFrame[0]}] D1:[{result.InputFrame[1]}]");
 
-                    var byteArray = s2CMessage.Datum.ToByteArray();
-                    for (int i = 0; i < inputFrame.playerCount; i++)
-                        inputFrame[i] = new FrameBuffer.Input(byte.MaxValue);
-                    for (int i = 0; i < BattleSetting.MaxPlayerInRoomCount && i < byteArray.Length; i++)
+                    if (!result.Success)
                     {
-                        if ((s2CMessage.InputCount & (1 << i)) == (1 << i))
-                            inputFrame[i] = new FrameBuffer.Input(byteArray[i]);
-                    }
-
-                    var b0 = byteArray.Length > 0 ? byteArray[0] : (byte)0;
-                    var b1 = byteArray.Length > 1 ? byteArray[1] : (byte)0;
-                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame frame:{inputFrame.frame} B0:[{b0}] B1:[{b1}] D0:[{inputFrame[0]}] D1:[{inputFrame[1]}]");
-
-                    var diff = 0;
-                    if (!gameManager.FrameBuffer.SyncFrame(inputFrame.frame, ref inputFrame, ref diff))
-                    {
-                        Logger.Log(LogLevel.Error, $"[KCP] BattleMsgFrame Can't SyncFrame frame->{inputFrame.frame} diff->{diff}");
+                        Logger.Log(LogLevel.Error, $"[KCP] BattleMsgFrame Can't SyncFrame frame->{result.Frame} diff->{result.Diff}");
                         if (gameManager.CurrentBattleType == BattleType.Reconnect)
                         {
                             LoomManager.Instance.QueueOnMainThread(() => gameManager.HandleBattleReconnectFailed("补帧不同步"));
@@ -207,11 +198,10 @@ public class NetworkManager : AManager<NetworkManager>
                         break;
                     }
 
-                    var contiguousFrame = gameManager.FrameBuffer.LastSetFrameIndex;
-                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame SyncFrame [frame]->{inputFrame.frame} contiguous:{contiguousFrame}");
-                    gameManager.ServerAuthorityFrame = contiguousFrame;
+                    Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame SyncFrame [frame]->{result.Frame} contiguous:{result.ContiguousFrame}");
+                    gameManager.ServerAuthorityFrame = result.ContiguousFrame;
                     if (gameManager.CurrentBattleType == BattleType.Reconnect)
-                        LoomManager.Instance.QueueOnMainThread(() => gameManager.NotifyReconnectFrameSynced(contiguousFrame));
+                        LoomManager.Instance.QueueOnMainThread(() => gameManager.NotifyReconnectFrameSynced(result.ContiguousFrame));
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgCheck:

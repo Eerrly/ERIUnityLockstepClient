@@ -43,6 +43,8 @@ public class GameManager : MManager<GameManager>
     private FrameEngine _frameEngine;
     private BattleController _battleController;
     private ReplayController _replayController;
+    private BattleSessionController _battleSessionController;
+    private BattleReconnectController _battleReconnectController;
     private BattleView _battleView;
     private bool _battleViewInitialized;
     private Coroutine _remoteExitCoroutine;
@@ -69,15 +71,15 @@ public class GameManager : MManager<GameManager>
     {
         Application.targetFrameRate = GameSetting.TargetFrameRate;
 
-        _battleController = new BattleController();
-        _replayController = new ReplayController();
+        _battleSessionController = new BattleSessionController();
+        _battleReconnectController = new BattleReconnectController();
+
+        _battleController = _battleSessionController.BattleController;
+        _replayController = _battleSessionController.ReplayController;
         _replayController.OnReplayFinished += HandleReplayFinished;
-        _frameBuffer = new FrameBuffer(BattleSetting.MaxPlayerInRoomCount, BattleSetting.MaxFrameCount);
-        _frameEngine = new FrameEngine();
-        _frameEngine.RegisterNetUpdateListener(_battleController.NetUpdate);
-        _frameEngine.RegisterFrameUpdateListener(_battleController.LogicUpdate);
-        _frameEngine.RegisterReplayUpdateListener(_replayController.ReplayUpdate);
-        ReconnectSessionInfo = new ReconnectSessionInfo();
+        _frameBuffer = _battleSessionController.FrameBuffer;
+        _frameEngine = _battleSessionController.FrameEngine;
+        ReconnectSessionInfo = _battleReconnectController.SessionInfo;
     }
 
     public void StartBattle(BattleType battleType)
@@ -197,6 +199,7 @@ public class GameManager : MManager<GameManager>
             Destroy(_battleView.gameObject);
             _battleView = null;
             _battleViewInitialized = false;
+            _battleSessionController?.BindBattleView(null);
         }
 
         ReleaseEntitySystems();
@@ -216,6 +219,7 @@ public class GameManager : MManager<GameManager>
             Destroy(_battleView.gameObject);
             _battleView = null;
             _battleViewInitialized = false;
+            _battleSessionController?.BindBattleView(null);
         }
 
         ReleaseEntitySystems();
@@ -257,16 +261,9 @@ public class GameManager : MManager<GameManager>
             StopCoroutine(_reconnectCoroutine);
 
         var serverReconnectFrame = (int)loginMsg.ReconnectFrame;
-        var localLastReceivedFrame = -1;
-        ReconnectSessionInfo.Reset();
-        ReconnectSessionInfo.RoomId = loginMsg.ReconnectRoomId;
-        ReconnectSessionInfo.PlayerId = PlayerId;
-        ReconnectSessionInfo.AuthoritativeFrame = serverReconnectFrame;
-        ReconnectSessionInfo.LastReceivedFrame = localLastReceivedFrame;
-        ReconnectSessionInfo.PlayerPos = (int)loginMsg.ReconnectPlayerPos;
-        foreach (var gamer in loginMsg.ReconnectGamers)
-            ReconnectSessionInfo.Gamers.Add(gamer);
-        Logger.Log(LogLevel.Info, $"[Reconnect] Begin from login room:{ReconnectSessionInfo.RoomId} player:{PlayerId} serverFrame:{serverReconnectFrame} localLastReceived:{localLastReceivedFrame}");
+        _battleReconnectController.ResetFromLogin(loginMsg, PlayerId);
+        ReconnectSessionInfo = _battleReconnectController.SessionInfo;
+        Logger.Log(LogLevel.Info, $"[Reconnect] Begin from login room:{ReconnectSessionInfo.RoomId} player:{PlayerId} serverFrame:{serverReconnectFrame} localLastReceived:{ReconnectSessionInfo.LastReceivedFrame}");
 
         if (ReconnectSessionInfo.Gamers.Count != GameSetting.RoomMaxPlayerCount ||
             ReconnectSessionInfo.PlayerPos < 0 ||
@@ -639,6 +636,7 @@ public class GameManager : MManager<GameManager>
         var go = new GameObject("BattleView");
         _battleView = Util.GetOrAddComponent<BattleView>(go);
         _battleViewInitialized = false;
+        _battleSessionController?.BindBattleView(_battleView);
     }
 
     public void OnRoomFull()
@@ -673,34 +671,28 @@ public class GameManager : MManager<GameManager>
         ReconnectStatus = status;
         ReconnectProgressText = progressText ?? string.Empty;
         ReconnectProgress01 = Mathf.Clamp01(progress01);
+        _battleReconnectController?.UpdateStatus(ReconnectStatus, ReconnectProgressText, ReconnectProgress01);
         OnReconnectLoadingStatusChanged?.Invoke(ReconnectStatus, ReconnectProgressText);
     }
 
     private string BuildReconnectProgressText(int currentFrame, int targetFrame)
     {
-        if (targetFrame <= 0)
-            return "目标帧 0";
-
-        return $"同步帧 {Math.Max(0, Math.Min(currentFrame, targetFrame))}/{targetFrame}";
+        return _battleReconnectController == null
+            ? string.Empty
+            : _battleReconnectController.BuildProgressText(currentFrame, targetFrame);
     }
 
     private float CalculateReconnectProgress01(int currentFrame, int targetFrame)
     {
-        if (targetFrame <= 0)
-            return 1f;
-
-        return Mathf.Clamp01(Math.Max(0, currentFrame) / (float)targetFrame);
+        return _battleReconnectController == null
+            ? 0f
+            : _battleReconnectController.CalculateProgress01(currentFrame, targetFrame);
     }
 
     public override void OnRelease()
     {
         StopReconnectTimeout();
-        if (_frameEngine != null)
-        {
-            _frameEngine.UnRegisterFrameUpdateListener();
-            _frameEngine.UnRegisterNetUpdateListener();
-            _frameEngine.UnRegisterReplayUpdateListener();
-        }
+        _battleSessionController?.Release();
 
         if (_replayController != null)
             _replayController.OnReplayFinished -= HandleReplayFinished;
