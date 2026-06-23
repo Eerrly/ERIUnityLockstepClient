@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/World.unity
     guid: f1da34cfd79cf884bb14d19db620b8ae
+  - enabled: 1
+    path: Assets/Scenes/ReconnectLoadingScene.unity
+    guid: 7345a886860f4c04bb2548ee604d718d
   m_configObjects: {}
