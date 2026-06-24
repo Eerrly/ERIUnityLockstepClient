@@ -47,8 +47,7 @@ public class GameManager : MManager<GameManager>
     private BattleFlowStateMachine _battleStateMachine;
     private BattleSessionController _battleSessionController;
     private BattleReconnectController _battleReconnectController;
-    private BattleView _battleView;
-    private bool _battleViewInitialized;
+    private BattleViewLifecycleController _battleViewLifecycleController;
     private Coroutine _remoteExitCoroutine;
     private Coroutine _replayExitCoroutine;
     private Coroutine _reconnectCoroutine;
@@ -76,6 +75,7 @@ public class GameManager : MManager<GameManager>
         _battleStateMachine = new BattleFlowStateMachine();
         _battleSessionController = new BattleSessionController();
         _battleReconnectController = new BattleReconnectController();
+        _battleViewLifecycleController = new BattleViewLifecycleController(_battleSessionController.BindBattleView);
 
         _battleController = _battleSessionController.BattleController;
         _replayController = _battleSessionController.ReplayController;
@@ -114,12 +114,8 @@ public class GameManager : MManager<GameManager>
         CameraManager.Instance.ApplyBattleCameraState();
         UIRootManager.Instance.ShowRoot(UIRootType.Battle);
 
-        if (_battleView == null)
-            CreateBattleView();
-
         _battleController.InitEntities();
-        _battleView.InitView(_battleController.DisplayBattleEntity);
-        _battleViewInitialized = true;
+        _battleViewLifecycleController.InitView(_battleController.DisplayBattleEntity);
         InitializeEntitySystems();
         _frameEngine.StartNetEngine(BattleSetting.NetInterval);
         _frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
@@ -131,14 +127,13 @@ public class GameManager : MManager<GameManager>
         IsBattleStart = true;
         StartCoroutine(OnLoadBattleSceneAsync(() =>
         {
-            CreateBattleView();
+            _battleViewLifecycleController.RecreateView();
             CameraManager.Instance.ApplyReplayCameraState();
 
             _replayController.InitReplay(GetBattlePos());
             _replayController.RestartReplay();
             UIRootManager.Instance.ShowRoot(UIRootType.Replay);
-            _battleView.InitView(_replayController.DisplayBattleEntity);
-            _battleViewInitialized = true;
+            _battleViewLifecycleController.InitView(_replayController.DisplayBattleEntity);
             InitializeEntitySystems();
             _frameEngine.StartReplayEngine(BattleSetting.BattleInterval);
         }));
@@ -151,7 +146,7 @@ public class GameManager : MManager<GameManager>
 
     public void RenderUpdate(float deltaTime)
     {
-        if (!IsBattleStart || _battleView == null)
+        if (!IsBattleStart || !_battleViewLifecycleController.HasView)
             return;
 
         try
@@ -159,10 +154,10 @@ public class GameManager : MManager<GameManager>
             switch (CurrentBattleType)
             {
                 case BattleType.Remote:
-                    _battleView.RenderUpdate(_battleController.DisplayBattleEntity, deltaTime);
+                    _battleViewLifecycleController.RenderUpdate(_battleController.DisplayBattleEntity, deltaTime);
                     break;
                 case BattleType.Replay:
-                    _battleView.RenderUpdate(_replayController.DisplayBattleEntity, deltaTime);
+                    _battleViewLifecycleController.RenderUpdate(_replayController.DisplayBattleEntity, deltaTime);
                     break;
             }
         }
@@ -196,20 +191,11 @@ public class GameManager : MManager<GameManager>
 
     private void StopRemoteBattle()
     {
-        if (!IsBattleStart && _battleView == null)
+        if (!IsBattleStart && !_battleViewLifecycleController.HasView)
             return;
 
         _frameEngine?.StopEngine();
-        if (_battleView != null)
-        {
-            if (_battleViewInitialized)
-                _battleView.OnRelease(_battleController.DisplayBattleEntity);
-            Destroy(_battleView.gameObject);
-            _battleView = null;
-            _battleViewInitialized = false;
-            _battleSessionController?.BindBattleView(null);
-        }
-
+        _battleViewLifecycleController.ReleaseView(_battleController.DisplayBattleEntity);
         ReleaseEntitySystems();
         BattleRecordManager.Instance.OnRelease();
         NetworkManager.Instance.KcpShutdown();
@@ -220,16 +206,7 @@ public class GameManager : MManager<GameManager>
     private void StopReplayBattle()
     {
         _frameEngine?.StopReplayEngine();
-        if (_battleView != null)
-        {
-            if (_battleViewInitialized)
-                _battleView.OnRelease(_replayController.DisplayBattleEntity);
-            Destroy(_battleView.gameObject);
-            _battleView = null;
-            _battleViewInitialized = false;
-            _battleSessionController?.BindBattleView(null);
-        }
-
+        _battleViewLifecycleController.ReleaseView(_replayController.DisplayBattleEntity);
         ReleaseEntitySystems();
         IsBattleStart = false;
     }
@@ -437,11 +414,7 @@ public class GameManager : MManager<GameManager>
         ReconnectSessionInfo.FailureReason = string.Empty;
 
         CameraManager.Instance.ApplyBattleCameraState();
-        if (_battleView == null)
-            CreateBattleView();
-
-        _battleView.InitView(_battleController.DisplayBattleEntity);
-        _battleViewInitialized = true;
+        _battleViewLifecycleController.InitView(_battleController.DisplayBattleEntity);
         UIRootManager.Instance.ShowRoot(UIRootType.Battle);
         _frameEngine.StartNetEngine(BattleSetting.NetInterval);
         _frameEngine.StartFrameEngine(BattleSetting.BattleInterval);
@@ -535,7 +508,7 @@ public class GameManager : MManager<GameManager>
         {
             StopReplayBattle();
         }
-        else if (_battleView != null || wasBattleStart)
+        else if (_battleViewLifecycleController.HasView || wasBattleStart)
         {
             CleanupRemoteBattleForReconnect();
         }
@@ -554,7 +527,7 @@ public class GameManager : MManager<GameManager>
         UpdateReconnectStatus(ReconnectLoadingStatus.LoadingBattleScene, "加载战斗场景", 0f);
         yield return SceneManager.LoadSceneAsync((int)EGameScene.World, LoadSceneMode.Single);
 
-        CreateBattleView();
+        _battleViewLifecycleController.RecreateView();
         CameraManager.Instance.ApplyBattleCameraState();
         _battleController.InitEntities();
         InitializeEntitySystems();
@@ -638,22 +611,11 @@ public class GameManager : MManager<GameManager>
         }
     }
 
-    private void CreateBattleView()
-    {
-        if (_battleView != null)
-            Destroy(_battleView.gameObject);
-
-        var go = new GameObject("BattleView");
-        _battleView = Util.GetOrAddComponent<BattleView>(go);
-        _battleViewInitialized = false;
-        _battleSessionController?.BindBattleView(_battleView);
-    }
-
     public void OnRoomFull()
     {
         StartCoroutine(OnLoadBattleSceneAsync(() =>
         {
-            CreateBattleView();
+            _battleViewLifecycleController.RecreateView();
             CameraManager.Instance.ApplyBattleCameraState();
             NetworkManager.Instance.KcpConnect();
             NetworkManager.Instance.KcpUpdate();
