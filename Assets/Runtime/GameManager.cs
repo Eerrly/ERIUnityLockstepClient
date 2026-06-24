@@ -21,13 +21,14 @@ public class GameManager : MManager<GameManager>
     public int ServerAuthorityFrame = -1;
     public bool IsBattleConnected = false;
     public bool IsBattleStart = false;
-    public bool IsReconnecting => CurrentBattleType == BattleType.Reconnect;
+    public bool IsReconnecting => _battleStateMachine != null && _battleStateMachine.IsReconnecting;
     public bool ShouldIgnoreReconnectDisconnectFailure => _suppressReconnectDisconnectFailure;
     public ReconnectLoadingStatus ReconnectStatus { get; private set; } = ReconnectLoadingStatus.None;
     public string ReconnectProgressText { get; private set; } = string.Empty;
     public float ReconnectProgress01 { get; private set; }
     public ReconnectSessionInfo ReconnectSessionInfo { get; private set; }
-    public BattleType CurrentBattleType { get; private set; } = BattleType.Remote;
+    public BattleRuntimeState CurrentBattleState => _battleStateMachine == null ? BattleRuntimeState.Main : _battleStateMachine.CurrentState;
+    public BattleType CurrentBattleType => _battleStateMachine == null ? BattleType.Remote : _battleStateMachine.CurrentBattleType;
 
     private FrameBuffer _frameBuffer;
     public FrameBuffer FrameBuffer
@@ -43,6 +44,7 @@ public class GameManager : MManager<GameManager>
     private FrameEngine _frameEngine;
     private BattleController _battleController;
     private ReplayController _replayController;
+    private BattleFlowStateMachine _battleStateMachine;
     private BattleSessionController _battleSessionController;
     private BattleReconnectController _battleReconnectController;
     private BattleView _battleView;
@@ -71,6 +73,7 @@ public class GameManager : MManager<GameManager>
     {
         Application.targetFrameRate = GameSetting.TargetFrameRate;
 
+        _battleStateMachine = new BattleFlowStateMachine();
         _battleSessionController = new BattleSessionController();
         _battleReconnectController = new BattleReconnectController();
 
@@ -85,7 +88,11 @@ public class GameManager : MManager<GameManager>
     public void StartBattle(BattleType battleType)
     {
         var previousBattleType = CurrentBattleType;
-        CurrentBattleType = battleType;
+        if (!_battleStateMachine.TryEnterBattle(battleType, out var failureReason))
+        {
+            Logger.Log(LogLevel.Warning, failureReason);
+            return;
+        }
 
         switch (battleType)
         {
@@ -179,6 +186,7 @@ public class GameManager : MManager<GameManager>
                 StopReconnectBattle();
                 break;
         }
+        TransitionBattleState(BattleRuntimeState.Main);
     }
 
     public void StopBattle()
@@ -420,7 +428,7 @@ public class GameManager : MManager<GameManager>
             return;
         }
 
-        CurrentBattleType = BattleType.Remote;
+        TransitionBattleState(BattleRuntimeState.RemoteBattle);
         IsBattleStart = true;
         IsBattleConnected = true;
         ServerAuthorityFrame = targetFrame;
@@ -492,6 +500,7 @@ public class GameManager : MManager<GameManager>
         yield return SceneManager.LoadSceneAsync((int)EGameScene.Main, LoadSceneMode.Single);
         CameraManager.Instance.ApplyMainCameraState();
         UIRootManager.Instance.ShowRoot(UIRootType.Modern);
+        TransitionBattleState(BattleRuntimeState.Main);
         _replayExitCoroutine = null;
     }
 
@@ -501,6 +510,7 @@ public class GameManager : MManager<GameManager>
         yield return SceneManager.LoadSceneAsync((int)EGameScene.Main, LoadSceneMode.Single);
         CameraManager.Instance.ApplyMainCameraState();
         UIRootManager.Instance.ShowRoot(UIRootType.Modern);
+        TransitionBattleState(BattleRuntimeState.Main);
         OnStatusMessage?.Invoke(string.IsNullOrEmpty(reason) ? "战斗已退出" : reason);
         _remoteExitCoroutine = null;
     }
@@ -560,7 +570,7 @@ public class GameManager : MManager<GameManager>
         yield return new WaitForSeconds(1f);
 
         CleanupRemoteBattleForReconnect();
-        CurrentBattleType = BattleType.Remote;
+        TransitionBattleState(BattleRuntimeState.Main);
         IsBattleConnected = false;
         IsBattleStart = false;
         ServerAuthorityFrame = -1;
@@ -585,7 +595,7 @@ public class GameManager : MManager<GameManager>
         }
 
         CleanupRemoteBattleForReconnect();
-        CurrentBattleType = BattleType.Remote;
+        TransitionBattleState(BattleRuntimeState.Main);
         IsBattleConnected = false;
         IsBattleStart = false;
         ServerAuthorityFrame = -1;
@@ -673,6 +683,15 @@ public class GameManager : MManager<GameManager>
         ReconnectProgress01 = Mathf.Clamp01(progress01);
         _battleReconnectController?.UpdateStatus(ReconnectStatus, ReconnectProgressText, ReconnectProgress01);
         OnReconnectLoadingStatusChanged?.Invoke(ReconnectStatus, ReconnectProgressText);
+    }
+
+    private void TransitionBattleState(BattleRuntimeState nextState)
+    {
+        if (_battleStateMachine == null)
+            return;
+
+        if (!_battleStateMachine.TryEnter(nextState, out var failureReason))
+            Logger.Log(LogLevel.Warning, failureReason);
     }
 
     private string BuildReconnectProgressText(int currentFrame, int targetFrame)
