@@ -120,7 +120,7 @@ public class NetworkManager : AManager<NetworkManager>
                     var s2CMessage = pb.S2C_ConnectMsg.Parser.ParseFrom(_memoryStream);
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgConnect -> errorCode:{s2CMessage.ErrorCode}");
 
-                    gameManager.IsBattleConnected = s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
+                    gameManager.SetBattleConnected(s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk);
                     break;
                 }
                 case (byte)pb.BattleMsgID.BattleMsgReady:
@@ -138,7 +138,7 @@ public class NetworkManager : AManager<NetworkManager>
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgStart -> errorCode:{s2CMessage.ErrorCode} frame:{s2CMessage.Frame} timestamp:{s2CMessage.TimeStamp}");
 
                     _serverStopwatch.Start();
-                    gameManager.IsBattleStart = s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk;
+                    gameManager.SetBattleStarted(s2CMessage.ErrorCode == pb.BattleErrorCode.BattleErrBattleOk);
                     if (gameManager.IsBattleStart)
                         LoomManager.Instance.QueueOnMainThread(() => gameManager.StartBattle(BattleType.Remote));
                     break;
@@ -199,7 +199,7 @@ public class NetworkManager : AManager<NetworkManager>
                     }
 
                     Logger.Log(LogLevel.Info, $"[KCP] BattleMsgFrame SyncFrame [frame]->{result.Frame} contiguous:{result.ContiguousFrame}");
-                    gameManager.ServerAuthorityFrame = result.ContiguousFrame;
+                    gameManager.SetServerAuthorityFrame(result.ContiguousFrame);
                     if (gameManager.CurrentBattleType == BattleType.Reconnect)
                         LoomManager.Instance.QueueOnMainThread(() => gameManager.NotifyReconnectFrameSynced(result.ContiguousFrame));
                     break;
